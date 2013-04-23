@@ -1,0 +1,2743 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"drv_pwm.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.data
+  19              		.align	2
+  22              	timerHardware:
+  23 0000 00000040 		.word	1073741824
+  24 0004 00080140 		.word	1073809408
+  25 0008 01000000 		.word	1
+  26 000c 00       		.byte	0
+  27 000d 1C       		.byte	28
+  28 000e 00       		.byte	0
+  29 000f 00       		.space	1
+  30 0010 00000040 		.word	1073741824
+  31 0014 00080140 		.word	1073809408
+  32 0018 02000000 		.word	2
+  33 001c 04       		.byte	4
+  34 001d 1C       		.byte	28
+  35 001e 00       		.byte	0
+  36 001f 00       		.space	1
+  37 0020 00000040 		.word	1073741824
+  38 0024 00080140 		.word	1073809408
+  39 0028 04000000 		.word	4
+  40 002c 08       		.byte	8
+  41 002d 1C       		.byte	28
+  42 002e 00       		.byte	0
+  43 002f 00       		.space	1
+  44 0030 00000040 		.word	1073741824
+  45 0034 00080140 		.word	1073809408
+  46 0038 08000000 		.word	8
+  47 003c 0C       		.byte	12
+  48 003d 1C       		.byte	28
+  49 003e 00       		.byte	0
+  50 003f 00       		.space	1
+  51 0040 00040040 		.word	1073742848
+  52 0044 00080140 		.word	1073809408
+  53 0048 40000000 		.word	64
+  54 004c 00       		.byte	0
+  55 004d 1D       		.byte	29
+  56 004e 00       		.byte	0
+  57 004f 00       		.space	1
+  58 0050 00040040 		.word	1073742848
+  59 0054 00080140 		.word	1073809408
+  60 0058 80000000 		.word	128
+  61 005c 04       		.byte	4
+  62 005d 1D       		.byte	29
+  63 005e 00       		.byte	0
+  64 005f 00       		.space	1
+  65 0060 00040040 		.word	1073742848
+  66 0064 000C0140 		.word	1073810432
+  67 0068 01000000 		.word	1
+  68 006c 08       		.byte	8
+  69 006d 1D       		.byte	29
+  70 006e 00       		.byte	0
+  71 006f 00       		.space	1
+  72 0070 00040040 		.word	1073742848
+  73 0074 000C0140 		.word	1073810432
+  74 0078 02000000 		.word	2
+  75 007c 0C       		.byte	12
+  76 007d 1D       		.byte	29
+  77 007e 00       		.byte	0
+  78 007f 00       		.space	1
+  79 0080 002C0140 		.word	1073818624
+  80 0084 00080140 		.word	1073809408
+  81 0088 00010000 		.word	256
+  82 008c 00       		.byte	0
+  83 008d 1B       		.byte	27
+  84 008e 01       		.byte	1
+  85 008f 00       		.space	1
+  86 0090 002C0140 		.word	1073818624
+  87 0094 00080140 		.word	1073809408
+  88 0098 00080000 		.word	2048
+  89 009c 0C       		.byte	12
+  90 009d 1B       		.byte	27
+  91 009e 01       		.byte	1
+  92 009f 00       		.space	1
+  93 00a0 00080040 		.word	1073743872
+  94 00a4 000C0140 		.word	1073810432
+  95 00a8 40000000 		.word	64
+  96 00ac 00       		.byte	0
+  97 00ad 1E       		.byte	30
+  98 00ae 00       		.byte	0
+  99 00af 00       		.space	1
+ 100 00b0 00080040 		.word	1073743872
+ 101 00b4 000C0140 		.word	1073810432
+ 102 00b8 80000000 		.word	128
+ 103 00bc 04       		.byte	4
+ 104 00bd 1E       		.byte	30
+ 105 00be 00       		.byte	0
+ 106 00bf 00       		.space	1
+ 107 00c0 00080040 		.word	1073743872
+ 108 00c4 000C0140 		.word	1073810432
+ 109 00c8 00010000 		.word	256
+ 110 00cc 08       		.byte	8
+ 111 00cd 1E       		.byte	30
+ 112 00ce 00       		.byte	0
+ 113 00cf 00       		.space	1
+ 114 00d0 00080040 		.word	1073743872
+ 115 00d4 000C0140 		.word	1073810432
+ 116 00d8 00020000 		.word	512
+ 117 00dc 0C       		.byte	12
+ 118 00dd 1E       		.byte	30
+ 119 00de 00       		.byte	0
+ 120 00df 00       		.space	1
+ 121              		.bss
+ 122              		.align	2
+ 123              	pwmPorts:
+ 124 0000 00000000 		.space	280
+ 124      00000000 
+ 124      00000000 
+ 124      00000000 
+ 124      00000000 
+ 125              		.align	2
+ 126              	captures:
+ 127 0118 00000000 		.space	16
+ 127      00000000 
+ 127      00000000 
+ 127      00000000 
+ 128              		.align	2
+ 129              	motors:
+ 130 0128 00000000 		.space	48
+ 130      00000000 
+ 130      00000000 
+ 130      00000000 
+ 130      00000000 
+ 131              		.align	2
+ 132              	servos:
+ 133 0158 00000000 		.space	32
+ 133      00000000 
+ 133      00000000 
+ 133      00000000 
+ 133      00000000 
+ 134              	numMotors:
+ 135 0178 00       		.space	1
+ 136              	numServos:
+ 137 0179 00       		.space	1
+ 138              	numInputs:
+ 139 017a 00       		.space	1
+ 140              		.section	.rodata
+ 141              		.align	2
+ 144              	multiPPM:
+ 145 0000 10       		.byte	16
+ 146 0001 48       		.byte	72
+ 147 0002 49       		.byte	73
+ 148 0003 4A       		.byte	74
+ 149 0004 4B       		.byte	75
+ 150 0005 4C       		.byte	76
+ 151 0006 4D       		.byte	77
+ 152 0007 44       		.byte	68
+ 153 0008 45       		.byte	69
+ 154 0009 46       		.byte	70
+ 155 000a 47       		.byte	71
+ 156 000b FF       		.byte	-1
+ 157              		.align	2
+ 160              	multiPWM:
+ 161 000c 20       		.byte	32
+ 162 000d 21       		.byte	33
+ 163 000e 22       		.byte	34
+ 164 000f 23       		.byte	35
+ 165 0010 24       		.byte	36
+ 166 0011 25       		.byte	37
+ 167 0012 26       		.byte	38
+ 168 0013 27       		.byte	39
+ 169 0014 48       		.byte	72
+ 170 0015 49       		.byte	73
+ 171 0016 4A       		.byte	74
+ 172 0017 4B       		.byte	75
+ 173 0018 4C       		.byte	76
+ 174 0019 4D       		.byte	77
+ 175 001a FF       		.byte	-1
+ 176 001b 00       		.align	2
+ 179              	airPPM:
+ 180 001c 10       		.byte	16
+ 181 001d 48       		.byte	72
+ 182 001e 49       		.byte	73
+ 183 001f 8A       		.byte	-118
+ 184 0020 8B       		.byte	-117
+ 185 0021 8C       		.byte	-116
+ 186 0022 8D       		.byte	-115
+ 187 0023 84       		.byte	-124
+ 188 0024 85       		.byte	-123
+ 189 0025 86       		.byte	-122
+ 190 0026 87       		.byte	-121
+ 191 0027 FF       		.byte	-1
+ 192              		.align	2
+ 195              	airPWM:
+ 196 0028 20       		.byte	32
+ 197 0029 21       		.byte	33
+ 198 002a 22       		.byte	34
+ 199 002b 23       		.byte	35
+ 200 002c 24       		.byte	36
+ 201 002d 25       		.byte	37
+ 202 002e 26       		.byte	38
+ 203 002f 27       		.byte	39
+ 204 0030 48       		.byte	72
+ 205 0031 49       		.byte	73
+ 206 0032 8A       		.byte	-118
+ 207 0033 8B       		.byte	-117
+ 208 0034 8C       		.byte	-116
+ 209 0035 8D       		.byte	-115
+ 210 0036 FF       		.byte	-1
+ 211 0037 00       		.data
+ 212              		.align	2
+ 215              	hardwareMaps:
+ 216 00e0 0C000000 		.word	multiPWM
+ 217 00e4 00000000 		.word	multiPPM
+ 218 00e8 28000000 		.word	airPWM
+ 219 00ec 1C000000 		.word	airPPM
+ 220              		.text
+ 221              		.align	2
+ 222              		.thumb
+ 223              		.thumb_func
+ 225              	pwmTimeBase:
+ 226              	.LFB29:
+ 227              		.file 1 "../src/drv_pwm.c"
+   1:../src/drv_pwm.c **** #include "board.h"
+   2:../src/drv_pwm.c **** 
+   3:../src/drv_pwm.c **** #define PULSE_1MS       (1000) // 1ms pulse width
+   4:../src/drv_pwm.c **** 
+   5:../src/drv_pwm.c **** /* FreeFlight/Naze32 timer layout
+   6:../src/drv_pwm.c ****     TIM2_CH1    RC1             PWM1
+   7:../src/drv_pwm.c ****     TIM2_CH2    RC2             PWM2
+   8:../src/drv_pwm.c ****     TIM2_CH3    RC3/UA2_TX      PWM3
+   9:../src/drv_pwm.c ****     TIM2_CH4    RC4/UA2_RX      PWM4
+  10:../src/drv_pwm.c ****     TIM3_CH1    RC5             PWM5
+  11:../src/drv_pwm.c ****     TIM3_CH2    RC6             PWM6
+  12:../src/drv_pwm.c ****     TIM3_CH3    RC7             PWM7
+  13:../src/drv_pwm.c ****     TIM3_CH4    RC8             PWM8
+  14:../src/drv_pwm.c ****     TIM1_CH1    PWM1            PWM9
+  15:../src/drv_pwm.c ****     TIM1_CH4    PWM2            PWM10
+  16:../src/drv_pwm.c ****     TIM4_CH1    PWM3            PWM11
+  17:../src/drv_pwm.c ****     TIM4_CH2    PWM4            PWM12
+  18:../src/drv_pwm.c ****     TIM4_CH3    PWM5            PWM13
+  19:../src/drv_pwm.c ****     TIM4_CH4    PWM6            PWM14
+  20:../src/drv_pwm.c **** 
+  21:../src/drv_pwm.c ****     // RX1  TIM2_CH1 PA0 [also PPM] [also used for throttle calibration]
+  22:../src/drv_pwm.c ****     // RX2  TIM2_CH2 PA1
+  23:../src/drv_pwm.c ****     // RX3  TIM2_CH3 PA2 [also UART2_TX]
+  24:../src/drv_pwm.c ****     // RX4  TIM2_CH4 PA3 [also UART2_RX]
+  25:../src/drv_pwm.c ****     // RX5  TIM3_CH1 PA6 [also ADC_IN6]
+  26:../src/drv_pwm.c ****     // RX6  TIM3_CH2 PA7 [also ADC_IN7]
+  27:../src/drv_pwm.c ****     // RX7  TIM3_CH3 PB0 [also ADC_IN8]
+  28:../src/drv_pwm.c ****     // RX8  TIM3_CH4 PB1 [also ADC_IN9]
+  29:../src/drv_pwm.c **** 
+  30:../src/drv_pwm.c ****     // Outputs
+  31:../src/drv_pwm.c ****     // PWM1 TIM1_CH1 PA8
+  32:../src/drv_pwm.c ****     // PWM2 TIM1_CH4 PA11
+  33:../src/drv_pwm.c ****     // PWM3 TIM4_CH1 PB6? [also I2C1_SCL]
+  34:../src/drv_pwm.c ****     // PWM4 TIM4_CH2 PB7 [also I2C1_SDA]
+  35:../src/drv_pwm.c ****     // PWM5 TIM4_CH3 PB8
+  36:../src/drv_pwm.c ****     // PWM6 TIM4_CH4 PB9
+  37:../src/drv_pwm.c **** 
+  38:../src/drv_pwm.c ****     Groups that allow running different period (ex 50Hz servos + 400Hz throttle + etc):
+  39:../src/drv_pwm.c ****     TIM2 4 channels
+  40:../src/drv_pwm.c ****     TIM3 4 channels
+  41:../src/drv_pwm.c ****     TIM1 2 channels
+  42:../src/drv_pwm.c ****     TIM4 4 channels
+  43:../src/drv_pwm.c **** 
+  44:../src/drv_pwm.c ****     Configuration maps:
+  45:../src/drv_pwm.c **** 
+  46:../src/drv_pwm.c ****     1) multirotor PPM input
+  47:../src/drv_pwm.c ****     PWM1 used for PPM
+  48:../src/drv_pwm.c ****     PWM5..8 used for motors
+  49:../src/drv_pwm.c ****     PWM9..10 used for servo or else motors
+  50:../src/drv_pwm.c ****     PWM11..14 used for motors
+  51:../src/drv_pwm.c **** 
+  52:../src/drv_pwm.c ****     2) multirotor PPM input with more servos
+  53:../src/drv_pwm.c ****     PWM1 used for PPM
+  54:../src/drv_pwm.c ****     PWM5..8 used for motors
+  55:../src/drv_pwm.c ****     PWM9..10 used for servo or else motors
+  56:../src/drv_pwm.c ****     PWM11..14 used for servos
+  57:../src/drv_pwm.c **** 
+  58:../src/drv_pwm.c ****     2) multirotor PWM input
+  59:../src/drv_pwm.c ****     PWM1..8 used for input
+  60:../src/drv_pwm.c ****     PWM9..10 used for servo or else motors
+  61:../src/drv_pwm.c ****     PWM11..14 used for motors
+  62:../src/drv_pwm.c **** 
+  63:../src/drv_pwm.c ****     3) airplane / flying wing w/PWM
+  64:../src/drv_pwm.c ****     PWM1..8 used for input
+  65:../src/drv_pwm.c ****     PWM9 used for motor throttle +PWM10 for 2nd motor
+  66:../src/drv_pwm.c ****     PWM11.14 used for servos
+  67:../src/drv_pwm.c **** 
+  68:../src/drv_pwm.c ****     4) airplane / flying wing with PPM
+  69:../src/drv_pwm.c ****     PWM1 used for PPM
+  70:../src/drv_pwm.c ****     PWM5..8 used for servos
+  71:../src/drv_pwm.c ****     PWM9 used for motor throttle +PWM10 for 2nd motor
+  72:../src/drv_pwm.c ****     PWM11.14 used for servos
+  73:../src/drv_pwm.c **** */
+  74:../src/drv_pwm.c **** 
+  75:../src/drv_pwm.c **** typedef void pwmCallbackPtr(uint8_t port, uint16_t capture);
+  76:../src/drv_pwm.c **** 
+  77:../src/drv_pwm.c **** static pwmHardware_t timerHardware[] = {
+  78:../src/drv_pwm.c ****     { TIM2, GPIOA, GPIO_Pin_0, TIM_Channel_1, TIM2_IRQn, 0, },          // PWM1
+  79:../src/drv_pwm.c ****     { TIM2, GPIOA, GPIO_Pin_1, TIM_Channel_2, TIM2_IRQn, 0, },          // PWM2
+  80:../src/drv_pwm.c ****     { TIM2, GPIOA, GPIO_Pin_2, TIM_Channel_3, TIM2_IRQn, 0, },          // PWM3
+  81:../src/drv_pwm.c ****     { TIM2, GPIOA, GPIO_Pin_3, TIM_Channel_4, TIM2_IRQn, 0, },          // PWM4
+  82:../src/drv_pwm.c ****     { TIM3, GPIOA, GPIO_Pin_6, TIM_Channel_1, TIM3_IRQn, 0, },          // PWM5
+  83:../src/drv_pwm.c ****     { TIM3, GPIOA, GPIO_Pin_7, TIM_Channel_2, TIM3_IRQn, 0, },          // PWM6
+  84:../src/drv_pwm.c ****     { TIM3, GPIOB, GPIO_Pin_0, TIM_Channel_3, TIM3_IRQn, 0, },          // PWM7
+  85:../src/drv_pwm.c ****     { TIM3, GPIOB, GPIO_Pin_1, TIM_Channel_4, TIM3_IRQn, 0, },          // PWM8
+  86:../src/drv_pwm.c ****     { TIM1, GPIOA, GPIO_Pin_8, TIM_Channel_1, TIM1_CC_IRQn, 1, },       // PWM9
+  87:../src/drv_pwm.c ****     { TIM1, GPIOA, GPIO_Pin_11, TIM_Channel_4, TIM1_CC_IRQn, 1, },      // PWM10
+  88:../src/drv_pwm.c ****     { TIM4, GPIOB, GPIO_Pin_6, TIM_Channel_1, TIM4_IRQn, 0, },          // PWM11
+  89:../src/drv_pwm.c ****     { TIM4, GPIOB, GPIO_Pin_7, TIM_Channel_2, TIM4_IRQn, 0, },          // PWM12
+  90:../src/drv_pwm.c ****     { TIM4, GPIOB, GPIO_Pin_8, TIM_Channel_3, TIM4_IRQn, 0, },          // PWM13
+  91:../src/drv_pwm.c ****     { TIM4, GPIOB, GPIO_Pin_9, TIM_Channel_4, TIM4_IRQn, 0, },          // PWM14
+  92:../src/drv_pwm.c **** };
+  93:../src/drv_pwm.c **** 
+  94:../src/drv_pwm.c **** typedef struct {
+  95:../src/drv_pwm.c ****     pwmCallbackPtr *callback;
+  96:../src/drv_pwm.c ****     volatile uint16_t *ccr;
+  97:../src/drv_pwm.c ****     uint16_t period;
+  98:../src/drv_pwm.c **** 
+  99:../src/drv_pwm.c ****     // for input only
+ 100:../src/drv_pwm.c ****     uint8_t channel;
+ 101:../src/drv_pwm.c ****     uint8_t state;
+ 102:../src/drv_pwm.c ****     uint16_t rise;
+ 103:../src/drv_pwm.c ****     uint16_t fall;
+ 104:../src/drv_pwm.c ****     uint16_t capture;
+ 105:../src/drv_pwm.c **** } pwmPortData_t;
+ 106:../src/drv_pwm.c **** 
+ 107:../src/drv_pwm.c **** enum {
+ 108:../src/drv_pwm.c ****     TYPE_IP = 0x10,
+ 109:../src/drv_pwm.c ****     TYPE_IW = 0x20,
+ 110:../src/drv_pwm.c ****     TYPE_M = 0x40,
+ 111:../src/drv_pwm.c ****     TYPE_S = 0x80
+ 112:../src/drv_pwm.c **** };
+ 113:../src/drv_pwm.c **** 
+ 114:../src/drv_pwm.c **** static pwmPortData_t pwmPorts[MAX_PORTS];
+ 115:../src/drv_pwm.c **** static uint16_t captures[MAX_INPUTS];
+ 116:../src/drv_pwm.c **** static pwmPortData_t *motors[MAX_MOTORS];
+ 117:../src/drv_pwm.c **** static pwmPortData_t *servos[MAX_SERVOS];
+ 118:../src/drv_pwm.c **** static uint8_t numMotors = 0;
+ 119:../src/drv_pwm.c **** static uint8_t numServos = 0;
+ 120:../src/drv_pwm.c **** static uint8_t  numInputs = 0;
+ 121:../src/drv_pwm.c **** // external vars (ugh)
+ 122:../src/drv_pwm.c **** extern int16_t failsafeCnt;
+ 123:../src/drv_pwm.c **** 
+ 124:../src/drv_pwm.c **** static const uint8_t multiPPM[] = {
+ 125:../src/drv_pwm.c ****     PWM1 | TYPE_IP,     // PPM input
+ 126:../src/drv_pwm.c ****     PWM9 | TYPE_M,      // Swap to servo if needed
+ 127:../src/drv_pwm.c ****     PWM10 | TYPE_M,     // Swap to servo if needed
+ 128:../src/drv_pwm.c ****     PWM11 | TYPE_M,
+ 129:../src/drv_pwm.c ****     PWM12 | TYPE_M,
+ 130:../src/drv_pwm.c ****     PWM13 | TYPE_M,
+ 131:../src/drv_pwm.c ****     PWM14 | TYPE_M,
+ 132:../src/drv_pwm.c ****     PWM5 | TYPE_M,      // Swap to servo if needed
+ 133:../src/drv_pwm.c ****     PWM6 | TYPE_M,      // Swap to servo if needed
+ 134:../src/drv_pwm.c ****     PWM7 | TYPE_M,      // Swap to servo if needed
+ 135:../src/drv_pwm.c ****     PWM8 | TYPE_M,      // Swap to servo if needed
+ 136:../src/drv_pwm.c ****     0xFF
+ 137:../src/drv_pwm.c **** };
+ 138:../src/drv_pwm.c **** 
+ 139:../src/drv_pwm.c **** static const uint8_t multiPWM[] = {
+ 140:../src/drv_pwm.c ****     PWM1 | TYPE_IW,     // input #1
+ 141:../src/drv_pwm.c ****     PWM2 | TYPE_IW,
+ 142:../src/drv_pwm.c ****     PWM3 | TYPE_IW,
+ 143:../src/drv_pwm.c ****     PWM4 | TYPE_IW,
+ 144:../src/drv_pwm.c ****     PWM5 | TYPE_IW,
+ 145:../src/drv_pwm.c ****     PWM6 | TYPE_IW,
+ 146:../src/drv_pwm.c ****     PWM7 | TYPE_IW,
+ 147:../src/drv_pwm.c ****     PWM8 | TYPE_IW,     // input #8
+ 148:../src/drv_pwm.c ****     PWM9 | TYPE_M,      // motor #1 or servo #1 (swap to servo if needed)
+ 149:../src/drv_pwm.c ****     PWM10 | TYPE_M,     // motor #2 or servo #2 (swap to servo if needed)
+ 150:../src/drv_pwm.c ****     PWM11 | TYPE_M,     // motor #1 or #3
+ 151:../src/drv_pwm.c ****     PWM12 | TYPE_M,
+ 152:../src/drv_pwm.c ****     PWM13 | TYPE_M,
+ 153:../src/drv_pwm.c ****     PWM14 | TYPE_M,     // motor #4 or #6
+ 154:../src/drv_pwm.c ****     0xFF
+ 155:../src/drv_pwm.c **** };
+ 156:../src/drv_pwm.c **** 
+ 157:../src/drv_pwm.c **** static const uint8_t airPPM[] = {
+ 158:../src/drv_pwm.c ****     PWM1 | TYPE_IP,     // PPM input
+ 159:../src/drv_pwm.c ****     PWM9 | TYPE_M,      // motor #1
+ 160:../src/drv_pwm.c ****     PWM10 | TYPE_M,     // motor #2
+ 161:../src/drv_pwm.c ****     PWM11 | TYPE_S,     // servo #1
+ 162:../src/drv_pwm.c ****     PWM12 | TYPE_S,
+ 163:../src/drv_pwm.c ****     PWM13 | TYPE_S,
+ 164:../src/drv_pwm.c ****     PWM14 | TYPE_S,     // servo #4
+ 165:../src/drv_pwm.c ****     PWM5 | TYPE_S,      // servo #5
+ 166:../src/drv_pwm.c ****     PWM6 | TYPE_S,
+ 167:../src/drv_pwm.c ****     PWM7 | TYPE_S,
+ 168:../src/drv_pwm.c ****     PWM8 | TYPE_S,      // servo #8
+ 169:../src/drv_pwm.c ****     0xFF
+ 170:../src/drv_pwm.c **** };
+ 171:../src/drv_pwm.c **** 
+ 172:../src/drv_pwm.c **** static const uint8_t airPWM[] = {
+ 173:../src/drv_pwm.c ****     PWM1 | TYPE_IW,     // input #1
+ 174:../src/drv_pwm.c ****     PWM2 | TYPE_IW,
+ 175:../src/drv_pwm.c ****     PWM3 | TYPE_IW,
+ 176:../src/drv_pwm.c ****     PWM4 | TYPE_IW,
+ 177:../src/drv_pwm.c ****     PWM5 | TYPE_IW,
+ 178:../src/drv_pwm.c ****     PWM6 | TYPE_IW,
+ 179:../src/drv_pwm.c ****     PWM7 | TYPE_IW,
+ 180:../src/drv_pwm.c ****     PWM8 | TYPE_IW,     // input #8
+ 181:../src/drv_pwm.c ****     PWM9 | TYPE_M,      // motor #1
+ 182:../src/drv_pwm.c ****     PWM10 | TYPE_M,     // motor #2
+ 183:../src/drv_pwm.c ****     PWM11 | TYPE_S,     // servo #1
+ 184:../src/drv_pwm.c ****     PWM12 | TYPE_S,
+ 185:../src/drv_pwm.c ****     PWM13 | TYPE_S,
+ 186:../src/drv_pwm.c ****     PWM14 | TYPE_S,     // servo #4
+ 187:../src/drv_pwm.c ****     0xFF
+ 188:../src/drv_pwm.c **** };
+ 189:../src/drv_pwm.c **** 
+ 190:../src/drv_pwm.c **** static const uint8_t *hardwareMaps[] = {
+ 191:../src/drv_pwm.c ****     multiPWM,
+ 192:../src/drv_pwm.c ****     multiPPM,
+ 193:../src/drv_pwm.c ****     airPWM,
+ 194:../src/drv_pwm.c ****     airPPM,
+ 195:../src/drv_pwm.c **** };
+ 196:../src/drv_pwm.c **** 
+ 197:../src/drv_pwm.c **** static void pwmTimeBase(TIM_TypeDef *tim, uint32_t period)
+ 198:../src/drv_pwm.c **** {
+ 228              		.loc 1 198 0
+ 229              		.cfi_startproc
+ 230              		@ args = 0, pretend = 0, frame = 24
+ 231              		@ frame_needed = 1, uses_anonymous_args = 0
+ 232 0000 80B5     		push	{r7, lr}
+ 233              	.LCFI0:
+ 234              		.cfi_def_cfa_offset 8
+ 235              		.cfi_offset 7, -8
+ 236              		.cfi_offset 14, -4
+ 237 0002 86B0     		sub	sp, sp, #24
+ 238              	.LCFI1:
+ 239              		.cfi_def_cfa_offset 32
+ 240 0004 00AF     		add	r7, sp, #0
+ 241              	.LCFI2:
+ 242              		.cfi_def_cfa_register 7
+ 243 0006 7860     		str	r0, [r7, #4]
+ 244 0008 3960     		str	r1, [r7, #0]
+ 199:../src/drv_pwm.c ****     TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+ 200:../src/drv_pwm.c **** 
+ 201:../src/drv_pwm.c ****     TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+ 245              		.loc 1 201 0
+ 246 000a 07F10C03 		add	r3, r7, #12
+ 247 000e 1846     		mov	r0, r3
+ 248 0010 FFF7FEFF 		bl	TIM_TimeBaseStructInit
+ 202:../src/drv_pwm.c ****     TIM_TimeBaseStructure.TIM_Period = period - 1;
+ 249              		.loc 1 202 0
+ 250 0014 3B68     		ldr	r3, [r7, #0]
+ 251 0016 9BB2     		uxth	r3, r3
+ 252 0018 03F1FF33 		add	r3, r3, #-1
+ 253 001c 9BB2     		uxth	r3, r3
+ 254 001e 3B82     		strh	r3, [r7, #16]	@ movhi
+ 203:../src/drv_pwm.c ****     TIM_TimeBaseStructure.TIM_Prescaler = (SystemCoreClock / 1000000) - 1; // all timers run at 1MH
+ 255              		.loc 1 203 0
+ 256 0020 0D4B     		ldr	r3, .L2
+ 257 0022 1A68     		ldr	r2, [r3, #0]
+ 258 0024 0D4B     		ldr	r3, .L2+4
+ 259 0026 A3FB0213 		umull	r1, r3, r3, r2
+ 260 002a 4FEA9343 		lsr	r3, r3, #18
+ 261 002e 9BB2     		uxth	r3, r3
+ 262 0030 03F1FF33 		add	r3, r3, #-1
+ 263 0034 9BB2     		uxth	r3, r3
+ 264 0036 BB81     		strh	r3, [r7, #12]	@ movhi
+ 204:../src/drv_pwm.c ****     TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+ 265              		.loc 1 204 0
+ 266 0038 4FF00003 		mov	r3, #0
+ 267 003c 7B82     		strh	r3, [r7, #18]	@ movhi
+ 205:../src/drv_pwm.c ****     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+ 268              		.loc 1 205 0
+ 269 003e 4FF00003 		mov	r3, #0
+ 270 0042 FB81     		strh	r3, [r7, #14]	@ movhi
+ 206:../src/drv_pwm.c ****     TIM_TimeBaseInit(tim, &TIM_TimeBaseStructure);
+ 271              		.loc 1 206 0
+ 272 0044 07F10C03 		add	r3, r7, #12
+ 273 0048 7868     		ldr	r0, [r7, #4]
+ 274 004a 1946     		mov	r1, r3
+ 275 004c FFF7FEFF 		bl	TIM_TimeBaseInit
+ 207:../src/drv_pwm.c **** }
+ 276              		.loc 1 207 0
+ 277 0050 07F11807 		add	r7, r7, #24
+ 278 0054 BD46     		mov	sp, r7
+ 279 0056 80BD     		pop	{r7, pc}
+ 280              	.L3:
+ 281              		.align	2
+ 282              	.L2:
+ 283 0058 00000000 		.word	SystemCoreClock
+ 284 005c 83DE1B43 		.word	1125899907
+ 285              		.cfi_endproc
+ 286              	.LFE29:
+ 288              		.align	2
+ 289              		.thumb
+ 290              		.thumb_func
+ 292              	pwmNVICConfig:
+ 293              	.LFB30:
+ 208:../src/drv_pwm.c **** 
+ 209:../src/drv_pwm.c **** static void pwmNVICConfig(uint8_t irq)
+ 210:../src/drv_pwm.c **** {
+ 294              		.loc 1 210 0
+ 295              		.cfi_startproc
+ 296              		@ args = 0, pretend = 0, frame = 16
+ 297              		@ frame_needed = 1, uses_anonymous_args = 0
+ 298 0060 80B5     		push	{r7, lr}
+ 299              	.LCFI3:
+ 300              		.cfi_def_cfa_offset 8
+ 301              		.cfi_offset 7, -8
+ 302              		.cfi_offset 14, -4
+ 303 0062 84B0     		sub	sp, sp, #16
+ 304              	.LCFI4:
+ 305              		.cfi_def_cfa_offset 24
+ 306 0064 00AF     		add	r7, sp, #0
+ 307              	.LCFI5:
+ 308              		.cfi_def_cfa_register 7
+ 309 0066 0346     		mov	r3, r0
+ 310 0068 FB71     		strb	r3, [r7, #7]
+ 211:../src/drv_pwm.c ****     NVIC_InitTypeDef NVIC_InitStructure;
+ 212:../src/drv_pwm.c **** 
+ 213:../src/drv_pwm.c ****     NVIC_InitStructure.NVIC_IRQChannel = irq;
+ 311              		.loc 1 213 0
+ 312 006a FB79     		ldrb	r3, [r7, #7]
+ 313 006c 3B73     		strb	r3, [r7, #12]
+ 214:../src/drv_pwm.c ****     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+ 314              		.loc 1 214 0
+ 315 006e 4FF00003 		mov	r3, #0
+ 316 0072 7B73     		strb	r3, [r7, #13]
+ 215:../src/drv_pwm.c ****     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+ 317              		.loc 1 215 0
+ 318 0074 4FF00103 		mov	r3, #1
+ 319 0078 BB73     		strb	r3, [r7, #14]
+ 216:../src/drv_pwm.c ****     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+ 320              		.loc 1 216 0
+ 321 007a 4FF00103 		mov	r3, #1
+ 322 007e FB73     		strb	r3, [r7, #15]
+ 217:../src/drv_pwm.c ****     NVIC_Init(&NVIC_InitStructure);
+ 323              		.loc 1 217 0
+ 324 0080 07F10C03 		add	r3, r7, #12
+ 325 0084 1846     		mov	r0, r3
+ 326 0086 FFF7FEFF 		bl	NVIC_Init
+ 218:../src/drv_pwm.c **** }
+ 327              		.loc 1 218 0
+ 328 008a 07F11007 		add	r7, r7, #16
+ 329 008e BD46     		mov	sp, r7
+ 330 0090 80BD     		pop	{r7, pc}
+ 331              		.cfi_endproc
+ 332              	.LFE30:
+ 334 0092 00BF     		.align	2
+ 335              		.thumb
+ 336              		.thumb_func
+ 338              	pwmOCConfig:
+ 339              	.LFB31:
+ 219:../src/drv_pwm.c **** 
+ 220:../src/drv_pwm.c **** static void pwmOCConfig(TIM_TypeDef *tim, uint8_t channel, uint16_t value)
+ 221:../src/drv_pwm.c **** {
+ 340              		.loc 1 221 0
+ 341              		.cfi_startproc
+ 342              		@ args = 0, pretend = 0, frame = 24
+ 343              		@ frame_needed = 1, uses_anonymous_args = 0
+ 344 0094 80B5     		push	{r7, lr}
+ 345              	.LCFI6:
+ 346              		.cfi_def_cfa_offset 8
+ 347              		.cfi_offset 7, -8
+ 348              		.cfi_offset 14, -4
+ 349 0096 86B0     		sub	sp, sp, #24
+ 350              	.LCFI7:
+ 351              		.cfi_def_cfa_offset 32
+ 352 0098 00AF     		add	r7, sp, #0
+ 353              	.LCFI8:
+ 354              		.cfi_def_cfa_register 7
+ 355 009a 7860     		str	r0, [r7, #4]
+ 356 009c 1346     		mov	r3, r2
+ 357 009e 0A46     		mov	r2, r1
+ 358 00a0 FA70     		strb	r2, [r7, #3]
+ 359 00a2 3B80     		strh	r3, [r7, #0]	@ movhi
+ 222:../src/drv_pwm.c ****     TIM_OCInitTypeDef  TIM_OCInitStructure;
+ 223:../src/drv_pwm.c **** 
+ 224:../src/drv_pwm.c ****     TIM_OCStructInit(&TIM_OCInitStructure);
+ 360              		.loc 1 224 0
+ 361 00a4 07F10803 		add	r3, r7, #8
+ 362 00a8 1846     		mov	r0, r3
+ 363 00aa FFF7FEFF 		bl	TIM_OCStructInit
+ 225:../src/drv_pwm.c ****     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM2;
+ 364              		.loc 1 225 0
+ 365 00ae 4FF07003 		mov	r3, #112
+ 366 00b2 3B81     		strh	r3, [r7, #8]	@ movhi
+ 226:../src/drv_pwm.c ****     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+ 367              		.loc 1 226 0
+ 368 00b4 4FF00103 		mov	r3, #1
+ 369 00b8 7B81     		strh	r3, [r7, #10]	@ movhi
+ 227:../src/drv_pwm.c ****     TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;
+ 370              		.loc 1 227 0
+ 371 00ba 4FF00003 		mov	r3, #0
+ 372 00be BB81     		strh	r3, [r7, #12]	@ movhi
+ 228:../src/drv_pwm.c ****     TIM_OCInitStructure.TIM_Pulse = value;
+ 373              		.loc 1 228 0
+ 374 00c0 3B88     		ldrh	r3, [r7, #0]	@ movhi
+ 375 00c2 FB81     		strh	r3, [r7, #14]	@ movhi
+ 229:../src/drv_pwm.c ****     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low;
+ 376              		.loc 1 229 0
+ 377 00c4 4FF00203 		mov	r3, #2
+ 378 00c8 3B82     		strh	r3, [r7, #16]	@ movhi
+ 230:../src/drv_pwm.c ****     TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
+ 379              		.loc 1 230 0
+ 380 00ca 4FF48073 		mov	r3, #256
+ 381 00ce BB82     		strh	r3, [r7, #20]	@ movhi
+ 231:../src/drv_pwm.c **** 
+ 232:../src/drv_pwm.c ****     switch (channel) {
+ 382              		.loc 1 232 0
+ 383 00d0 FB78     		ldrb	r3, [r7, #3]	@ zero_extendqisi2
+ 384 00d2 0C2B     		cmp	r3, #12
+ 385 00d4 4CD8     		bhi	.L5
+ 386 00d6 01A2     		adr	r2, .L11
+ 387 00d8 52F823F0 		ldr	pc, [r2, r3, lsl #2]
+ 388              		.align	2
+ 389              	.L11:
+ 390 00dc 11010000 		.word	.L7+1
+ 391 00e0 71010000 		.word	.L5+1
+ 392 00e4 71010000 		.word	.L5+1
+ 393 00e8 71010000 		.word	.L5+1
+ 394 00ec 29010000 		.word	.L8+1
+ 395 00f0 71010000 		.word	.L5+1
+ 396 00f4 71010000 		.word	.L5+1
+ 397 00f8 71010000 		.word	.L5+1
+ 398 00fc 41010000 		.word	.L9+1
+ 399 0100 71010000 		.word	.L5+1
+ 400 0104 71010000 		.word	.L5+1
+ 401 0108 71010000 		.word	.L5+1
+ 402 010c 59010000 		.word	.L10+1
+ 403              	.L7:
+ 233:../src/drv_pwm.c ****         case TIM_Channel_1:
+ 234:../src/drv_pwm.c ****             TIM_OC1Init(tim, &TIM_OCInitStructure);
+ 404              		.loc 1 234 0
+ 405 0110 07F10803 		add	r3, r7, #8
+ 406 0114 7868     		ldr	r0, [r7, #4]
+ 407 0116 1946     		mov	r1, r3
+ 408 0118 FFF7FEFF 		bl	TIM_OC1Init
+ 235:../src/drv_pwm.c ****             TIM_OC1PreloadConfig(tim, TIM_OCPreload_Enable);
+ 409              		.loc 1 235 0
+ 410 011c 7868     		ldr	r0, [r7, #4]
+ 411 011e 4FF00801 		mov	r1, #8
+ 412 0122 FFF7FEFF 		bl	TIM_OC1PreloadConfig
+ 236:../src/drv_pwm.c ****             break;
+ 413              		.loc 1 236 0
+ 414 0126 23E0     		b	.L5
+ 415              	.L8:
+ 237:../src/drv_pwm.c ****         case TIM_Channel_2:
+ 238:../src/drv_pwm.c ****             TIM_OC2Init(tim, &TIM_OCInitStructure);
+ 416              		.loc 1 238 0
+ 417 0128 07F10803 		add	r3, r7, #8
+ 418 012c 7868     		ldr	r0, [r7, #4]
+ 419 012e 1946     		mov	r1, r3
+ 420 0130 FFF7FEFF 		bl	TIM_OC2Init
+ 239:../src/drv_pwm.c ****             TIM_OC2PreloadConfig(tim, TIM_OCPreload_Enable);
+ 421              		.loc 1 239 0
+ 422 0134 7868     		ldr	r0, [r7, #4]
+ 423 0136 4FF00801 		mov	r1, #8
+ 424 013a FFF7FEFF 		bl	TIM_OC2PreloadConfig
+ 240:../src/drv_pwm.c ****             break;
+ 425              		.loc 1 240 0
+ 426 013e 17E0     		b	.L5
+ 427              	.L9:
+ 241:../src/drv_pwm.c ****         case TIM_Channel_3:
+ 242:../src/drv_pwm.c ****             TIM_OC3Init(tim, &TIM_OCInitStructure);
+ 428              		.loc 1 242 0
+ 429 0140 07F10803 		add	r3, r7, #8
+ 430 0144 7868     		ldr	r0, [r7, #4]
+ 431 0146 1946     		mov	r1, r3
+ 432 0148 FFF7FEFF 		bl	TIM_OC3Init
+ 243:../src/drv_pwm.c ****             TIM_OC3PreloadConfig(tim, TIM_OCPreload_Enable);
+ 433              		.loc 1 243 0
+ 434 014c 7868     		ldr	r0, [r7, #4]
+ 435 014e 4FF00801 		mov	r1, #8
+ 436 0152 FFF7FEFF 		bl	TIM_OC3PreloadConfig
+ 244:../src/drv_pwm.c ****             break;
+ 437              		.loc 1 244 0
+ 438 0156 0BE0     		b	.L5
+ 439              	.L10:
+ 245:../src/drv_pwm.c ****         case TIM_Channel_4:
+ 246:../src/drv_pwm.c ****             TIM_OC4Init(tim, &TIM_OCInitStructure);
+ 440              		.loc 1 246 0
+ 441 0158 07F10803 		add	r3, r7, #8
+ 442 015c 7868     		ldr	r0, [r7, #4]
+ 443 015e 1946     		mov	r1, r3
+ 444 0160 FFF7FEFF 		bl	TIM_OC4Init
+ 247:../src/drv_pwm.c ****             TIM_OC4PreloadConfig(tim, TIM_OCPreload_Enable);
+ 445              		.loc 1 247 0
+ 446 0164 7868     		ldr	r0, [r7, #4]
+ 447 0166 4FF00801 		mov	r1, #8
+ 448 016a FFF7FEFF 		bl	TIM_OC4PreloadConfig
+ 248:../src/drv_pwm.c ****             break;
+ 449              		.loc 1 248 0
+ 450 016e 00BF     		nop
+ 451              	.L5:
+ 249:../src/drv_pwm.c ****     }
+ 250:../src/drv_pwm.c **** }
+ 452              		.loc 1 250 0
+ 453 0170 07F11807 		add	r7, r7, #24
+ 454 0174 BD46     		mov	sp, r7
+ 455 0176 80BD     		pop	{r7, pc}
+ 456              		.cfi_endproc
+ 457              	.LFE31:
+ 459              		.align	2
+ 460              		.thumb
+ 461              		.thumb_func
+ 463              	pwmICConfig:
+ 464              	.LFB32:
+ 251:../src/drv_pwm.c **** 
+ 252:../src/drv_pwm.c **** static void pwmICConfig(TIM_TypeDef *tim, uint8_t channel, uint16_t polarity)
+ 253:../src/drv_pwm.c **** {
+ 465              		.loc 1 253 0
+ 466              		.cfi_startproc
+ 467              		@ args = 0, pretend = 0, frame = 24
+ 468              		@ frame_needed = 1, uses_anonymous_args = 0
+ 469 0178 80B5     		push	{r7, lr}
+ 470              	.LCFI9:
+ 471              		.cfi_def_cfa_offset 8
+ 472              		.cfi_offset 7, -8
+ 473              		.cfi_offset 14, -4
+ 474 017a 86B0     		sub	sp, sp, #24
+ 475              	.LCFI10:
+ 476              		.cfi_def_cfa_offset 32
+ 477 017c 00AF     		add	r7, sp, #0
+ 478              	.LCFI11:
+ 479              		.cfi_def_cfa_register 7
+ 480 017e 7860     		str	r0, [r7, #4]
+ 481 0180 1346     		mov	r3, r2
+ 482 0182 0A46     		mov	r2, r1
+ 483 0184 FA70     		strb	r2, [r7, #3]
+ 484 0186 3B80     		strh	r3, [r7, #0]	@ movhi
+ 254:../src/drv_pwm.c ****     TIM_ICInitTypeDef  TIM_ICInitStructure;
+ 255:../src/drv_pwm.c **** 
+ 256:../src/drv_pwm.c ****     TIM_ICStructInit(&TIM_ICInitStructure);
+ 485              		.loc 1 256 0
+ 486 0188 07F10C03 		add	r3, r7, #12
+ 487 018c 1846     		mov	r0, r3
+ 488 018e FFF7FEFF 		bl	TIM_ICStructInit
+ 257:../src/drv_pwm.c ****     TIM_ICInitStructure.TIM_Channel = channel;
+ 489              		.loc 1 257 0
+ 490 0192 FB78     		ldrb	r3, [r7, #3]	@ zero_extendqisi2
+ 491 0194 9BB2     		uxth	r3, r3
+ 492 0196 BB81     		strh	r3, [r7, #12]	@ movhi
+ 258:../src/drv_pwm.c ****     TIM_ICInitStructure.TIM_ICPolarity = polarity;
+ 493              		.loc 1 258 0
+ 494 0198 3B88     		ldrh	r3, [r7, #0]	@ movhi
+ 495 019a FB81     		strh	r3, [r7, #14]	@ movhi
+ 259:../src/drv_pwm.c ****     TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
+ 496              		.loc 1 259 0
+ 497 019c 4FF00103 		mov	r3, #1
+ 498 01a0 3B82     		strh	r3, [r7, #16]	@ movhi
+ 260:../src/drv_pwm.c ****     TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;
+ 499              		.loc 1 260 0
+ 500 01a2 4FF00003 		mov	r3, #0
+ 501 01a6 7B82     		strh	r3, [r7, #18]	@ movhi
+ 261:../src/drv_pwm.c ****     TIM_ICInitStructure.TIM_ICFilter = 0x0;
+ 502              		.loc 1 261 0
+ 503 01a8 4FF00003 		mov	r3, #0
+ 504 01ac BB82     		strh	r3, [r7, #20]	@ movhi
+ 262:../src/drv_pwm.c **** 
+ 263:../src/drv_pwm.c ****     TIM_ICInit(tim, &TIM_ICInitStructure);
+ 505              		.loc 1 263 0
+ 506 01ae 07F10C03 		add	r3, r7, #12
+ 507 01b2 7868     		ldr	r0, [r7, #4]
+ 508 01b4 1946     		mov	r1, r3
+ 509 01b6 FFF7FEFF 		bl	TIM_ICInit
+ 264:../src/drv_pwm.c **** }
+ 510              		.loc 1 264 0
+ 511 01ba 07F11807 		add	r7, r7, #24
+ 512 01be BD46     		mov	sp, r7
+ 513 01c0 80BD     		pop	{r7, pc}
+ 514              		.cfi_endproc
+ 515              	.LFE32:
+ 517 01c2 00BF     		.align	2
+ 518              		.thumb
+ 519              		.thumb_func
+ 521              	pwmGPIOConfig:
+ 522              	.LFB33:
+ 265:../src/drv_pwm.c **** 
+ 266:../src/drv_pwm.c **** static void pwmGPIOConfig(GPIO_TypeDef *gpio, uint32_t pin, uint8_t input)
+ 267:../src/drv_pwm.c **** {
+ 523              		.loc 1 267 0
+ 524              		.cfi_startproc
+ 525              		@ args = 0, pretend = 0, frame = 24
+ 526              		@ frame_needed = 1, uses_anonymous_args = 0
+ 527 01c4 80B5     		push	{r7, lr}
+ 528              	.LCFI12:
+ 529              		.cfi_def_cfa_offset 8
+ 530              		.cfi_offset 7, -8
+ 531              		.cfi_offset 14, -4
+ 532 01c6 86B0     		sub	sp, sp, #24
+ 533              	.LCFI13:
+ 534              		.cfi_def_cfa_offset 32
+ 535 01c8 00AF     		add	r7, sp, #0
+ 536              	.LCFI14:
+ 537              		.cfi_def_cfa_register 7
+ 538 01ca F860     		str	r0, [r7, #12]
+ 539 01cc B960     		str	r1, [r7, #8]
+ 540 01ce 1346     		mov	r3, r2
+ 541 01d0 FB71     		strb	r3, [r7, #7]
+ 268:../src/drv_pwm.c ****     GPIO_InitTypeDef GPIO_InitStructure;
+ 269:../src/drv_pwm.c **** 
+ 270:../src/drv_pwm.c ****     GPIO_StructInit(&GPIO_InitStructure);
+ 542              		.loc 1 270 0
+ 543 01d2 07F11403 		add	r3, r7, #20
+ 544 01d6 1846     		mov	r0, r3
+ 545 01d8 FFF7FEFF 		bl	GPIO_StructInit
+ 271:../src/drv_pwm.c ****     GPIO_InitStructure.GPIO_Pin = pin;
+ 546              		.loc 1 271 0
+ 547 01dc BB68     		ldr	r3, [r7, #8]
+ 548 01de 9BB2     		uxth	r3, r3
+ 549 01e0 BB82     		strh	r3, [r7, #20]	@ movhi
+ 272:../src/drv_pwm.c ****     if (input)
+ 550              		.loc 1 272 0
+ 551 01e2 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 552 01e4 002B     		cmp	r3, #0
+ 553 01e6 03D0     		beq	.L14
+ 273:../src/drv_pwm.c ****         GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
+ 554              		.loc 1 273 0
+ 555 01e8 4FF02803 		mov	r3, #40
+ 556 01ec FB75     		strb	r3, [r7, #23]
+ 557 01ee 02E0     		b	.L15
+ 558              	.L14:
+ 274:../src/drv_pwm.c ****     else
+ 275:../src/drv_pwm.c ****         GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+ 559              		.loc 1 275 0
+ 560 01f0 4FF01803 		mov	r3, #24
+ 561 01f4 FB75     		strb	r3, [r7, #23]
+ 562              	.L15:
+ 276:../src/drv_pwm.c ****     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+ 563              		.loc 1 276 0
+ 564 01f6 4FF00203 		mov	r3, #2
+ 565 01fa BB75     		strb	r3, [r7, #22]
+ 277:../src/drv_pwm.c ****     GPIO_Init(gpio, &GPIO_InitStructure);
+ 566              		.loc 1 277 0
+ 567 01fc 07F11403 		add	r3, r7, #20
+ 568 0200 F868     		ldr	r0, [r7, #12]
+ 569 0202 1946     		mov	r1, r3
+ 570 0204 FFF7FEFF 		bl	GPIO_Init
+ 278:../src/drv_pwm.c **** }
+ 571              		.loc 1 278 0
+ 572 0208 07F11807 		add	r7, r7, #24
+ 573 020c BD46     		mov	sp, r7
+ 574 020e 80BD     		pop	{r7, pc}
+ 575              		.cfi_endproc
+ 576              	.LFE33:
+ 578              		.align	2
+ 579              		.thumb
+ 580              		.thumb_func
+ 582              	pwmOutConfig:
+ 583              	.LFB34:
+ 279:../src/drv_pwm.c **** 
+ 280:../src/drv_pwm.c **** static pwmPortData_t *pwmOutConfig(uint8_t port, uint16_t period, uint16_t value)
+ 281:../src/drv_pwm.c **** {
+ 584              		.loc 1 281 0
+ 585              		.cfi_startproc
+ 586              		@ args = 0, pretend = 0, frame = 16
+ 587              		@ frame_needed = 1, uses_anonymous_args = 0
+ 588 0210 80B5     		push	{r7, lr}
+ 589              	.LCFI15:
+ 590              		.cfi_def_cfa_offset 8
+ 591              		.cfi_offset 7, -8
+ 592              		.cfi_offset 14, -4
+ 593 0212 84B0     		sub	sp, sp, #16
+ 594              	.LCFI16:
+ 595              		.cfi_def_cfa_offset 24
+ 596 0214 00AF     		add	r7, sp, #0
+ 597              	.LCFI17:
+ 598              		.cfi_def_cfa_register 7
+ 599 0216 1346     		mov	r3, r2
+ 600 0218 0246     		mov	r2, r0
+ 601 021a FA71     		strb	r2, [r7, #7]
+ 602 021c 0A46     		mov	r2, r1	@ movhi
+ 603 021e BA80     		strh	r2, [r7, #4]	@ movhi
+ 604 0220 7B80     		strh	r3, [r7, #2]	@ movhi
+ 282:../src/drv_pwm.c ****     pwmPortData_t *p = &pwmPorts[port];
+ 605              		.loc 1 282 0
+ 606 0222 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 607 0224 1346     		mov	r3, r2
+ 608 0226 4FEA8303 		lsl	r3, r3, #2
+ 609 022a 9B18     		adds	r3, r3, r2
+ 610 022c 4FEA8303 		lsl	r3, r3, #2
+ 611 0230 584A     		ldr	r2, .L25
+ 612 0232 9B18     		adds	r3, r3, r2
+ 613 0234 FB60     		str	r3, [r7, #12]
+ 283:../src/drv_pwm.c ****     pwmTimeBase(timerHardware[port].tim, period);
+ 614              		.loc 1 283 0
+ 615 0236 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 616 0238 574A     		ldr	r2, .L25+4
+ 617 023a 4FEA0313 		lsl	r3, r3, #4
+ 618 023e D318     		adds	r3, r2, r3
+ 619 0240 1A68     		ldr	r2, [r3, #0]
+ 620 0242 BB88     		ldrh	r3, [r7, #4]
+ 621 0244 1046     		mov	r0, r2
+ 622 0246 1946     		mov	r1, r3
+ 623 0248 FFF7DAFE 		bl	pwmTimeBase
+ 284:../src/drv_pwm.c ****     pwmGPIOConfig(timerHardware[port].gpio, timerHardware[port].pin, 0);
+ 624              		.loc 1 284 0
+ 625 024c FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 626 024e 524A     		ldr	r2, .L25+4
+ 627 0250 4FEA0313 		lsl	r3, r3, #4
+ 628 0254 D318     		adds	r3, r2, r3
+ 629 0256 03F10403 		add	r3, r3, #4
+ 630 025a 1A68     		ldr	r2, [r3, #0]
+ 631 025c FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 632 025e 4E49     		ldr	r1, .L25+4
+ 633 0260 4FEA0313 		lsl	r3, r3, #4
+ 634 0264 CB18     		adds	r3, r1, r3
+ 635 0266 03F10803 		add	r3, r3, #8
+ 636 026a 1B68     		ldr	r3, [r3, #0]
+ 637 026c 1046     		mov	r0, r2
+ 638 026e 1946     		mov	r1, r3
+ 639 0270 4FF00002 		mov	r2, #0
+ 640 0274 FFF7A6FF 		bl	pwmGPIOConfig
+ 285:../src/drv_pwm.c ****     pwmOCConfig(timerHardware[port].tim, timerHardware[port].channel, value);
+ 641              		.loc 1 285 0
+ 642 0278 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 643 027a 474A     		ldr	r2, .L25+4
+ 644 027c 4FEA0313 		lsl	r3, r3, #4
+ 645 0280 D318     		adds	r3, r2, r3
+ 646 0282 1968     		ldr	r1, [r3, #0]
+ 647 0284 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 648 0286 444A     		ldr	r2, .L25+4
+ 649 0288 4FEA0313 		lsl	r3, r3, #4
+ 650 028c D318     		adds	r3, r2, r3
+ 651 028e 03F10803 		add	r3, r3, #8
+ 652 0292 1A79     		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+ 653 0294 7B88     		ldrh	r3, [r7, #2]
+ 654 0296 0846     		mov	r0, r1
+ 655 0298 1146     		mov	r1, r2
+ 656 029a 1A46     		mov	r2, r3
+ 657 029c FFF7FAFE 		bl	pwmOCConfig
+ 286:../src/drv_pwm.c ****     // Needed only on TIM1
+ 287:../src/drv_pwm.c ****     if (timerHardware[port].outputEnable)
+ 658              		.loc 1 287 0
+ 659 02a0 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 660 02a2 3D4A     		ldr	r2, .L25+4
+ 661 02a4 4FEA0313 		lsl	r3, r3, #4
+ 662 02a8 D318     		adds	r3, r2, r3
+ 663 02aa 03F10803 		add	r3, r3, #8
+ 664 02ae 9B79     		ldrb	r3, [r3, #6]	@ zero_extendqisi2
+ 665 02b0 002B     		cmp	r3, #0
+ 666 02b2 0AD0     		beq	.L17
+ 288:../src/drv_pwm.c ****         TIM_CtrlPWMOutputs(timerHardware[port].tim, ENABLE);
+ 667              		.loc 1 288 0
+ 668 02b4 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 669 02b6 384A     		ldr	r2, .L25+4
+ 670 02b8 4FEA0313 		lsl	r3, r3, #4
+ 671 02bc D318     		adds	r3, r2, r3
+ 672 02be 1B68     		ldr	r3, [r3, #0]
+ 673 02c0 1846     		mov	r0, r3
+ 674 02c2 4FF00101 		mov	r1, #1
+ 675 02c6 FFF7FEFF 		bl	TIM_CtrlPWMOutputs
+ 676              	.L17:
+ 289:../src/drv_pwm.c ****     TIM_Cmd(timerHardware[port].tim, ENABLE);
+ 677              		.loc 1 289 0
+ 678 02ca FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 679 02cc 324A     		ldr	r2, .L25+4
+ 680 02ce 4FEA0313 		lsl	r3, r3, #4
+ 681 02d2 D318     		adds	r3, r2, r3
+ 682 02d4 1B68     		ldr	r3, [r3, #0]
+ 683 02d6 1846     		mov	r0, r3
+ 684 02d8 4FF00101 		mov	r1, #1
+ 685 02dc FFF7FEFF 		bl	TIM_Cmd
+ 290:../src/drv_pwm.c **** 
+ 291:../src/drv_pwm.c ****     switch (timerHardware[port].channel) {
+ 686              		.loc 1 291 0
+ 687 02e0 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 688 02e2 2D4A     		ldr	r2, .L25+4
+ 689 02e4 4FEA0313 		lsl	r3, r3, #4
+ 690 02e8 D318     		adds	r3, r2, r3
+ 691 02ea 03F10803 		add	r3, r3, #8
+ 692 02ee 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 693 02f0 0C2B     		cmp	r3, #12
+ 694 02f2 49D8     		bhi	.L18
+ 695 02f4 01A2     		adr	r2, .L23
+ 696 02f6 52F823F0 		ldr	pc, [r2, r3, lsl #2]
+ 697 02fa 00BF     		.align	2
+ 698              	.L23:
+ 699 02fc 31030000 		.word	.L19+1
+ 700 0300 89030000 		.word	.L18+1
+ 701 0304 89030000 		.word	.L18+1
+ 702 0308 89030000 		.word	.L18+1
+ 703 030c 47030000 		.word	.L20+1
+ 704 0310 89030000 		.word	.L18+1
+ 705 0314 89030000 		.word	.L18+1
+ 706 0318 89030000 		.word	.L18+1
+ 707 031c 5D030000 		.word	.L21+1
+ 708 0320 89030000 		.word	.L18+1
+ 709 0324 89030000 		.word	.L18+1
+ 710 0328 89030000 		.word	.L18+1
+ 711 032c 73030000 		.word	.L22+1
+ 712              	.L19:
+ 292:../src/drv_pwm.c ****         case TIM_Channel_1:
+ 293:../src/drv_pwm.c ****             p->ccr = &timerHardware[port].tim->CCR1;
+ 713              		.loc 1 293 0
+ 714 0330 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 715 0332 194A     		ldr	r2, .L25+4
+ 716 0334 4FEA0313 		lsl	r3, r3, #4
+ 717 0338 D318     		adds	r3, r2, r3
+ 718 033a 1B68     		ldr	r3, [r3, #0]
+ 719 033c 03F13402 		add	r2, r3, #52
+ 720 0340 FB68     		ldr	r3, [r7, #12]
+ 721 0342 5A60     		str	r2, [r3, #4]
+ 294:../src/drv_pwm.c ****             break;
+ 722              		.loc 1 294 0
+ 723 0344 20E0     		b	.L18
+ 724              	.L20:
+ 295:../src/drv_pwm.c ****         case TIM_Channel_2:
+ 296:../src/drv_pwm.c ****             p->ccr = &timerHardware[port].tim->CCR2;
+ 725              		.loc 1 296 0
+ 726 0346 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 727 0348 134A     		ldr	r2, .L25+4
+ 728 034a 4FEA0313 		lsl	r3, r3, #4
+ 729 034e D318     		adds	r3, r2, r3
+ 730 0350 1B68     		ldr	r3, [r3, #0]
+ 731 0352 03F13802 		add	r2, r3, #56
+ 732 0356 FB68     		ldr	r3, [r7, #12]
+ 733 0358 5A60     		str	r2, [r3, #4]
+ 297:../src/drv_pwm.c ****             break;
+ 734              		.loc 1 297 0
+ 735 035a 15E0     		b	.L18
+ 736              	.L21:
+ 298:../src/drv_pwm.c ****         case TIM_Channel_3:
+ 299:../src/drv_pwm.c ****             p->ccr = &timerHardware[port].tim->CCR3;
+ 737              		.loc 1 299 0
+ 738 035c FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 739 035e 0E4A     		ldr	r2, .L25+4
+ 740 0360 4FEA0313 		lsl	r3, r3, #4
+ 741 0364 D318     		adds	r3, r2, r3
+ 742 0366 1B68     		ldr	r3, [r3, #0]
+ 743 0368 03F13C02 		add	r2, r3, #60
+ 744 036c FB68     		ldr	r3, [r7, #12]
+ 745 036e 5A60     		str	r2, [r3, #4]
+ 300:../src/drv_pwm.c ****             break;
+ 746              		.loc 1 300 0
+ 747 0370 0AE0     		b	.L18
+ 748              	.L22:
+ 301:../src/drv_pwm.c ****         case TIM_Channel_4:
+ 302:../src/drv_pwm.c ****             p->ccr = &timerHardware[port].tim->CCR4;
+ 749              		.loc 1 302 0
+ 750 0372 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 751 0374 084A     		ldr	r2, .L25+4
+ 752 0376 4FEA0313 		lsl	r3, r3, #4
+ 753 037a D318     		adds	r3, r2, r3
+ 754 037c 1B68     		ldr	r3, [r3, #0]
+ 755 037e 03F14002 		add	r2, r3, #64
+ 756 0382 FB68     		ldr	r3, [r7, #12]
+ 757 0384 5A60     		str	r2, [r3, #4]
+ 303:../src/drv_pwm.c ****             break;
+ 758              		.loc 1 303 0
+ 759 0386 00BF     		nop
+ 760              	.L18:
+ 304:../src/drv_pwm.c ****     }
+ 305:../src/drv_pwm.c ****     return p;
+ 761              		.loc 1 305 0
+ 762 0388 FB68     		ldr	r3, [r7, #12]
+ 306:../src/drv_pwm.c **** }
+ 763              		.loc 1 306 0
+ 764 038a 1846     		mov	r0, r3
+ 765 038c 07F11007 		add	r7, r7, #16
+ 766 0390 BD46     		mov	sp, r7
+ 767 0392 80BD     		pop	{r7, pc}
+ 768              	.L26:
+ 769              		.align	2
+ 770              	.L25:
+ 771 0394 00000000 		.word	pwmPorts
+ 772 0398 00000000 		.word	timerHardware
+ 773              		.cfi_endproc
+ 774              	.LFE34:
+ 776              		.align	2
+ 777              		.thumb
+ 778              		.thumb_func
+ 780              	pwmInConfig:
+ 781              	.LFB35:
+ 307:../src/drv_pwm.c **** 
+ 308:../src/drv_pwm.c **** static pwmPortData_t *pwmInConfig(uint8_t port, pwmCallbackPtr callback, uint8_t channel)
+ 309:../src/drv_pwm.c **** {
+ 782              		.loc 1 309 0
+ 783              		.cfi_startproc
+ 784              		@ args = 0, pretend = 0, frame = 16
+ 785              		@ frame_needed = 1, uses_anonymous_args = 0
+ 786 039c 80B5     		push	{r7, lr}
+ 787              	.LCFI18:
+ 788              		.cfi_def_cfa_offset 8
+ 789              		.cfi_offset 7, -8
+ 790              		.cfi_offset 14, -4
+ 791 039e 84B0     		sub	sp, sp, #16
+ 792              	.LCFI19:
+ 793              		.cfi_def_cfa_offset 24
+ 794 03a0 00AF     		add	r7, sp, #0
+ 795              	.LCFI20:
+ 796              		.cfi_def_cfa_register 7
+ 797 03a2 3960     		str	r1, [r7, #0]
+ 798 03a4 1346     		mov	r3, r2
+ 799 03a6 0246     		mov	r2, r0
+ 800 03a8 FA71     		strb	r2, [r7, #7]
+ 801 03aa BB71     		strb	r3, [r7, #6]
+ 310:../src/drv_pwm.c ****     pwmPortData_t *p = &pwmPorts[port];
+ 802              		.loc 1 310 0
+ 803 03ac FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 804 03ae 1346     		mov	r3, r2
+ 805 03b0 4FEA8303 		lsl	r3, r3, #2
+ 806 03b4 9B18     		adds	r3, r3, r2
+ 807 03b6 4FEA8303 		lsl	r3, r3, #2
+ 808 03ba 5C4A     		ldr	r2, .L35
+ 809 03bc 9B18     		adds	r3, r3, r2
+ 810 03be FB60     		str	r3, [r7, #12]
+ 311:../src/drv_pwm.c ****     pwmTimeBase(timerHardware[port].tim, 0xFFFF);
+ 811              		.loc 1 311 0
+ 812 03c0 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 813 03c2 5B4A     		ldr	r2, .L35+4
+ 814 03c4 4FEA0313 		lsl	r3, r3, #4
+ 815 03c8 D318     		adds	r3, r2, r3
+ 816 03ca 1B68     		ldr	r3, [r3, #0]
+ 817 03cc 1846     		mov	r0, r3
+ 818 03ce 4FF6FF71 		movw	r1, #65535
+ 819 03d2 FFF715FE 		bl	pwmTimeBase
+ 312:../src/drv_pwm.c ****     pwmGPIOConfig(timerHardware[port].gpio, timerHardware[port].pin, 1);
+ 820              		.loc 1 312 0
+ 821 03d6 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 822 03d8 554A     		ldr	r2, .L35+4
+ 823 03da 4FEA0313 		lsl	r3, r3, #4
+ 824 03de D318     		adds	r3, r2, r3
+ 825 03e0 03F10403 		add	r3, r3, #4
+ 826 03e4 1A68     		ldr	r2, [r3, #0]
+ 827 03e6 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 828 03e8 5149     		ldr	r1, .L35+4
+ 829 03ea 4FEA0313 		lsl	r3, r3, #4
+ 830 03ee CB18     		adds	r3, r1, r3
+ 831 03f0 03F10803 		add	r3, r3, #8
+ 832 03f4 1B68     		ldr	r3, [r3, #0]
+ 833 03f6 1046     		mov	r0, r2
+ 834 03f8 1946     		mov	r1, r3
+ 835 03fa 4FF00102 		mov	r2, #1
+ 836 03fe FFF7E1FE 		bl	pwmGPIOConfig
+ 313:../src/drv_pwm.c ****     pwmICConfig(timerHardware[port].tim, timerHardware[port].channel, TIM_ICPolarity_Rising);
+ 837              		.loc 1 313 0
+ 838 0402 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 839 0404 4A4A     		ldr	r2, .L35+4
+ 840 0406 4FEA0313 		lsl	r3, r3, #4
+ 841 040a D318     		adds	r3, r2, r3
+ 842 040c 1A68     		ldr	r2, [r3, #0]
+ 843 040e FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 844 0410 4749     		ldr	r1, .L35+4
+ 845 0412 4FEA0313 		lsl	r3, r3, #4
+ 846 0416 CB18     		adds	r3, r1, r3
+ 847 0418 03F10803 		add	r3, r3, #8
+ 848 041c 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 849 041e 1046     		mov	r0, r2
+ 850 0420 1946     		mov	r1, r3
+ 851 0422 4FF00002 		mov	r2, #0
+ 852 0426 FFF7A7FE 		bl	pwmICConfig
+ 314:../src/drv_pwm.c ****     TIM_Cmd(timerHardware[port].tim, ENABLE);
+ 853              		.loc 1 314 0
+ 854 042a FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 855 042c 404A     		ldr	r2, .L35+4
+ 856 042e 4FEA0313 		lsl	r3, r3, #4
+ 857 0432 D318     		adds	r3, r2, r3
+ 858 0434 1B68     		ldr	r3, [r3, #0]
+ 859 0436 1846     		mov	r0, r3
+ 860 0438 4FF00101 		mov	r1, #1
+ 861 043c FFF7FEFF 		bl	TIM_Cmd
+ 315:../src/drv_pwm.c ****     pwmNVICConfig(timerHardware[port].irq);
+ 862              		.loc 1 315 0
+ 863 0440 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 864 0442 3B4A     		ldr	r2, .L35+4
+ 865 0444 4FEA0313 		lsl	r3, r3, #4
+ 866 0448 D318     		adds	r3, r2, r3
+ 867 044a 03F10803 		add	r3, r3, #8
+ 868 044e 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 869 0450 1846     		mov	r0, r3
+ 870 0452 FFF705FE 		bl	pwmNVICConfig
+ 316:../src/drv_pwm.c ****     // set callback before configuring interrupts
+ 317:../src/drv_pwm.c ****     p->callback = callback;
+ 871              		.loc 1 317 0
+ 872 0456 FB68     		ldr	r3, [r7, #12]
+ 873 0458 3A68     		ldr	r2, [r7, #0]
+ 874 045a 1A60     		str	r2, [r3, #0]
+ 318:../src/drv_pwm.c ****     p->channel = channel;
+ 875              		.loc 1 318 0
+ 876 045c FB68     		ldr	r3, [r7, #12]
+ 877 045e BA79     		ldrb	r2, [r7, #6]
+ 878 0460 9A72     		strb	r2, [r3, #10]
+ 319:../src/drv_pwm.c **** 
+ 320:../src/drv_pwm.c ****     switch (timerHardware[port].channel) {
+ 879              		.loc 1 320 0
+ 880 0462 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 881 0464 324A     		ldr	r2, .L35+4
+ 882 0466 4FEA0313 		lsl	r3, r3, #4
+ 883 046a D318     		adds	r3, r2, r3
+ 884 046c 03F10803 		add	r3, r3, #8
+ 885 0470 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 886 0472 0C2B     		cmp	r3, #12
+ 887 0474 54D8     		bhi	.L28
+ 888 0476 01A2     		adr	r2, .L33
+ 889 0478 52F823F0 		ldr	pc, [r2, r3, lsl #2]
+ 890              		.align	2
+ 891              	.L33:
+ 892 047c B1040000 		.word	.L29+1
+ 893 0480 21050000 		.word	.L28+1
+ 894 0484 21050000 		.word	.L28+1
+ 895 0488 21050000 		.word	.L28+1
+ 896 048c CD040000 		.word	.L30+1
+ 897 0490 21050000 		.word	.L28+1
+ 898 0494 21050000 		.word	.L28+1
+ 899 0498 21050000 		.word	.L28+1
+ 900 049c E9040000 		.word	.L31+1
+ 901 04a0 21050000 		.word	.L28+1
+ 902 04a4 21050000 		.word	.L28+1
+ 903 04a8 21050000 		.word	.L28+1
+ 904 04ac 05050000 		.word	.L32+1
+ 905              	.L29:
+ 321:../src/drv_pwm.c ****         case TIM_Channel_1:
+ 322:../src/drv_pwm.c ****             TIM_ITConfig(timerHardware[port].tim, TIM_IT_CC1, ENABLE);
+ 906              		.loc 1 322 0
+ 907 04b0 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 908 04b2 1F4A     		ldr	r2, .L35+4
+ 909 04b4 4FEA0313 		lsl	r3, r3, #4
+ 910 04b8 D318     		adds	r3, r2, r3
+ 911 04ba 1B68     		ldr	r3, [r3, #0]
+ 912 04bc 1846     		mov	r0, r3
+ 913 04be 4FF00201 		mov	r1, #2
+ 914 04c2 4FF00102 		mov	r2, #1
+ 915 04c6 FFF7FEFF 		bl	TIM_ITConfig
+ 323:../src/drv_pwm.c ****             break;
+ 916              		.loc 1 323 0
+ 917 04ca 29E0     		b	.L28
+ 918              	.L30:
+ 324:../src/drv_pwm.c ****         case TIM_Channel_2:
+ 325:../src/drv_pwm.c ****             TIM_ITConfig(timerHardware[port].tim, TIM_IT_CC2, ENABLE);
+ 919              		.loc 1 325 0
+ 920 04cc FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 921 04ce 184A     		ldr	r2, .L35+4
+ 922 04d0 4FEA0313 		lsl	r3, r3, #4
+ 923 04d4 D318     		adds	r3, r2, r3
+ 924 04d6 1B68     		ldr	r3, [r3, #0]
+ 925 04d8 1846     		mov	r0, r3
+ 926 04da 4FF00401 		mov	r1, #4
+ 927 04de 4FF00102 		mov	r2, #1
+ 928 04e2 FFF7FEFF 		bl	TIM_ITConfig
+ 326:../src/drv_pwm.c ****             break;
+ 929              		.loc 1 326 0
+ 930 04e6 1BE0     		b	.L28
+ 931              	.L31:
+ 327:../src/drv_pwm.c ****         case TIM_Channel_3:
+ 328:../src/drv_pwm.c ****             TIM_ITConfig(timerHardware[port].tim, TIM_IT_CC3, ENABLE);
+ 932              		.loc 1 328 0
+ 933 04e8 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 934 04ea 114A     		ldr	r2, .L35+4
+ 935 04ec 4FEA0313 		lsl	r3, r3, #4
+ 936 04f0 D318     		adds	r3, r2, r3
+ 937 04f2 1B68     		ldr	r3, [r3, #0]
+ 938 04f4 1846     		mov	r0, r3
+ 939 04f6 4FF00801 		mov	r1, #8
+ 940 04fa 4FF00102 		mov	r2, #1
+ 941 04fe FFF7FEFF 		bl	TIM_ITConfig
+ 329:../src/drv_pwm.c ****             break;
+ 942              		.loc 1 329 0
+ 943 0502 0DE0     		b	.L28
+ 944              	.L32:
+ 330:../src/drv_pwm.c ****         case TIM_Channel_4:
+ 331:../src/drv_pwm.c ****             TIM_ITConfig(timerHardware[port].tim, TIM_IT_CC4, ENABLE);
+ 945              		.loc 1 331 0
+ 946 0504 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 947 0506 0A4A     		ldr	r2, .L35+4
+ 948 0508 4FEA0313 		lsl	r3, r3, #4
+ 949 050c D318     		adds	r3, r2, r3
+ 950 050e 1B68     		ldr	r3, [r3, #0]
+ 951 0510 1846     		mov	r0, r3
+ 952 0512 4FF01001 		mov	r1, #16
+ 953 0516 4FF00102 		mov	r2, #1
+ 954 051a FFF7FEFF 		bl	TIM_ITConfig
+ 332:../src/drv_pwm.c ****             break;
+ 955              		.loc 1 332 0
+ 956 051e 00BF     		nop
+ 957              	.L28:
+ 333:../src/drv_pwm.c ****     }
+ 334:../src/drv_pwm.c ****     return p;
+ 958              		.loc 1 334 0
+ 959 0520 FB68     		ldr	r3, [r7, #12]
+ 335:../src/drv_pwm.c **** }
+ 960              		.loc 1 335 0
+ 961 0522 1846     		mov	r0, r3
+ 962 0524 07F11007 		add	r7, r7, #16
+ 963 0528 BD46     		mov	sp, r7
+ 964 052a 80BD     		pop	{r7, pc}
+ 965              	.L36:
+ 966              		.align	2
+ 967              	.L35:
+ 968 052c 00000000 		.word	pwmPorts
+ 969 0530 00000000 		.word	timerHardware
+ 970              		.cfi_endproc
+ 971              	.LFE35:
+ 973              		.align	2
+ 974              		.global	TIM1_CC_IRQHandler
+ 975              		.thumb
+ 976              		.thumb_func
+ 978              	TIM1_CC_IRQHandler:
+ 979              	.LFB36:
+ 336:../src/drv_pwm.c **** 
+ 337:../src/drv_pwm.c **** void TIM1_CC_IRQHandler(void)
+ 338:../src/drv_pwm.c **** {
+ 980              		.loc 1 338 0
+ 981              		.cfi_startproc
+ 982              		@ args = 0, pretend = 0, frame = 8
+ 983              		@ frame_needed = 1, uses_anonymous_args = 0
+ 984 0534 90B5     		push	{r4, r7, lr}
+ 985              	.LCFI21:
+ 986              		.cfi_def_cfa_offset 12
+ 987              		.cfi_offset 4, -12
+ 988              		.cfi_offset 7, -8
+ 989              		.cfi_offset 14, -4
+ 990 0536 83B0     		sub	sp, sp, #12
+ 991              	.LCFI22:
+ 992              		.cfi_def_cfa_offset 24
+ 993 0538 00AF     		add	r7, sp, #0
+ 994              	.LCFI23:
+ 995              		.cfi_def_cfa_register 7
+ 339:../src/drv_pwm.c ****     uint8_t port;
+ 340:../src/drv_pwm.c **** 
+ 341:../src/drv_pwm.c ****     if (TIM_GetITStatus(TIM1, TIM_IT_CC1) == SET) {
+ 996              		.loc 1 341 0
+ 997 053a 2448     		ldr	r0, .L40
+ 998 053c 4FF00201 		mov	r1, #2
+ 999 0540 FFF7FEFF 		bl	TIM_GetITStatus
+ 1000 0544 0346     		mov	r3, r0
+ 1001 0546 012B     		cmp	r3, #1
+ 1002 0548 1AD1     		bne	.L38
+ 342:../src/drv_pwm.c ****         port = PWM9;
+ 1003              		.loc 1 342 0
+ 1004 054a 4FF00803 		mov	r3, #8
+ 1005 054e FB71     		strb	r3, [r7, #7]
+ 343:../src/drv_pwm.c ****         TIM_ClearITPendingBit(TIM1, TIM_IT_CC1);
+ 1006              		.loc 1 343 0
+ 1007 0550 1E48     		ldr	r0, .L40
+ 1008 0552 4FF00201 		mov	r1, #2
+ 1009 0556 FFF7FEFF 		bl	TIM_ClearITPendingBit
+ 344:../src/drv_pwm.c ****         pwmPorts[port].callback(port, TIM_GetCapture1(TIM1));
+ 1010              		.loc 1 344 0
+ 1011 055a FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1012 055c 1C49     		ldr	r1, .L40+4
+ 1013 055e 1346     		mov	r3, r2
+ 1014 0560 4FEA8303 		lsl	r3, r3, #2
+ 1015 0564 9B18     		adds	r3, r3, r2
+ 1016 0566 4FEA8303 		lsl	r3, r3, #2
+ 1017 056a CB18     		adds	r3, r1, r3
+ 1018 056c 1C68     		ldr	r4, [r3, #0]
+ 1019 056e 1748     		ldr	r0, .L40
+ 1020 0570 FFF7FEFF 		bl	TIM_GetCapture1
+ 1021 0574 0346     		mov	r3, r0
+ 1022 0576 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1023 0578 1046     		mov	r0, r2
+ 1024 057a 1946     		mov	r1, r3
+ 1025 057c A047     		blx	r4
+ 1026 057e 21E0     		b	.L37
+ 1027              	.L38:
+ 345:../src/drv_pwm.c ****     } else if (TIM_GetITStatus(TIM1, TIM_IT_CC4) == SET) {
+ 1028              		.loc 1 345 0
+ 1029 0580 1248     		ldr	r0, .L40
+ 1030 0582 4FF01001 		mov	r1, #16
+ 1031 0586 FFF7FEFF 		bl	TIM_GetITStatus
+ 1032 058a 0346     		mov	r3, r0
+ 1033 058c 012B     		cmp	r3, #1
+ 1034 058e 19D1     		bne	.L37
+ 346:../src/drv_pwm.c ****         port = PWM10;
+ 1035              		.loc 1 346 0
+ 1036 0590 4FF00903 		mov	r3, #9
+ 1037 0594 FB71     		strb	r3, [r7, #7]
+ 347:../src/drv_pwm.c ****         TIM_ClearITPendingBit(TIM1, TIM_IT_CC4);
+ 1038              		.loc 1 347 0
+ 1039 0596 0D48     		ldr	r0, .L40
+ 1040 0598 4FF01001 		mov	r1, #16
+ 1041 059c FFF7FEFF 		bl	TIM_ClearITPendingBit
+ 348:../src/drv_pwm.c ****         pwmPorts[port].callback(port, TIM_GetCapture4(TIM1));
+ 1042              		.loc 1 348 0
+ 1043 05a0 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1044 05a2 0B49     		ldr	r1, .L40+4
+ 1045 05a4 1346     		mov	r3, r2
+ 1046 05a6 4FEA8303 		lsl	r3, r3, #2
+ 1047 05aa 9B18     		adds	r3, r3, r2
+ 1048 05ac 4FEA8303 		lsl	r3, r3, #2
+ 1049 05b0 CB18     		adds	r3, r1, r3
+ 1050 05b2 1C68     		ldr	r4, [r3, #0]
+ 1051 05b4 0548     		ldr	r0, .L40
+ 1052 05b6 FFF7FEFF 		bl	TIM_GetCapture4
+ 1053 05ba 0346     		mov	r3, r0
+ 1054 05bc FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1055 05be 1046     		mov	r0, r2
+ 1056 05c0 1946     		mov	r1, r3
+ 1057 05c2 A047     		blx	r4
+ 1058              	.L37:
+ 349:../src/drv_pwm.c ****     }
+ 350:../src/drv_pwm.c **** }
+ 1059              		.loc 1 350 0
+ 1060 05c4 07F10C07 		add	r7, r7, #12
+ 1061 05c8 BD46     		mov	sp, r7
+ 1062 05ca 90BD     		pop	{r4, r7, pc}
+ 1063              	.L41:
+ 1064              		.align	2
+ 1065              	.L40:
+ 1066 05cc 002C0140 		.word	1073818624
+ 1067 05d0 00000000 		.word	pwmPorts
+ 1068              		.cfi_endproc
+ 1069              	.LFE36:
+ 1071              		.align	2
+ 1072              		.thumb
+ 1073              		.thumb_func
+ 1075              	pwmTIMxHandler:
+ 1076              	.LFB37:
+ 351:../src/drv_pwm.c **** 
+ 352:../src/drv_pwm.c **** static void pwmTIMxHandler(TIM_TypeDef *tim, uint8_t portBase)
+ 353:../src/drv_pwm.c **** {
+ 1077              		.loc 1 353 0
+ 1078              		.cfi_startproc
+ 1079              		@ args = 0, pretend = 0, frame = 16
+ 1080              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1081 05d4 B0B5     		push	{r4, r5, r7, lr}
+ 1082              	.LCFI24:
+ 1083              		.cfi_def_cfa_offset 16
+ 1084              		.cfi_offset 4, -16
+ 1085              		.cfi_offset 5, -12
+ 1086              		.cfi_offset 7, -8
+ 1087              		.cfi_offset 14, -4
+ 1088 05d6 84B0     		sub	sp, sp, #16
+ 1089              	.LCFI25:
+ 1090              		.cfi_def_cfa_offset 32
+ 1091 05d8 00AF     		add	r7, sp, #0
+ 1092              	.LCFI26:
+ 1093              		.cfi_def_cfa_register 7
+ 1094 05da 7860     		str	r0, [r7, #4]
+ 1095 05dc 0B46     		mov	r3, r1
+ 1096 05de FB70     		strb	r3, [r7, #3]
+ 354:../src/drv_pwm.c ****     int8_t port;
+ 355:../src/drv_pwm.c **** 
+ 356:../src/drv_pwm.c ****     // Generic CC handler for TIM2,3,4
+ 357:../src/drv_pwm.c ****     if (TIM_GetITStatus(tim, TIM_IT_CC1) == SET) {
+ 1097              		.loc 1 357 0
+ 1098 05e0 7868     		ldr	r0, [r7, #4]
+ 1099 05e2 4FF00201 		mov	r1, #2
+ 1100 05e6 FFF7FEFF 		bl	TIM_GetITStatus
+ 1101 05ea 0346     		mov	r3, r0
+ 1102 05ec 012B     		cmp	r3, #1
+ 1103 05ee 1AD1     		bne	.L43
+ 358:../src/drv_pwm.c ****         port = portBase + 0;
+ 1104              		.loc 1 358 0
+ 1105 05f0 FB78     		ldrb	r3, [r7, #3]
+ 1106 05f2 FB73     		strb	r3, [r7, #15]
+ 359:../src/drv_pwm.c ****         TIM_ClearITPendingBit(tim, TIM_IT_CC1);
+ 1107              		.loc 1 359 0
+ 1108 05f4 7868     		ldr	r0, [r7, #4]
+ 1109 05f6 4FF00201 		mov	r1, #2
+ 1110 05fa FFF7FEFF 		bl	TIM_ClearITPendingBit
+ 360:../src/drv_pwm.c ****         pwmPorts[port].callback(port, TIM_GetCapture1(tim));
+ 1111              		.loc 1 360 0
+ 1112 05fe 97F90F20 		ldrsb	r2, [r7, #15]
+ 1113 0602 4349     		ldr	r1, .L47
+ 1114 0604 1346     		mov	r3, r2
+ 1115 0606 4FEA8303 		lsl	r3, r3, #2
+ 1116 060a 9B18     		adds	r3, r3, r2
+ 1117 060c 4FEA8303 		lsl	r3, r3, #2
+ 1118 0610 CB18     		adds	r3, r1, r3
+ 1119 0612 1C68     		ldr	r4, [r3, #0]
+ 1120 0614 FD7B     		ldrb	r5, [r7, #15]	@ zero_extendqisi2
+ 1121 0616 7868     		ldr	r0, [r7, #4]
+ 1122 0618 FFF7FEFF 		bl	TIM_GetCapture1
+ 1123 061c 0346     		mov	r3, r0
+ 1124 061e 2846     		mov	r0, r5
+ 1125 0620 1946     		mov	r1, r3
+ 1126 0622 A047     		blx	r4
+ 1127 0624 70E0     		b	.L42
+ 1128              	.L43:
+ 361:../src/drv_pwm.c ****     } else if (TIM_GetITStatus(tim, TIM_IT_CC2) == SET) {
+ 1129              		.loc 1 361 0
+ 1130 0626 7868     		ldr	r0, [r7, #4]
+ 1131 0628 4FF00401 		mov	r1, #4
+ 1132 062c FFF7FEFF 		bl	TIM_GetITStatus
+ 1133 0630 0346     		mov	r3, r0
+ 1134 0632 012B     		cmp	r3, #1
+ 1135 0634 1DD1     		bne	.L45
+ 362:../src/drv_pwm.c ****         port = portBase + 1;
+ 1136              		.loc 1 362 0
+ 1137 0636 FB78     		ldrb	r3, [r7, #3]
+ 1138 0638 03F10103 		add	r3, r3, #1
+ 1139 063c DBB2     		uxtb	r3, r3
+ 1140 063e FB73     		strb	r3, [r7, #15]
+ 363:../src/drv_pwm.c ****         TIM_ClearITPendingBit(tim, TIM_IT_CC2);
+ 1141              		.loc 1 363 0
+ 1142 0640 7868     		ldr	r0, [r7, #4]
+ 1143 0642 4FF00401 		mov	r1, #4
+ 1144 0646 FFF7FEFF 		bl	TIM_ClearITPendingBit
+ 364:../src/drv_pwm.c ****         pwmPorts[port].callback(port, TIM_GetCapture2(tim));
+ 1145              		.loc 1 364 0
+ 1146 064a 97F90F20 		ldrsb	r2, [r7, #15]
+ 1147 064e 3049     		ldr	r1, .L47
+ 1148 0650 1346     		mov	r3, r2
+ 1149 0652 4FEA8303 		lsl	r3, r3, #2
+ 1150 0656 9B18     		adds	r3, r3, r2
+ 1151 0658 4FEA8303 		lsl	r3, r3, #2
+ 1152 065c CB18     		adds	r3, r1, r3
+ 1153 065e 1C68     		ldr	r4, [r3, #0]
+ 1154 0660 FD7B     		ldrb	r5, [r7, #15]	@ zero_extendqisi2
+ 1155 0662 7868     		ldr	r0, [r7, #4]
+ 1156 0664 FFF7FEFF 		bl	TIM_GetCapture2
+ 1157 0668 0346     		mov	r3, r0
+ 1158 066a 2846     		mov	r0, r5
+ 1159 066c 1946     		mov	r1, r3
+ 1160 066e A047     		blx	r4
+ 1161 0670 4AE0     		b	.L42
+ 1162              	.L45:
+ 365:../src/drv_pwm.c ****     } else if (TIM_GetITStatus(tim, TIM_IT_CC3) == SET) {
+ 1163              		.loc 1 365 0
+ 1164 0672 7868     		ldr	r0, [r7, #4]
+ 1165 0674 4FF00801 		mov	r1, #8
+ 1166 0678 FFF7FEFF 		bl	TIM_GetITStatus
+ 1167 067c 0346     		mov	r3, r0
+ 1168 067e 012B     		cmp	r3, #1
+ 1169 0680 1DD1     		bne	.L46
+ 366:../src/drv_pwm.c ****         port = portBase + 2;
+ 1170              		.loc 1 366 0
+ 1171 0682 FB78     		ldrb	r3, [r7, #3]
+ 1172 0684 03F10203 		add	r3, r3, #2
+ 1173 0688 DBB2     		uxtb	r3, r3
+ 1174 068a FB73     		strb	r3, [r7, #15]
+ 367:../src/drv_pwm.c ****         TIM_ClearITPendingBit(tim, TIM_IT_CC3);
+ 1175              		.loc 1 367 0
+ 1176 068c 7868     		ldr	r0, [r7, #4]
+ 1177 068e 4FF00801 		mov	r1, #8
+ 1178 0692 FFF7FEFF 		bl	TIM_ClearITPendingBit
+ 368:../src/drv_pwm.c ****         pwmPorts[port].callback(port, TIM_GetCapture3(tim));
+ 1179              		.loc 1 368 0
+ 1180 0696 97F90F20 		ldrsb	r2, [r7, #15]
+ 1181 069a 1D49     		ldr	r1, .L47
+ 1182 069c 1346     		mov	r3, r2
+ 1183 069e 4FEA8303 		lsl	r3, r3, #2
+ 1184 06a2 9B18     		adds	r3, r3, r2
+ 1185 06a4 4FEA8303 		lsl	r3, r3, #2
+ 1186 06a8 CB18     		adds	r3, r1, r3
+ 1187 06aa 1C68     		ldr	r4, [r3, #0]
+ 1188 06ac FD7B     		ldrb	r5, [r7, #15]	@ zero_extendqisi2
+ 1189 06ae 7868     		ldr	r0, [r7, #4]
+ 1190 06b0 FFF7FEFF 		bl	TIM_GetCapture3
+ 1191 06b4 0346     		mov	r3, r0
+ 1192 06b6 2846     		mov	r0, r5
+ 1193 06b8 1946     		mov	r1, r3
+ 1194 06ba A047     		blx	r4
+ 1195 06bc 24E0     		b	.L42
+ 1196              	.L46:
+ 369:../src/drv_pwm.c ****     } else if (TIM_GetITStatus(tim, TIM_IT_CC4) == SET) {
+ 1197              		.loc 1 369 0
+ 1198 06be 7868     		ldr	r0, [r7, #4]
+ 1199 06c0 4FF01001 		mov	r1, #16
+ 1200 06c4 FFF7FEFF 		bl	TIM_GetITStatus
+ 1201 06c8 0346     		mov	r3, r0
+ 1202 06ca 012B     		cmp	r3, #1
+ 1203 06cc 1CD1     		bne	.L42
+ 370:../src/drv_pwm.c ****         port = portBase + 3;
+ 1204              		.loc 1 370 0
+ 1205 06ce FB78     		ldrb	r3, [r7, #3]
+ 1206 06d0 03F10303 		add	r3, r3, #3
+ 1207 06d4 DBB2     		uxtb	r3, r3
+ 1208 06d6 FB73     		strb	r3, [r7, #15]
+ 371:../src/drv_pwm.c ****         TIM_ClearITPendingBit(tim, TIM_IT_CC4);
+ 1209              		.loc 1 371 0
+ 1210 06d8 7868     		ldr	r0, [r7, #4]
+ 1211 06da 4FF01001 		mov	r1, #16
+ 1212 06de FFF7FEFF 		bl	TIM_ClearITPendingBit
+ 372:../src/drv_pwm.c ****         pwmPorts[port].callback(port, TIM_GetCapture4(tim));
+ 1213              		.loc 1 372 0
+ 1214 06e2 97F90F20 		ldrsb	r2, [r7, #15]
+ 1215 06e6 0A49     		ldr	r1, .L47
+ 1216 06e8 1346     		mov	r3, r2
+ 1217 06ea 4FEA8303 		lsl	r3, r3, #2
+ 1218 06ee 9B18     		adds	r3, r3, r2
+ 1219 06f0 4FEA8303 		lsl	r3, r3, #2
+ 1220 06f4 CB18     		adds	r3, r1, r3
+ 1221 06f6 1C68     		ldr	r4, [r3, #0]
+ 1222 06f8 FD7B     		ldrb	r5, [r7, #15]	@ zero_extendqisi2
+ 1223 06fa 7868     		ldr	r0, [r7, #4]
+ 1224 06fc FFF7FEFF 		bl	TIM_GetCapture4
+ 1225 0700 0346     		mov	r3, r0
+ 1226 0702 2846     		mov	r0, r5
+ 1227 0704 1946     		mov	r1, r3
+ 1228 0706 A047     		blx	r4
+ 1229              	.L42:
+ 373:../src/drv_pwm.c ****     }
+ 374:../src/drv_pwm.c **** }
+ 1230              		.loc 1 374 0
+ 1231 0708 07F11007 		add	r7, r7, #16
+ 1232 070c BD46     		mov	sp, r7
+ 1233 070e B0BD     		pop	{r4, r5, r7, pc}
+ 1234              	.L48:
+ 1235              		.align	2
+ 1236              	.L47:
+ 1237 0710 00000000 		.word	pwmPorts
+ 1238              		.cfi_endproc
+ 1239              	.LFE37:
+ 1241              		.align	2
+ 1242              		.global	TIM2_IRQHandler
+ 1243              		.thumb
+ 1244              		.thumb_func
+ 1246              	TIM2_IRQHandler:
+ 1247              	.LFB38:
+ 375:../src/drv_pwm.c **** 
+ 376:../src/drv_pwm.c **** void TIM2_IRQHandler(void)
+ 377:../src/drv_pwm.c **** {
+ 1248              		.loc 1 377 0
+ 1249              		.cfi_startproc
+ 1250              		@ args = 0, pretend = 0, frame = 0
+ 1251              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1252 0714 80B5     		push	{r7, lr}
+ 1253              	.LCFI27:
+ 1254              		.cfi_def_cfa_offset 8
+ 1255              		.cfi_offset 7, -8
+ 1256              		.cfi_offset 14, -4
+ 1257 0716 00AF     		add	r7, sp, #0
+ 1258              	.LCFI28:
+ 1259              		.cfi_def_cfa_register 7
+ 378:../src/drv_pwm.c ****     pwmTIMxHandler(TIM2, PWM1); // PWM1..4
+ 1260              		.loc 1 378 0
+ 1261 0718 4FF08040 		mov	r0, #1073741824
+ 1262 071c 4FF00001 		mov	r1, #0
+ 1263 0720 FFF758FF 		bl	pwmTIMxHandler
+ 379:../src/drv_pwm.c **** }
+ 1264              		.loc 1 379 0
+ 1265 0724 80BD     		pop	{r7, pc}
+ 1266              		.cfi_endproc
+ 1267              	.LFE38:
+ 1269 0726 00BF     		.align	2
+ 1270              		.global	TIM3_IRQHandler
+ 1271              		.thumb
+ 1272              		.thumb_func
+ 1274              	TIM3_IRQHandler:
+ 1275              	.LFB39:
+ 380:../src/drv_pwm.c **** 
+ 381:../src/drv_pwm.c **** void TIM3_IRQHandler(void)
+ 382:../src/drv_pwm.c **** {
+ 1276              		.loc 1 382 0
+ 1277              		.cfi_startproc
+ 1278              		@ args = 0, pretend = 0, frame = 0
+ 1279              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1280 0728 80B5     		push	{r7, lr}
+ 1281              	.LCFI29:
+ 1282              		.cfi_def_cfa_offset 8
+ 1283              		.cfi_offset 7, -8
+ 1284              		.cfi_offset 14, -4
+ 1285 072a 00AF     		add	r7, sp, #0
+ 1286              	.LCFI30:
+ 1287              		.cfi_def_cfa_register 7
+ 383:../src/drv_pwm.c ****     pwmTIMxHandler(TIM3, PWM5); // PWM5..8
+ 1288              		.loc 1 383 0
+ 1289 072c 0248     		ldr	r0, .L51
+ 1290 072e 4FF00401 		mov	r1, #4
+ 1291 0732 FFF74FFF 		bl	pwmTIMxHandler
+ 384:../src/drv_pwm.c **** }
+ 1292              		.loc 1 384 0
+ 1293 0736 80BD     		pop	{r7, pc}
+ 1294              	.L52:
+ 1295              		.align	2
+ 1296              	.L51:
+ 1297 0738 00040040 		.word	1073742848
+ 1298              		.cfi_endproc
+ 1299              	.LFE39:
+ 1301              		.align	2
+ 1302              		.global	TIM4_IRQHandler
+ 1303              		.thumb
+ 1304              		.thumb_func
+ 1306              	TIM4_IRQHandler:
+ 1307              	.LFB40:
+ 385:../src/drv_pwm.c **** 
+ 386:../src/drv_pwm.c **** void TIM4_IRQHandler(void)
+ 387:../src/drv_pwm.c **** {
+ 1308              		.loc 1 387 0
+ 1309              		.cfi_startproc
+ 1310              		@ args = 0, pretend = 0, frame = 0
+ 1311              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1312 073c 80B5     		push	{r7, lr}
+ 1313              	.LCFI31:
+ 1314              		.cfi_def_cfa_offset 8
+ 1315              		.cfi_offset 7, -8
+ 1316              		.cfi_offset 14, -4
+ 1317 073e 00AF     		add	r7, sp, #0
+ 1318              	.LCFI32:
+ 1319              		.cfi_def_cfa_register 7
+ 388:../src/drv_pwm.c ****     pwmTIMxHandler(TIM4, PWM11); // PWM11..14
+ 1320              		.loc 1 388 0
+ 1321 0740 0248     		ldr	r0, .L54
+ 1322 0742 4FF00A01 		mov	r1, #10
+ 1323 0746 FFF745FF 		bl	pwmTIMxHandler
+ 389:../src/drv_pwm.c **** }
+ 1324              		.loc 1 389 0
+ 1325 074a 80BD     		pop	{r7, pc}
+ 1326              	.L55:
+ 1327              		.align	2
+ 1328              	.L54:
+ 1329 074c 00080040 		.word	1073743872
+ 1330              		.cfi_endproc
+ 1331              	.LFE40:
+ 1333              		.align	2
+ 1334              		.thumb
+ 1335              		.thumb_func
+ 1337              	ppmCallback:
+ 1338              	.LFB41:
+ 390:../src/drv_pwm.c **** 
+ 391:../src/drv_pwm.c **** static void ppmCallback(uint8_t port, uint16_t capture)
+ 392:../src/drv_pwm.c **** {
+ 1339              		.loc 1 392 0
+ 1340              		.cfi_startproc
+ 1341              		@ args = 0, pretend = 0, frame = 16
+ 1342              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1343              		@ link register save eliminated.
+ 1344 0750 80B4     		push	{r7}
+ 1345              	.LCFI33:
+ 1346              		.cfi_def_cfa_offset 4
+ 1347              		.cfi_offset 7, -4
+ 1348 0752 85B0     		sub	sp, sp, #20
+ 1349              	.LCFI34:
+ 1350              		.cfi_def_cfa_offset 24
+ 1351 0754 00AF     		add	r7, sp, #0
+ 1352              	.LCFI35:
+ 1353              		.cfi_def_cfa_register 7
+ 1354 0756 0246     		mov	r2, r0
+ 1355 0758 0B46     		mov	r3, r1
+ 1356 075a FA71     		strb	r2, [r7, #7]
+ 1357 075c BB80     		strh	r3, [r7, #4]	@ movhi
+ 393:../src/drv_pwm.c ****     uint16_t diff;
+ 394:../src/drv_pwm.c ****     static uint16_t now;
+ 395:../src/drv_pwm.c ****     static uint16_t last = 0;
+ 396:../src/drv_pwm.c ****     static uint8_t chan = 0;
+ 397:../src/drv_pwm.c **** 
+ 398:../src/drv_pwm.c ****     last = now;
+ 1358              		.loc 1 398 0
+ 1359 075e 1E4B     		ldr	r3, .L60
+ 1360 0760 1A88     		ldrh	r2, [r3, #0]
+ 1361 0762 1E4B     		ldr	r3, .L60+4
+ 1362 0764 1A80     		strh	r2, [r3, #0]	@ movhi
+ 399:../src/drv_pwm.c ****     now = capture;
+ 1363              		.loc 1 399 0
+ 1364 0766 1C4B     		ldr	r3, .L60
+ 1365 0768 BA88     		ldrh	r2, [r7, #4]	@ movhi
+ 1366 076a 1A80     		strh	r2, [r3, #0]	@ movhi
+ 400:../src/drv_pwm.c ****     diff = now - last;
+ 1367              		.loc 1 400 0
+ 1368 076c 1A4B     		ldr	r3, .L60
+ 1369 076e 1A88     		ldrh	r2, [r3, #0]
+ 1370 0770 1A4B     		ldr	r3, .L60+4
+ 1371 0772 1B88     		ldrh	r3, [r3, #0]
+ 1372 0774 D31A     		subs	r3, r2, r3
+ 1373 0776 FB81     		strh	r3, [r7, #14]	@ movhi
+ 401:../src/drv_pwm.c **** 
+ 402:../src/drv_pwm.c ****     if (diff > 2700) { // Per http://www.rcgroups.com/forums/showpost.php?p=21996147&postcount=3960
+ 1374              		.loc 1 402 0
+ 1375 0778 FA89     		ldrh	r2, [r7, #14]
+ 1376 077a 40F68C23 		movw	r3, #2700
+ 1377 077e 9A42     		cmp	r2, r3
+ 1378 0780 04D9     		bls	.L57
+ 403:../src/drv_pwm.c ****         chan = 0;
+ 1379              		.loc 1 403 0
+ 1380 0782 174B     		ldr	r3, .L60+8
+ 1381 0784 4FF00002 		mov	r2, #0
+ 1382 0788 1A70     		strb	r2, [r3, #0]
+ 1383 078a 1FE0     		b	.L56
+ 1384              	.L57:
+ 404:../src/drv_pwm.c ****     } else {
+ 405:../src/drv_pwm.c ****         if (diff > 750 && diff < 2250 && chan < 8) {   // 750 to 2250 ms is our 'valid' channel ran
+ 1385              		.loc 1 405 0
+ 1386 078c FA89     		ldrh	r2, [r7, #14]
+ 1387 078e 40F2EE23 		movw	r3, #750
+ 1388 0792 9A42     		cmp	r2, r3
+ 1389 0794 0FD9     		bls	.L59
+ 1390              		.loc 1 405 0 is_stmt 0 discriminator 1
+ 1391 0796 FA89     		ldrh	r2, [r7, #14]
+ 1392 0798 40F6C903 		movw	r3, #2249
+ 1393 079c 9A42     		cmp	r2, r3
+ 1394 079e 0AD8     		bhi	.L59
+ 1395 07a0 0F4B     		ldr	r3, .L60+8
+ 1396 07a2 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1397 07a4 072B     		cmp	r3, #7
+ 1398 07a6 06D8     		bhi	.L59
+ 406:../src/drv_pwm.c ****             captures[chan] = diff;
+ 1399              		.loc 1 406 0 is_stmt 1
+ 1400 07a8 0D4B     		ldr	r3, .L60+8
+ 1401 07aa 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1402 07ac 1A46     		mov	r2, r3
+ 1403 07ae 0D4B     		ldr	r3, .L60+12
+ 1404 07b0 F989     		ldrh	r1, [r7, #14]	@ movhi
+ 1405 07b2 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 1406              	.L59:
+ 407:../src/drv_pwm.c ****         }
+ 408:../src/drv_pwm.c ****         chan++;
+ 1407              		.loc 1 408 0
+ 1408 07b6 0A4B     		ldr	r3, .L60+8
+ 1409 07b8 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1410 07ba 03F10103 		add	r3, r3, #1
+ 1411 07be DAB2     		uxtb	r2, r3
+ 1412 07c0 074B     		ldr	r3, .L60+8
+ 1413 07c2 1A70     		strb	r2, [r3, #0]
+ 409:../src/drv_pwm.c ****         failsafeCnt = 0;
+ 1414              		.loc 1 409 0
+ 1415 07c4 084B     		ldr	r3, .L60+16
+ 1416 07c6 4FF00002 		mov	r2, #0
+ 1417 07ca 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1418              	.L56:
+ 410:../src/drv_pwm.c ****     }
+ 411:../src/drv_pwm.c **** }
+ 1419              		.loc 1 411 0
+ 1420 07cc 07F11407 		add	r7, r7, #20
+ 1421 07d0 BD46     		mov	sp, r7
+ 1422 07d2 80BC     		pop	{r7}
+ 1423 07d4 7047     		bx	lr
+ 1424              	.L61:
+ 1425 07d6 00BF     		.align	2
+ 1426              	.L60:
+ 1427 07d8 7C010000 		.word	now.8757
+ 1428 07dc 7E010000 		.word	last.8758
+ 1429 07e0 80010000 		.word	chan.8759
+ 1430 07e4 18010000 		.word	captures
+ 1431 07e8 00000000 		.word	failsafeCnt
+ 1432              		.cfi_endproc
+ 1433              	.LFE41:
+ 1435              		.align	2
+ 1436              		.thumb
+ 1437              		.thumb_func
+ 1439              	pwmCallback:
+ 1440              	.LFB42:
+ 412:../src/drv_pwm.c **** 
+ 413:../src/drv_pwm.c **** static void pwmCallback(uint8_t port, uint16_t capture)
+ 414:../src/drv_pwm.c **** {
+ 1441              		.loc 1 414 0
+ 1442              		.cfi_startproc
+ 1443              		@ args = 0, pretend = 0, frame = 8
+ 1444              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1445 07ec 90B5     		push	{r4, r7, lr}
+ 1446              	.LCFI36:
+ 1447              		.cfi_def_cfa_offset 12
+ 1448              		.cfi_offset 4, -12
+ 1449              		.cfi_offset 7, -8
+ 1450              		.cfi_offset 14, -4
+ 1451 07ee 83B0     		sub	sp, sp, #12
+ 1452              	.LCFI37:
+ 1453              		.cfi_def_cfa_offset 24
+ 1454 07f0 00AF     		add	r7, sp, #0
+ 1455              	.LCFI38:
+ 1456              		.cfi_def_cfa_register 7
+ 1457 07f2 0246     		mov	r2, r0
+ 1458 07f4 0B46     		mov	r3, r1
+ 1459 07f6 FA71     		strb	r2, [r7, #7]
+ 1460 07f8 BB80     		strh	r3, [r7, #4]	@ movhi
+ 415:../src/drv_pwm.c ****     if (pwmPorts[port].state == 0) {
+ 1461              		.loc 1 415 0
+ 1462 07fa FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1463 07fc 5B49     		ldr	r1, .L65
+ 1464 07fe 1346     		mov	r3, r2
+ 1465 0800 4FEA8303 		lsl	r3, r3, #2
+ 1466 0804 9B18     		adds	r3, r3, r2
+ 1467 0806 4FEA8303 		lsl	r3, r3, #2
+ 1468 080a CB18     		adds	r3, r1, r3
+ 1469 080c 03F10803 		add	r3, r3, #8
+ 1470 0810 DB78     		ldrb	r3, [r3, #3]	@ zero_extendqisi2
+ 1471 0812 002B     		cmp	r3, #0
+ 1472 0814 2FD1     		bne	.L63
+ 416:../src/drv_pwm.c ****         pwmPorts[port].rise = capture;
+ 1473              		.loc 1 416 0
+ 1474 0816 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1475 0818 5449     		ldr	r1, .L65
+ 1476 081a 1346     		mov	r3, r2
+ 1477 081c 4FEA8303 		lsl	r3, r3, #2
+ 1478 0820 9B18     		adds	r3, r3, r2
+ 1479 0822 4FEA8303 		lsl	r3, r3, #2
+ 1480 0826 CB18     		adds	r3, r1, r3
+ 1481 0828 03F10803 		add	r3, r3, #8
+ 1482 082c BA88     		ldrh	r2, [r7, #4]	@ movhi
+ 1483 082e 9A80     		strh	r2, [r3, #4]	@ movhi
+ 417:../src/drv_pwm.c ****         pwmPorts[port].state = 1;
+ 1484              		.loc 1 417 0
+ 1485 0830 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1486 0832 4E49     		ldr	r1, .L65
+ 1487 0834 1346     		mov	r3, r2
+ 1488 0836 4FEA8303 		lsl	r3, r3, #2
+ 1489 083a 9B18     		adds	r3, r3, r2
+ 1490 083c 4FEA8303 		lsl	r3, r3, #2
+ 1491 0840 CB18     		adds	r3, r1, r3
+ 1492 0842 03F10803 		add	r3, r3, #8
+ 1493 0846 4FF00102 		mov	r2, #1
+ 1494 084a DA70     		strb	r2, [r3, #3]
+ 418:../src/drv_pwm.c ****         pwmICConfig(timerHardware[port].tim, timerHardware[port].channel, TIM_ICPolarity_Falling);
+ 1495              		.loc 1 418 0
+ 1496 084c FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 1497 084e 484A     		ldr	r2, .L65+4
+ 1498 0850 4FEA0313 		lsl	r3, r3, #4
+ 1499 0854 D318     		adds	r3, r2, r3
+ 1500 0856 1A68     		ldr	r2, [r3, #0]
+ 1501 0858 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 1502 085a 4549     		ldr	r1, .L65+4
+ 1503 085c 4FEA0313 		lsl	r3, r3, #4
+ 1504 0860 CB18     		adds	r3, r1, r3
+ 1505 0862 03F10803 		add	r3, r3, #8
+ 1506 0866 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 1507 0868 1046     		mov	r0, r2
+ 1508 086a 1946     		mov	r1, r3
+ 1509 086c 4FF00202 		mov	r2, #2
+ 1510 0870 FFF782FC 		bl	pwmICConfig
+ 1511 0874 75E0     		b	.L62
+ 1512              	.L63:
+ 419:../src/drv_pwm.c ****     } else {
+ 420:../src/drv_pwm.c ****         pwmPorts[port].fall = capture;
+ 1513              		.loc 1 420 0
+ 1514 0876 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1515 0878 3C49     		ldr	r1, .L65
+ 1516 087a 1346     		mov	r3, r2
+ 1517 087c 4FEA8303 		lsl	r3, r3, #2
+ 1518 0880 9B18     		adds	r3, r3, r2
+ 1519 0882 4FEA8303 		lsl	r3, r3, #2
+ 1520 0886 CB18     		adds	r3, r1, r3
+ 1521 0888 03F10803 		add	r3, r3, #8
+ 1522 088c BA88     		ldrh	r2, [r7, #4]	@ movhi
+ 1523 088e DA80     		strh	r2, [r3, #6]	@ movhi
+ 421:../src/drv_pwm.c ****         // compute capture
+ 422:../src/drv_pwm.c ****         pwmPorts[port].capture = pwmPorts[port].fall - pwmPorts[port].rise;
+ 1524              		.loc 1 422 0
+ 1525 0890 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1526 0892 F979     		ldrb	r1, [r7, #7]	@ zero_extendqisi2
+ 1527 0894 3548     		ldr	r0, .L65
+ 1528 0896 0B46     		mov	r3, r1
+ 1529 0898 4FEA8303 		lsl	r3, r3, #2
+ 1530 089c 5B18     		adds	r3, r3, r1
+ 1531 089e 4FEA8303 		lsl	r3, r3, #2
+ 1532 08a2 C318     		adds	r3, r0, r3
+ 1533 08a4 03F10803 		add	r3, r3, #8
+ 1534 08a8 D888     		ldrh	r0, [r3, #6]
+ 1535 08aa F979     		ldrb	r1, [r7, #7]	@ zero_extendqisi2
+ 1536 08ac 2F4C     		ldr	r4, .L65
+ 1537 08ae 0B46     		mov	r3, r1
+ 1538 08b0 4FEA8303 		lsl	r3, r3, #2
+ 1539 08b4 5B18     		adds	r3, r3, r1
+ 1540 08b6 4FEA8303 		lsl	r3, r3, #2
+ 1541 08ba E318     		adds	r3, r4, r3
+ 1542 08bc 03F10803 		add	r3, r3, #8
+ 1543 08c0 9B88     		ldrh	r3, [r3, #4]
+ 1544 08c2 C31A     		subs	r3, r0, r3
+ 1545 08c4 99B2     		uxth	r1, r3
+ 1546 08c6 2948     		ldr	r0, .L65
+ 1547 08c8 1346     		mov	r3, r2
+ 1548 08ca 4FEA8303 		lsl	r3, r3, #2
+ 1549 08ce 9B18     		adds	r3, r3, r2
+ 1550 08d0 4FEA8303 		lsl	r3, r3, #2
+ 1551 08d4 C318     		adds	r3, r0, r3
+ 1552 08d6 03F11003 		add	r3, r3, #16
+ 1553 08da 0A46     		mov	r2, r1	@ movhi
+ 1554 08dc 1A80     		strh	r2, [r3, #0]	@ movhi
+ 423:../src/drv_pwm.c ****         captures[pwmPorts[port].channel] = pwmPorts[port].capture;
+ 1555              		.loc 1 423 0
+ 1556 08de FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1557 08e0 2249     		ldr	r1, .L65
+ 1558 08e2 1346     		mov	r3, r2
+ 1559 08e4 4FEA8303 		lsl	r3, r3, #2
+ 1560 08e8 9B18     		adds	r3, r3, r2
+ 1561 08ea 4FEA8303 		lsl	r3, r3, #2
+ 1562 08ee CB18     		adds	r3, r1, r3
+ 1563 08f0 03F10803 		add	r3, r3, #8
+ 1564 08f4 9B78     		ldrb	r3, [r3, #2]	@ zero_extendqisi2
+ 1565 08f6 1946     		mov	r1, r3
+ 1566 08f8 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1567 08fa 1C48     		ldr	r0, .L65
+ 1568 08fc 1346     		mov	r3, r2
+ 1569 08fe 4FEA8303 		lsl	r3, r3, #2
+ 1570 0902 9B18     		adds	r3, r3, r2
+ 1571 0904 4FEA8303 		lsl	r3, r3, #2
+ 1572 0908 C318     		adds	r3, r0, r3
+ 1573 090a 03F11003 		add	r3, r3, #16
+ 1574 090e 1A88     		ldrh	r2, [r3, #0]
+ 1575 0910 184B     		ldr	r3, .L65+8
+ 1576 0912 23F81120 		strh	r2, [r3, r1, lsl #1]	@ movhi
+ 424:../src/drv_pwm.c ****         // switch state
+ 425:../src/drv_pwm.c ****         pwmPorts[port].state = 0;
+ 1577              		.loc 1 425 0
+ 1578 0916 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1579 0918 1449     		ldr	r1, .L65
+ 1580 091a 1346     		mov	r3, r2
+ 1581 091c 4FEA8303 		lsl	r3, r3, #2
+ 1582 0920 9B18     		adds	r3, r3, r2
+ 1583 0922 4FEA8303 		lsl	r3, r3, #2
+ 1584 0926 CB18     		adds	r3, r1, r3
+ 1585 0928 03F10803 		add	r3, r3, #8
+ 1586 092c 4FF00002 		mov	r2, #0
+ 1587 0930 DA70     		strb	r2, [r3, #3]
+ 426:../src/drv_pwm.c ****         pwmICConfig(timerHardware[port].tim, timerHardware[port].channel, TIM_ICPolarity_Rising);
+ 1588              		.loc 1 426 0
+ 1589 0932 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 1590 0934 0E4A     		ldr	r2, .L65+4
+ 1591 0936 4FEA0313 		lsl	r3, r3, #4
+ 1592 093a D318     		adds	r3, r2, r3
+ 1593 093c 1A68     		ldr	r2, [r3, #0]
+ 1594 093e FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 1595 0940 0B49     		ldr	r1, .L65+4
+ 1596 0942 4FEA0313 		lsl	r3, r3, #4
+ 1597 0946 CB18     		adds	r3, r1, r3
+ 1598 0948 03F10803 		add	r3, r3, #8
+ 1599 094c 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 1600 094e 1046     		mov	r0, r2
+ 1601 0950 1946     		mov	r1, r3
+ 1602 0952 4FF00002 		mov	r2, #0
+ 1603 0956 FFF70FFC 		bl	pwmICConfig
+ 427:../src/drv_pwm.c ****         // reset failsafe
+ 428:../src/drv_pwm.c ****         failsafeCnt = 0;
+ 1604              		.loc 1 428 0
+ 1605 095a 074B     		ldr	r3, .L65+12
+ 1606 095c 4FF00002 		mov	r2, #0
+ 1607 0960 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1608              	.L62:
+ 429:../src/drv_pwm.c ****     }
+ 430:../src/drv_pwm.c **** }
+ 1609              		.loc 1 430 0
+ 1610 0962 07F10C07 		add	r7, r7, #12
+ 1611 0966 BD46     		mov	sp, r7
+ 1612 0968 90BD     		pop	{r4, r7, pc}
+ 1613              	.L66:
+ 1614 096a 00BF     		.align	2
+ 1615              	.L65:
+ 1616 096c 00000000 		.word	pwmPorts
+ 1617 0970 00000000 		.word	timerHardware
+ 1618 0974 18010000 		.word	captures
+ 1619 0978 00000000 		.word	failsafeCnt
+ 1620              		.cfi_endproc
+ 1621              	.LFE42:
+ 1623              		.align	2
+ 1624              		.global	pwmInit
+ 1625              		.thumb
+ 1626              		.thumb_func
+ 1628              	pwmInit:
+ 1629              	.LFB43:
+ 431:../src/drv_pwm.c **** 
+ 432:../src/drv_pwm.c **** bool pwmInit(drv_pwm_config_t *init)
+ 433:../src/drv_pwm.c **** {
+ 1630              		.loc 1 433 0
+ 1631              		.cfi_startproc
+ 1632              		@ args = 0, pretend = 0, frame = 24
+ 1633              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1634 097c B0B5     		push	{r4, r5, r7, lr}
+ 1635              	.LCFI39:
+ 1636              		.cfi_def_cfa_offset 16
+ 1637              		.cfi_offset 4, -16
+ 1638              		.cfi_offset 5, -12
+ 1639              		.cfi_offset 7, -8
+ 1640              		.cfi_offset 14, -4
+ 1641 097e 86B0     		sub	sp, sp, #24
+ 1642              	.LCFI40:
+ 1643              		.cfi_def_cfa_offset 40
+ 1644 0980 00AF     		add	r7, sp, #0
+ 1645              	.LCFI41:
+ 1646              		.cfi_def_cfa_register 7
+ 1647 0982 7860     		str	r0, [r7, #4]
+ 434:../src/drv_pwm.c ****     int i = 0;
+ 1648              		.loc 1 434 0
+ 1649 0984 4FF00003 		mov	r3, #0
+ 1650 0988 7B61     		str	r3, [r7, #20]
+ 435:../src/drv_pwm.c ****     const uint8_t *setup;
+ 436:../src/drv_pwm.c **** 
+ 437:../src/drv_pwm.c ****     // this is pretty hacky shit, but it will do for now. array of 4 config maps, [ multiPWM multiP
+ 438:../src/drv_pwm.c ****     if (init->airplane)
+ 1651              		.loc 1 438 0
+ 1652 098a 7B68     		ldr	r3, [r7, #4]
+ 1653 098c 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 1654 098e 002B     		cmp	r3, #0
+ 1655 0990 02D0     		beq	.L68
+ 439:../src/drv_pwm.c ****         i = 2; // switch to air hardware config
+ 1656              		.loc 1 439 0
+ 1657 0992 4FF00203 		mov	r3, #2
+ 1658 0996 7B61     		str	r3, [r7, #20]
+ 1659              	.L68:
+ 440:../src/drv_pwm.c ****     if (init->usePPM)
+ 1660              		.loc 1 440 0
+ 1661 0998 7B68     		ldr	r3, [r7, #4]
+ 1662 099a 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 1663 099c 002B     		cmp	r3, #0
+ 1664 099e 03D0     		beq	.L69
+ 441:../src/drv_pwm.c ****         i++; // next index is for PPM
+ 1665              		.loc 1 441 0
+ 1666 09a0 7B69     		ldr	r3, [r7, #20]
+ 1667 09a2 03F10103 		add	r3, r3, #1
+ 1668 09a6 7B61     		str	r3, [r7, #20]
+ 1669              	.L69:
+ 442:../src/drv_pwm.c **** 
+ 443:../src/drv_pwm.c ****     setup = hardwareMaps[i];
+ 1670              		.loc 1 443 0
+ 1671 09a8 704B     		ldr	r3, .L89
+ 1672 09aa 7A69     		ldr	r2, [r7, #20]
+ 1673 09ac 53F82230 		ldr	r3, [r3, r2, lsl #2]
+ 1674 09b0 FB60     		str	r3, [r7, #12]
+ 444:../src/drv_pwm.c **** 
+ 445:../src/drv_pwm.c ****     for (i = 0; i < MAX_PORTS; i++) {
+ 1675              		.loc 1 445 0
+ 1676 09b2 4FF00003 		mov	r3, #0
+ 1677 09b6 7B61     		str	r3, [r7, #20]
+ 1678 09b8 CBE0     		b	.L70
+ 1679              	.L84:
+ 1680              	.LBB2:
+ 446:../src/drv_pwm.c ****         uint8_t port = setup[i] & 0x0F;
+ 1681              		.loc 1 446 0
+ 1682 09ba 7B69     		ldr	r3, [r7, #20]
+ 1683 09bc FA68     		ldr	r2, [r7, #12]
+ 1684 09be D318     		adds	r3, r2, r3
+ 1685 09c0 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1686 09c2 03F00F03 		and	r3, r3, #15
+ 1687 09c6 FB72     		strb	r3, [r7, #11]
+ 447:../src/drv_pwm.c ****         uint8_t mask = setup[i] & 0xF0;
+ 1688              		.loc 1 447 0
+ 1689 09c8 7B69     		ldr	r3, [r7, #20]
+ 1690 09ca FA68     		ldr	r2, [r7, #12]
+ 1691 09cc D318     		adds	r3, r2, r3
+ 1692 09ce 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1693 09d0 23F00F03 		bic	r3, r3, #15
+ 1694 09d4 FB74     		strb	r3, [r7, #19]
+ 448:../src/drv_pwm.c **** 
+ 449:../src/drv_pwm.c ****         if (setup[i] == 0xFF) // terminator
+ 1695              		.loc 1 449 0
+ 1696 09d6 7B69     		ldr	r3, [r7, #20]
+ 1697 09d8 FA68     		ldr	r2, [r7, #12]
+ 1698 09da D318     		adds	r3, r2, r3
+ 1699 09dc 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1700 09de FF2B     		cmp	r3, #255
+ 1701 09e0 00F0BC80 		beq	.L86
+ 1702              	.L71:
+ 450:../src/drv_pwm.c ****             break;
+ 451:../src/drv_pwm.c **** 
+ 452:../src/drv_pwm.c **** #ifdef OLIMEXINO
+ 453:../src/drv_pwm.c ****         // PWM2 is connected to LED2 on the board and cannot be connected.
+ 454:../src/drv_pwm.c ****         if (port == PWM2)
+ 455:../src/drv_pwm.c ****             continue;
+ 456:../src/drv_pwm.c **** #endif
+ 457:../src/drv_pwm.c **** 
+ 458:../src/drv_pwm.c ****         // skip UART ports for GPS
+ 459:../src/drv_pwm.c ****         if (init->useUART && (port == PWM3 || port == PWM4))
+ 1703              		.loc 1 459 0
+ 1704 09e4 7B68     		ldr	r3, [r7, #4]
+ 1705 09e6 9B78     		ldrb	r3, [r3, #2]	@ zero_extendqisi2
+ 1706 09e8 002B     		cmp	r3, #0
+ 1707 09ea 07D0     		beq	.L73
+ 1708              		.loc 1 459 0 is_stmt 0 discriminator 1
+ 1709 09ec FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 1710 09ee 022B     		cmp	r3, #2
+ 1711 09f0 00F0A880 		beq	.L87
+ 1712 09f4 FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 1713 09f6 032B     		cmp	r3, #3
+ 1714 09f8 00F0A480 		beq	.L87
+ 1715              	.L73:
+ 460:../src/drv_pwm.c ****             continue;
+ 461:../src/drv_pwm.c **** 
+ 462:../src/drv_pwm.c ****         // skip ADC for powerMeter if configured
+ 463:../src/drv_pwm.c ****         if (init->adcChannel && (init->adcChannel == port))
+ 1716              		.loc 1 463 0 is_stmt 1
+ 1717 09fc 7B68     		ldr	r3, [r7, #4]
+ 1718 09fe 9B79     		ldrb	r3, [r3, #6]	@ zero_extendqisi2
+ 1719 0a00 002B     		cmp	r3, #0
+ 1720 0a02 05D0     		beq	.L76
+ 1721              		.loc 1 463 0 is_stmt 0 discriminator 1
+ 1722 0a04 7B68     		ldr	r3, [r7, #4]
+ 1723 0a06 9B79     		ldrb	r3, [r3, #6]	@ zero_extendqisi2
+ 1724 0a08 FA7A     		ldrb	r2, [r7, #11]	@ zero_extendqisi2
+ 1725 0a0a 9A42     		cmp	r2, r3
+ 1726 0a0c 00F09C80 		beq	.L88
+ 1727              	.L76:
+ 464:../src/drv_pwm.c ****             continue;
+ 465:../src/drv_pwm.c **** 
+ 466:../src/drv_pwm.c ****         // hacks to allow current functionality
+ 467:../src/drv_pwm.c ****         if (mask & (TYPE_IP | TYPE_IW) && !init->enableInput)
+ 1728              		.loc 1 467 0 is_stmt 1
+ 1729 0a10 FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 1730 0a12 03F03003 		and	r3, r3, #48
+ 1731 0a16 002B     		cmp	r3, #0
+ 1732 0a18 09D0     		beq	.L77
+ 1733              		.loc 1 467 0 is_stmt 0 discriminator 1
+ 1734 0a1a 7B68     		ldr	r3, [r7, #4]
+ 1735 0a1c 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1736 0a1e 83F00103 		eor	r3, r3, #1
+ 1737 0a22 DBB2     		uxtb	r3, r3
+ 1738 0a24 002B     		cmp	r3, #0
+ 1739 0a26 02D0     		beq	.L77
+ 468:../src/drv_pwm.c ****             mask = 0;
+ 1740              		.loc 1 468 0 is_stmt 1
+ 1741 0a28 4FF00003 		mov	r3, #0
+ 1742 0a2c FB74     		strb	r3, [r7, #19]
+ 1743              	.L77:
+ 469:../src/drv_pwm.c **** 
+ 470:../src/drv_pwm.c ****         if (init->useServos && !init->airplane) {
+ 1744              		.loc 1 470 0
+ 1745 0a2e 7B68     		ldr	r3, [r7, #4]
+ 1746 0a30 DB78     		ldrb	r3, [r3, #3]	@ zero_extendqisi2
+ 1747 0a32 002B     		cmp	r3, #0
+ 1748 0a34 0FD0     		beq	.L78
+ 1749              		.loc 1 470 0 is_stmt 0 discriminator 1
+ 1750 0a36 7B68     		ldr	r3, [r7, #4]
+ 1751 0a38 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 1752 0a3a 83F00103 		eor	r3, r3, #1
+ 1753 0a3e DBB2     		uxtb	r3, r3
+ 1754 0a40 002B     		cmp	r3, #0
+ 1755 0a42 08D0     		beq	.L78
+ 471:../src/drv_pwm.c ****             // remap PWM9+10 as servos (but not in airplane mode LOL)
+ 472:../src/drv_pwm.c ****             if (port == PWM9 || port == PWM10)
+ 1756              		.loc 1 472 0 is_stmt 1
+ 1757 0a44 FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 1758 0a46 082B     		cmp	r3, #8
+ 1759 0a48 02D0     		beq	.L79
+ 1760              		.loc 1 472 0 is_stmt 0 discriminator 1
+ 1761 0a4a FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 1762 0a4c 092B     		cmp	r3, #9
+ 1763 0a4e 02D1     		bne	.L78
+ 1764              	.L79:
+ 473:../src/drv_pwm.c ****                 mask = TYPE_S;
+ 1765              		.loc 1 473 0 is_stmt 1
+ 1766 0a50 4FF08003 		mov	r3, #128
+ 1767 0a54 FB74     		strb	r3, [r7, #19]
+ 1768              	.L78:
+ 474:../src/drv_pwm.c ****         }
+ 475:../src/drv_pwm.c **** 
+ 476:../src/drv_pwm.c ****         if (init->extraServos && !init->airplane) {
+ 1769              		.loc 1 476 0
+ 1770 0a56 7B68     		ldr	r3, [r7, #4]
+ 1771 0a58 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 1772 0a5a 002B     		cmp	r3, #0
+ 1773 0a5c 0FD0     		beq	.L80
+ 1774              		.loc 1 476 0 is_stmt 0 discriminator 1
+ 1775 0a5e 7B68     		ldr	r3, [r7, #4]
+ 1776 0a60 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 1777 0a62 83F00103 		eor	r3, r3, #1
+ 1778 0a66 DBB2     		uxtb	r3, r3
+ 1779 0a68 002B     		cmp	r3, #0
+ 1780 0a6a 08D0     		beq	.L80
+ 477:../src/drv_pwm.c ****             // remap PWM5..8 as servos when used in extended servo mode
+ 478:../src/drv_pwm.c ****             if (port >= PWM5 && port <= PWM8)
+ 1781              		.loc 1 478 0 is_stmt 1
+ 1782 0a6c FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 1783 0a6e 032B     		cmp	r3, #3
+ 1784 0a70 05D9     		bls	.L80
+ 1785              		.loc 1 478 0 is_stmt 0 discriminator 1
+ 1786 0a72 FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 1787 0a74 072B     		cmp	r3, #7
+ 1788 0a76 02D8     		bhi	.L80
+ 479:../src/drv_pwm.c ****                 mask = TYPE_S;
+ 1789              		.loc 1 479 0 is_stmt 1
+ 1790 0a78 4FF08003 		mov	r3, #128
+ 1791 0a7c FB74     		strb	r3, [r7, #19]
+ 1792              	.L80:
+ 480:../src/drv_pwm.c ****         }
+ 481:../src/drv_pwm.c **** 
+ 482:../src/drv_pwm.c ****         if (mask & TYPE_IP) {
+ 1793              		.loc 1 482 0
+ 1794 0a7e FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 1795 0a80 03F01003 		and	r3, r3, #16
+ 1796 0a84 002B     		cmp	r3, #0
+ 1797 0a86 0BD0     		beq	.L81
+ 483:../src/drv_pwm.c ****             pwmInConfig(port, ppmCallback, 0);
+ 1798              		.loc 1 483 0
+ 1799 0a88 FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 1800 0a8a 1846     		mov	r0, r3
+ 1801 0a8c 3849     		ldr	r1, .L89+4
+ 1802 0a8e 4FF00002 		mov	r2, #0
+ 1803 0a92 FFF783FC 		bl	pwmInConfig
+ 484:../src/drv_pwm.c ****             numInputs = 8;
+ 1804              		.loc 1 484 0
+ 1805 0a96 374B     		ldr	r3, .L89+8
+ 1806 0a98 4FF00802 		mov	r2, #8
+ 1807 0a9c 1A70     		strb	r2, [r3, #0]
+ 1808 0a9e 54E0     		b	.L75
+ 1809              	.L81:
+ 485:../src/drv_pwm.c ****         } else if (mask & TYPE_IW) {
+ 1810              		.loc 1 485 0
+ 1811 0aa0 FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 1812 0aa2 03F02003 		and	r3, r3, #32
+ 1813 0aa6 002B     		cmp	r3, #0
+ 1814 0aa8 0FD0     		beq	.L82
+ 486:../src/drv_pwm.c ****             pwmInConfig(port, pwmCallback, numInputs);
+ 1815              		.loc 1 486 0
+ 1816 0aaa 324B     		ldr	r3, .L89+8
+ 1817 0aac 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1818 0aae FA7A     		ldrb	r2, [r7, #11]	@ zero_extendqisi2
+ 1819 0ab0 1046     		mov	r0, r2
+ 1820 0ab2 3149     		ldr	r1, .L89+12
+ 1821 0ab4 1A46     		mov	r2, r3
+ 1822 0ab6 FFF771FC 		bl	pwmInConfig
+ 487:../src/drv_pwm.c ****             numInputs++;
+ 1823              		.loc 1 487 0
+ 1824 0aba 2E4B     		ldr	r3, .L89+8
+ 1825 0abc 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1826 0abe 03F10103 		add	r3, r3, #1
+ 1827 0ac2 DAB2     		uxtb	r2, r3
+ 1828 0ac4 2B4B     		ldr	r3, .L89+8
+ 1829 0ac6 1A70     		strb	r2, [r3, #0]
+ 1830 0ac8 3FE0     		b	.L75
+ 1831              	.L82:
+ 488:../src/drv_pwm.c ****         } else if (mask & TYPE_M) {
+ 1832              		.loc 1 488 0
+ 1833 0aca FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 1834 0acc 03F04003 		and	r3, r3, #64
+ 1835 0ad0 002B     		cmp	r3, #0
+ 1836 0ad2 19D0     		beq	.L83
+ 489:../src/drv_pwm.c ****             motors[numMotors++] = pwmOutConfig(port, 1000000 / init->motorPwmRate, PULSE_1MS);
+ 1837              		.loc 1 489 0
+ 1838 0ad4 294B     		ldr	r3, .L89+16
+ 1839 0ad6 1C78     		ldrb	r4, [r3, #0]	@ zero_extendqisi2
+ 1840 0ad8 2546     		mov	r5, r4
+ 1841 0ada 7B68     		ldr	r3, [r7, #4]
+ 1842 0adc 1B89     		ldrh	r3, [r3, #8]
+ 1843 0ade 284A     		ldr	r2, .L89+20
+ 1844 0ae0 92FBF3F3 		sdiv	r3, r2, r3
+ 1845 0ae4 9BB2     		uxth	r3, r3
+ 1846 0ae6 FA7A     		ldrb	r2, [r7, #11]	@ zero_extendqisi2
+ 1847 0ae8 1046     		mov	r0, r2
+ 1848 0aea 1946     		mov	r1, r3
+ 1849 0aec 4FF47A72 		mov	r2, #1000
+ 1850 0af0 FFF78EFB 		bl	pwmOutConfig
+ 1851 0af4 0246     		mov	r2, r0
+ 1852 0af6 234B     		ldr	r3, .L89+24
+ 1853 0af8 43F82520 		str	r2, [r3, r5, lsl #2]
+ 1854 0afc 04F10103 		add	r3, r4, #1
+ 1855 0b00 DAB2     		uxtb	r2, r3
+ 1856 0b02 1E4B     		ldr	r3, .L89+16
+ 1857 0b04 1A70     		strb	r2, [r3, #0]
+ 1858 0b06 20E0     		b	.L75
+ 1859              	.L83:
+ 490:../src/drv_pwm.c ****         } else if (mask & TYPE_S) {
+ 1860              		.loc 1 490 0
+ 1861 0b08 FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 1862 0b0a 5BB2     		sxtb	r3, r3
+ 1863 0b0c 002B     		cmp	r3, #0
+ 1864 0b0e 1CDA     		bge	.L75
+ 491:../src/drv_pwm.c ****             servos[numServos++] = pwmOutConfig(port, 1000000 / init->servoPwmRate, PULSE_1MS);
+ 1865              		.loc 1 491 0
+ 1866 0b10 1D4B     		ldr	r3, .L89+28
+ 1867 0b12 1C78     		ldrb	r4, [r3, #0]	@ zero_extendqisi2
+ 1868 0b14 2546     		mov	r5, r4
+ 1869 0b16 7B68     		ldr	r3, [r7, #4]
+ 1870 0b18 5B89     		ldrh	r3, [r3, #10]
+ 1871 0b1a 194A     		ldr	r2, .L89+20
+ 1872 0b1c 92FBF3F3 		sdiv	r3, r2, r3
+ 1873 0b20 9BB2     		uxth	r3, r3
+ 1874 0b22 FA7A     		ldrb	r2, [r7, #11]	@ zero_extendqisi2
+ 1875 0b24 1046     		mov	r0, r2
+ 1876 0b26 1946     		mov	r1, r3
+ 1877 0b28 4FF47A72 		mov	r2, #1000
+ 1878 0b2c FFF770FB 		bl	pwmOutConfig
+ 1879 0b30 0246     		mov	r2, r0
+ 1880 0b32 164B     		ldr	r3, .L89+32
+ 1881 0b34 43F82520 		str	r2, [r3, r5, lsl #2]
+ 1882 0b38 04F10103 		add	r3, r4, #1
+ 1883 0b3c DAB2     		uxtb	r2, r3
+ 1884 0b3e 124B     		ldr	r3, .L89+28
+ 1885 0b40 1A70     		strb	r2, [r3, #0]
+ 1886 0b42 02E0     		b	.L75
+ 1887              	.L87:
+ 460:../src/drv_pwm.c ****             continue;
+ 1888              		.loc 1 460 0
+ 1889 0b44 00BF     		nop
+ 1890 0b46 00E0     		b	.L75
+ 1891              	.L88:
+ 464:../src/drv_pwm.c ****             continue;
+ 1892              		.loc 1 464 0
+ 1893 0b48 00BF     		nop
+ 1894              	.L75:
+ 1895              	.LBE2:
+ 445:../src/drv_pwm.c ****     for (i = 0; i < MAX_PORTS; i++) {
+ 1896              		.loc 1 445 0
+ 1897 0b4a 7B69     		ldr	r3, [r7, #20]
+ 1898 0b4c 03F10103 		add	r3, r3, #1
+ 1899 0b50 7B61     		str	r3, [r7, #20]
+ 1900              	.L70:
+ 445:../src/drv_pwm.c ****     for (i = 0; i < MAX_PORTS; i++) {
+ 1901              		.loc 1 445 0 is_stmt 0 discriminator 1
+ 1902 0b52 7B69     		ldr	r3, [r7, #20]
+ 1903 0b54 0D2B     		cmp	r3, #13
+ 1904 0b56 7FF730AF 		ble	.L84
+ 1905 0b5a 00E0     		b	.L72
+ 1906              	.L86:
+ 1907              	.LBB3:
+ 450:../src/drv_pwm.c ****             break;
+ 1908              		.loc 1 450 0 is_stmt 1
+ 1909 0b5c 00BF     		nop
+ 1910              	.L72:
+ 1911              	.LBE3:
+ 492:../src/drv_pwm.c ****         }
+ 493:../src/drv_pwm.c ****     }
+ 494:../src/drv_pwm.c **** 
+ 495:../src/drv_pwm.c ****     return false;
+ 1912              		.loc 1 495 0
+ 1913 0b5e 4FF00003 		mov	r3, #0
+ 496:../src/drv_pwm.c **** }
+ 1914              		.loc 1 496 0
+ 1915 0b62 1846     		mov	r0, r3
+ 1916 0b64 07F11807 		add	r7, r7, #24
+ 1917 0b68 BD46     		mov	sp, r7
+ 1918 0b6a B0BD     		pop	{r4, r5, r7, pc}
+ 1919              	.L90:
+ 1920              		.align	2
+ 1921              	.L89:
+ 1922 0b6c E0000000 		.word	hardwareMaps
+ 1923 0b70 00000000 		.word	ppmCallback
+ 1924 0b74 7A010000 		.word	numInputs
+ 1925 0b78 00000000 		.word	pwmCallback
+ 1926 0b7c 78010000 		.word	numMotors
+ 1927 0b80 40420F00 		.word	1000000
+ 1928 0b84 28010000 		.word	motors
+ 1929 0b88 79010000 		.word	numServos
+ 1930 0b8c 58010000 		.word	servos
+ 1931              		.cfi_endproc
+ 1932              	.LFE43:
+ 1934              		.align	2
+ 1935              		.global	pwmWriteMotor
+ 1936              		.thumb
+ 1937              		.thumb_func
+ 1939              	pwmWriteMotor:
+ 1940              	.LFB44:
+ 497:../src/drv_pwm.c **** 
+ 498:../src/drv_pwm.c **** void pwmWriteMotor(uint8_t index, uint16_t value)
+ 499:../src/drv_pwm.c **** {
+ 1941              		.loc 1 499 0
+ 1942              		.cfi_startproc
+ 1943              		@ args = 0, pretend = 0, frame = 8
+ 1944              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1945              		@ link register save eliminated.
+ 1946 0b90 80B4     		push	{r7}
+ 1947              	.LCFI42:
+ 1948              		.cfi_def_cfa_offset 4
+ 1949              		.cfi_offset 7, -4
+ 1950 0b92 83B0     		sub	sp, sp, #12
+ 1951              	.LCFI43:
+ 1952              		.cfi_def_cfa_offset 16
+ 1953 0b94 00AF     		add	r7, sp, #0
+ 1954              	.LCFI44:
+ 1955              		.cfi_def_cfa_register 7
+ 1956 0b96 0246     		mov	r2, r0
+ 1957 0b98 0B46     		mov	r3, r1
+ 1958 0b9a FA71     		strb	r2, [r7, #7]
+ 1959 0b9c BB80     		strh	r3, [r7, #4]	@ movhi
+ 500:../src/drv_pwm.c ****     if (index < numMotors)
+ 1960              		.loc 1 500 0
+ 1961 0b9e 084B     		ldr	r3, .L93
+ 1962 0ba0 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1963 0ba2 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1964 0ba4 9A42     		cmp	r2, r3
+ 1965 0ba6 06D2     		bcs	.L91
+ 501:../src/drv_pwm.c ****         *motors[index]->ccr = value;
+ 1966              		.loc 1 501 0
+ 1967 0ba8 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1968 0baa 064B     		ldr	r3, .L93+4
+ 1969 0bac 53F82230 		ldr	r3, [r3, r2, lsl #2]
+ 1970 0bb0 5B68     		ldr	r3, [r3, #4]
+ 1971 0bb2 BA88     		ldrh	r2, [r7, #4]	@ movhi
+ 1972 0bb4 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1973              	.L91:
+ 502:../src/drv_pwm.c **** }
+ 1974              		.loc 1 502 0
+ 1975 0bb6 07F10C07 		add	r7, r7, #12
+ 1976 0bba BD46     		mov	sp, r7
+ 1977 0bbc 80BC     		pop	{r7}
+ 1978 0bbe 7047     		bx	lr
+ 1979              	.L94:
+ 1980              		.align	2
+ 1981              	.L93:
+ 1982 0bc0 78010000 		.word	numMotors
+ 1983 0bc4 28010000 		.word	motors
+ 1984              		.cfi_endproc
+ 1985              	.LFE44:
+ 1987              		.align	2
+ 1988              		.global	pwmWriteServo
+ 1989              		.thumb
+ 1990              		.thumb_func
+ 1992              	pwmWriteServo:
+ 1993              	.LFB45:
+ 503:../src/drv_pwm.c **** 
+ 504:../src/drv_pwm.c **** void pwmWriteServo(uint8_t index, uint16_t value)
+ 505:../src/drv_pwm.c **** {
+ 1994              		.loc 1 505 0
+ 1995              		.cfi_startproc
+ 1996              		@ args = 0, pretend = 0, frame = 8
+ 1997              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1998              		@ link register save eliminated.
+ 1999 0bc8 80B4     		push	{r7}
+ 2000              	.LCFI45:
+ 2001              		.cfi_def_cfa_offset 4
+ 2002              		.cfi_offset 7, -4
+ 2003 0bca 83B0     		sub	sp, sp, #12
+ 2004              	.LCFI46:
+ 2005              		.cfi_def_cfa_offset 16
+ 2006 0bcc 00AF     		add	r7, sp, #0
+ 2007              	.LCFI47:
+ 2008              		.cfi_def_cfa_register 7
+ 2009 0bce 0246     		mov	r2, r0
+ 2010 0bd0 0B46     		mov	r3, r1
+ 2011 0bd2 FA71     		strb	r2, [r7, #7]
+ 2012 0bd4 BB80     		strh	r3, [r7, #4]	@ movhi
+ 506:../src/drv_pwm.c ****     if (index < numServos)
+ 2013              		.loc 1 506 0
+ 2014 0bd6 084B     		ldr	r3, .L97
+ 2015 0bd8 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2016 0bda FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 2017 0bdc 9A42     		cmp	r2, r3
+ 2018 0bde 06D2     		bcs	.L95
+ 507:../src/drv_pwm.c ****         *servos[index]->ccr = value;
+ 2019              		.loc 1 507 0
+ 2020 0be0 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 2021 0be2 064B     		ldr	r3, .L97+4
+ 2022 0be4 53F82230 		ldr	r3, [r3, r2, lsl #2]
+ 2023 0be8 5B68     		ldr	r3, [r3, #4]
+ 2024 0bea BA88     		ldrh	r2, [r7, #4]	@ movhi
+ 2025 0bec 1A80     		strh	r2, [r3, #0]	@ movhi
+ 2026              	.L95:
+ 508:../src/drv_pwm.c **** }
+ 2027              		.loc 1 508 0
+ 2028 0bee 07F10C07 		add	r7, r7, #12
+ 2029 0bf2 BD46     		mov	sp, r7
+ 2030 0bf4 80BC     		pop	{r7}
+ 2031 0bf6 7047     		bx	lr
+ 2032              	.L98:
+ 2033              		.align	2
+ 2034              	.L97:
+ 2035 0bf8 79010000 		.word	numServos
+ 2036 0bfc 58010000 		.word	servos
+ 2037              		.cfi_endproc
+ 2038              	.LFE45:
+ 2040              		.align	2
+ 2041              		.global	pwmRead
+ 2042              		.thumb
+ 2043              		.thumb_func
+ 2045              	pwmRead:
+ 2046              	.LFB46:
+ 509:../src/drv_pwm.c **** 
+ 510:../src/drv_pwm.c **** uint16_t pwmRead(uint8_t channel)
+ 511:../src/drv_pwm.c **** {
+ 2047              		.loc 1 511 0
+ 2048              		.cfi_startproc
+ 2049              		@ args = 0, pretend = 0, frame = 8
+ 2050              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2051              		@ link register save eliminated.
+ 2052 0c00 80B4     		push	{r7}
+ 2053              	.LCFI48:
+ 2054              		.cfi_def_cfa_offset 4
+ 2055              		.cfi_offset 7, -4
+ 2056 0c02 83B0     		sub	sp, sp, #12
+ 2057              	.LCFI49:
+ 2058              		.cfi_def_cfa_offset 16
+ 2059 0c04 00AF     		add	r7, sp, #0
+ 2060              	.LCFI50:
+ 2061              		.cfi_def_cfa_register 7
+ 2062 0c06 0346     		mov	r3, r0
+ 2063 0c08 FB71     		strb	r3, [r7, #7]
+ 512:../src/drv_pwm.c ****     return captures[channel];
+ 2064              		.loc 1 512 0
+ 2065 0c0a FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 2066 0c0c 044B     		ldr	r3, .L101
+ 2067 0c0e 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 513:../src/drv_pwm.c **** }
+ 2068              		.loc 1 513 0
+ 2069 0c12 1846     		mov	r0, r3
+ 2070 0c14 07F10C07 		add	r7, r7, #12
+ 2071 0c18 BD46     		mov	sp, r7
+ 2072 0c1a 80BC     		pop	{r7}
+ 2073 0c1c 7047     		bx	lr
+ 2074              	.L102:
+ 2075 0c1e 00BF     		.align	2
+ 2076              	.L101:
+ 2077 0c20 18010000 		.word	captures
+ 2078              		.cfi_endproc
+ 2079              	.LFE46:
+ 2081              		.bss
+ 2082 017b 00       		.align	1
+ 2083              	now.8757:
+ 2084 017c 0000     		.space	2
+ 2085              		.align	1
+ 2086              	last.8758:
+ 2087 017e 0000     		.space	2
+ 2088              	chan.8759:
+ 2089 0180 00       		.space	1
+ 2090 0181 000000   		.text
+ 2091              	.Letext0:
+ 2092              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 2093              		.file 3 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/stm32f10x.h"
+ 2094              		.file 4 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/stm32f10x_gpio.h"
+ 2095              		.file 5 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/stm32f10x_tim.h"
+ 2096              		.file 6 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/misc.h"
+ 2097              		.file 7 "../src/drv_pwm.h"
+ 2098              		.file 8 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+ 2099              		.file 9 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/system_stm32f10x.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 drv_pwm.c
+     /tmp/ccmigftp.s:19     .data:00000000 $d
+     /tmp/ccmigftp.s:22     .data:00000000 timerHardware
+     /tmp/ccmigftp.s:122    .bss:00000000 $d
+     /tmp/ccmigftp.s:123    .bss:00000000 pwmPorts
+     /tmp/ccmigftp.s:126    .bss:00000118 captures
+     /tmp/ccmigftp.s:129    .bss:00000128 motors
+     /tmp/ccmigftp.s:132    .bss:00000158 servos
+     /tmp/ccmigftp.s:134    .bss:00000178 numMotors
+     /tmp/ccmigftp.s:136    .bss:00000179 numServos
+     /tmp/ccmigftp.s:138    .bss:0000017a numInputs
+     /tmp/ccmigftp.s:141    .rodata:00000000 $d
+     /tmp/ccmigftp.s:144    .rodata:00000000 multiPPM
+     /tmp/ccmigftp.s:160    .rodata:0000000c multiPWM
+     /tmp/ccmigftp.s:179    .rodata:0000001c airPPM
+     /tmp/ccmigftp.s:195    .rodata:00000028 airPWM
+     /tmp/ccmigftp.s:215    .data:000000e0 hardwareMaps
+     /tmp/ccmigftp.s:221    .text:00000000 $t
+     /tmp/ccmigftp.s:225    .text:00000000 pwmTimeBase
+     /tmp/ccmigftp.s:283    .text:00000058 $d
+     /tmp/ccmigftp.s:288    .text:00000060 $t
+     /tmp/ccmigftp.s:292    .text:00000060 pwmNVICConfig
+     /tmp/ccmigftp.s:338    .text:00000094 pwmOCConfig
+     /tmp/ccmigftp.s:390    .text:000000dc $d
+     /tmp/ccmigftp.s:405    .text:00000110 $t
+     /tmp/ccmigftp.s:463    .text:00000178 pwmICConfig
+     /tmp/ccmigftp.s:521    .text:000001c4 pwmGPIOConfig
+     /tmp/ccmigftp.s:582    .text:00000210 pwmOutConfig
+     /tmp/ccmigftp.s:699    .text:000002fc $d
+     /tmp/ccmigftp.s:714    .text:00000330 $t
+     /tmp/ccmigftp.s:771    .text:00000394 $d
+     /tmp/ccmigftp.s:776    .text:0000039c $t
+     /tmp/ccmigftp.s:780    .text:0000039c pwmInConfig
+     /tmp/ccmigftp.s:892    .text:0000047c $d
+     /tmp/ccmigftp.s:907    .text:000004b0 $t
+     /tmp/ccmigftp.s:968    .text:0000052c $d
+     /tmp/ccmigftp.s:973    .text:00000534 $t
+     /tmp/ccmigftp.s:978    .text:00000534 TIM1_CC_IRQHandler
+     /tmp/ccmigftp.s:1066   .text:000005cc $d
+     /tmp/ccmigftp.s:1071   .text:000005d4 $t
+     /tmp/ccmigftp.s:1075   .text:000005d4 pwmTIMxHandler
+     /tmp/ccmigftp.s:1237   .text:00000710 $d
+     /tmp/ccmigftp.s:1241   .text:00000714 $t
+     /tmp/ccmigftp.s:1246   .text:00000714 TIM2_IRQHandler
+     /tmp/ccmigftp.s:1274   .text:00000728 TIM3_IRQHandler
+     /tmp/ccmigftp.s:1297   .text:00000738 $d
+     /tmp/ccmigftp.s:1301   .text:0000073c $t
+     /tmp/ccmigftp.s:1306   .text:0000073c TIM4_IRQHandler
+     /tmp/ccmigftp.s:1329   .text:0000074c $d
+     /tmp/ccmigftp.s:1333   .text:00000750 $t
+     /tmp/ccmigftp.s:1337   .text:00000750 ppmCallback
+     /tmp/ccmigftp.s:1427   .text:000007d8 $d
+     /tmp/ccmigftp.s:2083   .bss:0000017c now.8757
+     /tmp/ccmigftp.s:2086   .bss:0000017e last.8758
+     /tmp/ccmigftp.s:2088   .bss:00000180 chan.8759
+     /tmp/ccmigftp.s:1435   .text:000007ec $t
+     /tmp/ccmigftp.s:1439   .text:000007ec pwmCallback
+     /tmp/ccmigftp.s:1616   .text:0000096c $d
+     /tmp/ccmigftp.s:1623   .text:0000097c $t
+     /tmp/ccmigftp.s:1628   .text:0000097c pwmInit
+     /tmp/ccmigftp.s:1922   .text:00000b6c $d
+     /tmp/ccmigftp.s:1934   .text:00000b90 $t
+     /tmp/ccmigftp.s:1939   .text:00000b90 pwmWriteMotor
+     /tmp/ccmigftp.s:1982   .text:00000bc0 $d
+     /tmp/ccmigftp.s:1987   .text:00000bc8 $t
+     /tmp/ccmigftp.s:1992   .text:00000bc8 pwmWriteServo
+     /tmp/ccmigftp.s:2035   .text:00000bf8 $d
+     /tmp/ccmigftp.s:2040   .text:00000c00 $t
+     /tmp/ccmigftp.s:2045   .text:00000c00 pwmRead
+     /tmp/ccmigftp.s:2077   .text:00000c20 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+
+UNDEFINED SYMBOLS
+TIM_TimeBaseStructInit
+TIM_TimeBaseInit
+SystemCoreClock
+NVIC_Init
+TIM_OCStructInit
+TIM_OC1Init
+TIM_OC1PreloadConfig
+TIM_OC2Init
+TIM_OC2PreloadConfig
+TIM_OC3Init
+TIM_OC3PreloadConfig
+TIM_OC4Init
+TIM_OC4PreloadConfig
+TIM_ICStructInit
+TIM_ICInit
+GPIO_StructInit
+GPIO_Init
+TIM_CtrlPWMOutputs
+TIM_Cmd
+TIM_ITConfig
+TIM_GetITStatus
+TIM_ClearITPendingBit
+TIM_GetCapture1
+TIM_GetCapture4
+TIM_GetCapture2
+TIM_GetCapture3
+failsafeCnt

@@ -1,0 +1,34 @@
+10
+
+dir
+303
+http://afrodevices.googlecode.com/svn/trunk/baseflight/lib/CMSIS/CM3
+http://afrodevices.googlecode.com/svn
+
+
+
+2012-10-06T14:40:24.421624Z
+225
+timecop@gmail.com
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+7c89a4a9-59b9-e629-4cfe-3a2d53b20e61
+
+CoreSupport
+dir
+
+DeviceSupport
+dir
+

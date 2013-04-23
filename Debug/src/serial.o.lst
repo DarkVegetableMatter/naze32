@@ -1,0 +1,3996 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"serial.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.global	boxes
+  19              		.section	.rodata
+  20              		.align	2
+  21              	.LC0:
+  22 0000 41524D3B 		.ascii	"ARM;\000"
+  22      00
+  23 0005 000000   		.align	2
+  24              	.LC1:
+  25 0008 414E474C 		.ascii	"ANGLE;\000"
+  25      453B00
+  26 000f 00       		.align	2
+  27              	.LC2:
+  28 0010 484F5249 		.ascii	"HORIZON;\000"
+  28      5A4F4E3B 
+  28      00
+  29 0019 000000   		.align	2
+  30              	.LC3:
+  31 001c 4241524F 		.ascii	"BARO;\000"
+  31      3B00
+  32 0022 0000     		.align	2
+  33              	.LC4:
+  34 0024 56415249 		.ascii	"VARIO;\000"
+  34      4F3B00
+  35 002b 00       		.align	2
+  36              	.LC5:
+  37 002c 4D41473B 		.ascii	"MAG;\000"
+  37      00
+  38 0031 000000   		.align	2
+  39              	.LC6:
+  40 0034 48454144 		.ascii	"HEADFREE;\000"
+  40      46524545 
+  40      3B00
+  41 003e 0000     		.align	2
+  42              	.LC7:
+  43 0040 48454144 		.ascii	"HEADADJ;\000"
+  43      41444A3B 
+  43      00
+  44 0049 000000   		.align	2
+  45              	.LC8:
+  46 004c 43414D53 		.ascii	"CAMSTAB;\000"
+  46      5441423B 
+  46      00
+  47 0055 000000   		.align	2
+  48              	.LC9:
+  49 0058 43414D54 		.ascii	"CAMTRIG;\000"
+  49      5249473B 
+  49      00
+  50 0061 000000   		.align	2
+  51              	.LC10:
+  52 0064 47505320 		.ascii	"GPS HOME;\000"
+  52      484F4D45 
+  52      3B00
+  53 006e 0000     		.align	2
+  54              	.LC11:
+  55 0070 47505320 		.ascii	"GPS HOLD;\000"
+  55      484F4C44 
+  55      3B00
+  56 007a 0000     		.align	2
+  57              	.LC12:
+  58 007c 50415353 		.ascii	"PASSTHRU;\000"
+  58      54485255 
+  58      3B00
+  59 0086 0000     		.align	2
+  60              	.LC13:
+  61 0088 42454550 		.ascii	"BEEPER;\000"
+  61      45523B00 
+  62              		.align	2
+  63              	.LC14:
+  64 0090 4C45444D 		.ascii	"LEDMAX;\000"
+  64      41583B00 
+  65              		.align	2
+  66              	.LC15:
+  67 0098 4C45444C 		.ascii	"LEDLOW;\000"
+  67      4F573B00 
+  68              		.align	2
+  69              	.LC16:
+  70 00a0 4C4C4947 		.ascii	"LLIGHTS;\000"
+  70      4854533B 
+  70      00
+  71 00a9 000000   		.align	2
+  72              	.LC17:
+  73 00ac 43414C49 		.ascii	"CALIB;\000"
+  73      423B00
+  74 00b3 00       		.align	2
+  75              	.LC18:
+  76 00b4 474F5645 		.ascii	"GOVERNOR;\000"
+  76      524E4F52 
+  76      3B00
+  77 00be 0000     		.align	2
+  78              	.LC19:
+  79 00c0 4F534420 		.ascii	"OSD SW;\000"
+  79      53573B00 
+  80              		.data
+  81              		.align	2
+  84              	boxes:
+  85 0000 00       		.byte	0
+  86 0001 000000   		.space	3
+  87 0004 00000000 		.word	.LC0
+  88 0008 00       		.byte	0
+  89 0009 000000   		.space	3
+  90 000c 01       		.byte	1
+  91 000d 000000   		.space	3
+  92 0010 08000000 		.word	.LC1
+  93 0014 01       		.byte	1
+  94 0015 000000   		.space	3
+  95 0018 02       		.byte	2
+  96 0019 000000   		.space	3
+  97 001c 10000000 		.word	.LC2
+  98 0020 02       		.byte	2
+  99 0021 000000   		.space	3
+ 100 0024 03       		.byte	3
+ 101 0025 000000   		.space	3
+ 102 0028 1C000000 		.word	.LC3
+ 103 002c 03       		.byte	3
+ 104 002d 000000   		.space	3
+ 105 0030 04       		.byte	4
+ 106 0031 000000   		.space	3
+ 107 0034 24000000 		.word	.LC4
+ 108 0038 04       		.byte	4
+ 109 0039 000000   		.space	3
+ 110 003c 05       		.byte	5
+ 111 003d 000000   		.space	3
+ 112 0040 2C000000 		.word	.LC5
+ 113 0044 05       		.byte	5
+ 114 0045 000000   		.space	3
+ 115 0048 06       		.byte	6
+ 116 0049 000000   		.space	3
+ 117 004c 34000000 		.word	.LC6
+ 118 0050 06       		.byte	6
+ 119 0051 000000   		.space	3
+ 120 0054 07       		.byte	7
+ 121 0055 000000   		.space	3
+ 122 0058 40000000 		.word	.LC7
+ 123 005c 07       		.byte	7
+ 124 005d 000000   		.space	3
+ 125 0060 08       		.byte	8
+ 126 0061 000000   		.space	3
+ 127 0064 4C000000 		.word	.LC8
+ 128 0068 08       		.byte	8
+ 129 0069 000000   		.space	3
+ 130 006c 09       		.byte	9
+ 131 006d 000000   		.space	3
+ 132 0070 58000000 		.word	.LC9
+ 133 0074 09       		.byte	9
+ 134 0075 000000   		.space	3
+ 135 0078 0A       		.byte	10
+ 136 0079 000000   		.space	3
+ 137 007c 64000000 		.word	.LC10
+ 138 0080 0A       		.byte	10
+ 139 0081 000000   		.space	3
+ 140 0084 0B       		.byte	11
+ 141 0085 000000   		.space	3
+ 142 0088 70000000 		.word	.LC11
+ 143 008c 0B       		.byte	11
+ 144 008d 000000   		.space	3
+ 145 0090 0C       		.byte	12
+ 146 0091 000000   		.space	3
+ 147 0094 7C000000 		.word	.LC12
+ 148 0098 0C       		.byte	12
+ 149 0099 000000   		.space	3
+ 150 009c 0D       		.byte	13
+ 151 009d 000000   		.space	3
+ 152 00a0 88000000 		.word	.LC13
+ 153 00a4 0D       		.byte	13
+ 154 00a5 000000   		.space	3
+ 155 00a8 0E       		.byte	14
+ 156 00a9 000000   		.space	3
+ 157 00ac 90000000 		.word	.LC14
+ 158 00b0 0E       		.byte	14
+ 159 00b1 000000   		.space	3
+ 160 00b4 0F       		.byte	15
+ 161 00b5 000000   		.space	3
+ 162 00b8 98000000 		.word	.LC15
+ 163 00bc 0F       		.byte	15
+ 164 00bd 000000   		.space	3
+ 165 00c0 10       		.byte	16
+ 166 00c1 000000   		.space	3
+ 167 00c4 A0000000 		.word	.LC16
+ 168 00c8 10       		.byte	16
+ 169 00c9 000000   		.space	3
+ 170 00cc 11       		.byte	17
+ 171 00cd 000000   		.space	3
+ 172 00d0 AC000000 		.word	.LC17
+ 173 00d4 11       		.byte	17
+ 174 00d5 000000   		.space	3
+ 175 00d8 12       		.byte	18
+ 176 00d9 000000   		.space	3
+ 177 00dc B4000000 		.word	.LC18
+ 178 00e0 12       		.byte	18
+ 179 00e1 000000   		.space	3
+ 180 00e4 13       		.byte	19
+ 181 00e5 000000   		.space	3
+ 182 00e8 C0000000 		.word	.LC19
+ 183 00ec 13       		.byte	19
+ 184 00ed 000000   		.space	3
+ 185 00f0 14       		.byte	20
+ 186 00f1 000000   		.space	3
+ 187 00f4 00000000 		.word	0
+ 188 00f8 FF       		.byte	-1
+ 189 00f9 000000   		.space	3
+ 190              		.bss
+ 191              		.align	2
+ 192              	availableBoxes:
+ 193 0000 00000000 		.space	20
+ 193      00000000 
+ 193      00000000 
+ 193      00000000 
+ 193      00000000 
+ 194              	numberBoxItems:
+ 195 0014 00       		.space	1
+ 196              		.section	.rodata
+ 197              		.align	2
+ 200              	boxnames:
+ 201 00c8 41524D3B 		.ascii	"ARM;ANGLE;HORIZON;BARO;VARIO;MAG;HEADFREE;HEADADJ;C"
+ 201      414E474C 
+ 201      453B484F 
+ 201      52495A4F 
+ 201      4E3B4241 
+ 202 00fb 414D5354 		.ascii	"AMSTAB;CAMTRIG;GPS HOME;GPS HOLD;PASSTHRU;BEEPER;LE"
+ 202      41423B43 
+ 202      414D5452 
+ 202      49473B47 
+ 202      50532048 
+ 203 012e 444D4158 		.ascii	"DMAX;LEDLOW;LLIGHTS;CALIB;GOVERNOR;OSD SW;\000"
+ 203      3B4C4544 
+ 203      4C4F573B 
+ 203      4C4C4947 
+ 203      4854533B 
+ 204              		.global	boxids
+ 205 0159 000000   		.align	2
+ 208              	boxids:
+ 209 015c 00       		.byte	0
+ 210 015d 01       		.byte	1
+ 211 015e 02       		.byte	2
+ 212 015f 03       		.byte	3
+ 213 0160 04       		.byte	4
+ 214 0161 05       		.byte	5
+ 215 0162 06       		.byte	6
+ 216 0163 07       		.byte	7
+ 217 0164 08       		.byte	8
+ 218 0165 09       		.byte	9
+ 219 0166 0A       		.byte	10
+ 220 0167 0B       		.byte	11
+ 221 0168 0C       		.byte	12
+ 222 0169 0D       		.byte	13
+ 223 016a 0E       		.byte	14
+ 224 016b 0F       		.byte	15
+ 225 016c 10       		.byte	16
+ 226 016d 11       		.byte	17
+ 227 016e 12       		.byte	18
+ 228 016f 13       		.byte	19
+ 229              		.align	2
+ 232              	pidnames:
+ 233 0170 524F4C4C 		.ascii	"ROLL;PITCH;YAW;ALT;Pos;PosR;NavR;LEVEL;MAG;VEL;\000"
+ 233      3B504954 
+ 233      43483B59 
+ 233      41573B41 
+ 233      4C543B50 
+ 234              		.bss
+ 235              	checksum:
+ 236 0015 00       		.space	1
+ 237              	indRX:
+ 238 0016 00       		.space	1
+ 239 0017 00       		.align	2
+ 240              	inBuf:
+ 241 0018 00000000 		.space	64
+ 241      00000000 
+ 241      00000000 
+ 241      00000000 
+ 241      00000000 
+ 242              	cmdMSP:
+ 243 0058 00       		.space	1
+ 244              	guiConnected:
+ 245 0059 00       		.space	1
+ 246              		.global	cliMode
+ 249              	cliMode:
+ 250 005a 00       		.space	1
+ 251              		.text
+ 252              		.align	2
+ 253              		.global	serialize32
+ 254              		.thumb
+ 255              		.thumb_func
+ 257              	serialize32:
+ 258              	.LFB29:
+ 259              		.file 1 "../src/serial.c"
+   1:../src/serial.c **** #include "board.h"
+   2:../src/serial.c **** #include "mw.h"
+   3:../src/serial.c **** 
+   4:../src/serial.c **** // Multiwii Serial Protocol 0 
+   5:../src/serial.c **** #define MSP_VERSION              0
+   6:../src/serial.c **** #define PLATFORM_32BIT           ((uint32_t)1 << 31)
+   7:../src/serial.c **** 
+   8:../src/serial.c **** #define MSP_IDENT                100    //out message         multitype + multiwii version + protoc
+   9:../src/serial.c **** #define MSP_STATUS               101    //out message         cycletime & errors_count & sensor pre
+  10:../src/serial.c **** #define MSP_RAW_IMU              102    //out message         9 DOF
+  11:../src/serial.c **** #define MSP_SERVO                103    //out message         8 servos
+  12:../src/serial.c **** #define MSP_MOTOR                104    //out message         8 motors
+  13:../src/serial.c **** #define MSP_RC                   105    //out message         8 rc chan and more
+  14:../src/serial.c **** #define MSP_RAW_GPS              106    //out message         fix, numsat, lat, lon, alt, speed, gr
+  15:../src/serial.c **** #define MSP_COMP_GPS             107    //out message         distance home, direction home
+  16:../src/serial.c **** #define MSP_ATTITUDE             108    //out message         2 angles 1 heading
+  17:../src/serial.c **** #define MSP_ALTITUDE             109    //out message         altitude, variometer
+  18:../src/serial.c **** #define MSP_ANALOG               110    //out message         vbat, powermetersum, rssi if availabl
+  19:../src/serial.c **** #define MSP_RC_TUNING            111    //out message         rc rate, rc expo, rollpitch rate, yaw
+  20:../src/serial.c **** #define MSP_PID                  112    //out message         P I D coeff (9 are used currently)
+  21:../src/serial.c **** #define MSP_BOX                  113    //out message         BOX setup (number is dependant of you
+  22:../src/serial.c **** #define MSP_MISC                 114    //out message         powermeter trig
+  23:../src/serial.c **** #define MSP_MOTOR_PINS           115    //out message         which pins are in use for motors & se
+  24:../src/serial.c **** #define MSP_BOXNAMES             116    //out message         the aux switch names
+  25:../src/serial.c **** #define MSP_PIDNAMES             117    //out message         the PID names
+  26:../src/serial.c **** #define MSP_WP                   118    //out message         get a WP, WP# is in the payload, retu
+  27:../src/serial.c **** #define MSP_BOXIDS               119    //out message         get the permanent IDs associated to B
+  28:../src/serial.c **** 
+  29:../src/serial.c **** #define MSP_SET_RAW_RC           200    //in message          8 rc chan
+  30:../src/serial.c **** #define MSP_SET_RAW_GPS          201    //in message          fix, numsat, lat, lon, alt, speed
+  31:../src/serial.c **** #define MSP_SET_PID              202    //in message          P I D coeff (9 are used currently)
+  32:../src/serial.c **** #define MSP_SET_BOX              203    //in message          BOX setup (number is dependant of you
+  33:../src/serial.c **** #define MSP_SET_RC_TUNING        204    //in message          rc rate, rc expo, rollpitch rate, yaw
+  34:../src/serial.c **** #define MSP_ACC_CALIBRATION      205    //in message          no param
+  35:../src/serial.c **** #define MSP_MAG_CALIBRATION      206    //in message          no param
+  36:../src/serial.c **** #define MSP_SET_MISC             207    //in message          powermeter trig + 8 free for future u
+  37:../src/serial.c **** #define MSP_RESET_CONF           208    //in message          no param
+  38:../src/serial.c **** #define MSP_SET_WP               209    //in message          sets a given WP (WP#,lat, lon, alt, f
+  39:../src/serial.c **** #define MSP_SELECT_SETTING       210    //in message          Select Setting Number (0-2)
+  40:../src/serial.c **** #define MSP_SET_HEAD             211    //in message          define a new heading hold direction
+  41:../src/serial.c **** 
+  42:../src/serial.c **** // #define MSP_BIND                 240    //in message          no param
+  43:../src/serial.c **** 
+  44:../src/serial.c **** #define MSP_EEPROM_WRITE         250    //in message          no param
+  45:../src/serial.c **** 
+  46:../src/serial.c **** #define MSP_DEBUGMSG             253    //out message         debug string buffer
+  47:../src/serial.c **** #define MSP_DEBUG                254    //out message         debug1,debug2,debug3,debug4
+  48:../src/serial.c **** 
+  49:../src/serial.c **** // Additional commands that are not compatible with MultiWii
+  50:../src/serial.c **** #define MSP_UID                  160    //out message         Unique device ID
+  51:../src/serial.c **** #define MSP_ACC_TRIM             240    //out message         get acc angle trim values
+  52:../src/serial.c **** #define MSP_SET_ACC_TRIM         239    //in message          set acc angle trim values
+  53:../src/serial.c **** 
+  54:../src/serial.c **** #define INBUF_SIZE 64
+  55:../src/serial.c **** 
+  56:../src/serial.c **** struct box_t {
+  57:../src/serial.c ****     const uint8_t boxIndex;         // this is from boxnames enum
+  58:../src/serial.c ****     const char *boxName;            // GUI-readable box name
+  59:../src/serial.c ****     const uint8_t permanentId;      // 
+  60:../src/serial.c **** } boxes[] = {
+  61:../src/serial.c ****     { BOXARM, "ARM;", 0 },
+  62:../src/serial.c ****     { BOXANGLE, "ANGLE;", 1 },
+  63:../src/serial.c ****     { BOXHORIZON, "HORIZON;", 2 },
+  64:../src/serial.c ****     { BOXBARO, "BARO;", 3 },
+  65:../src/serial.c ****     { BOXVARIO, "VARIO;", 4 },
+  66:../src/serial.c ****     { BOXMAG, "MAG;", 5 },
+  67:../src/serial.c ****     { BOXHEADFREE, "HEADFREE;", 6 },
+  68:../src/serial.c ****     { BOXHEADADJ, "HEADADJ;", 7 },
+  69:../src/serial.c ****     { BOXCAMSTAB, "CAMSTAB;", 8 },
+  70:../src/serial.c ****     { BOXCAMTRIG, "CAMTRIG;", 9 },
+  71:../src/serial.c ****     { BOXGPSHOME, "GPS HOME;", 10 },
+  72:../src/serial.c ****     { BOXGPSHOLD, "GPS HOLD;", 11 },
+  73:../src/serial.c ****     { BOXPASSTHRU, "PASSTHRU;", 12 },
+  74:../src/serial.c ****     { BOXBEEPERON, "BEEPER;", 13 },
+  75:../src/serial.c ****     { BOXLEDMAX, "LEDMAX;", 14 },
+  76:../src/serial.c ****     { BOXLEDLOW, "LEDLOW;", 15 },
+  77:../src/serial.c ****     { BOXLLIGHTS, "LLIGHTS;", 16 },
+  78:../src/serial.c ****     { BOXCALIB, "CALIB;", 17 },
+  79:../src/serial.c ****     { BOXGOV, "GOVERNOR;", 18 },
+  80:../src/serial.c ****     { BOXOSD, "OSD SW;", 19 },
+  81:../src/serial.c ****     { CHECKBOXITEMS, NULL, 0xFF }
+  82:../src/serial.c **** };
+  83:../src/serial.c **** 
+  84:../src/serial.c **** // this is calculated at startup based on enabled features.
+  85:../src/serial.c **** static uint8_t availableBoxes[CHECKBOXITEMS];
+  86:../src/serial.c **** // this is the number of filled indexes in above array
+  87:../src/serial.c **** static uint8_t numberBoxItems = 0;
+  88:../src/serial.c **** 
+  89:../src/serial.c **** static const char boxnames[] =
+  90:../src/serial.c ****     "ARM;"
+  91:../src/serial.c ****     "ANGLE;"
+  92:../src/serial.c ****     "HORIZON;"
+  93:../src/serial.c ****     "BARO;"
+  94:../src/serial.c ****     "VARIO;"
+  95:../src/serial.c ****     "MAG;"
+  96:../src/serial.c ****     "HEADFREE;"
+  97:../src/serial.c ****     "HEADADJ;"
+  98:../src/serial.c ****     "CAMSTAB;"
+  99:../src/serial.c ****     "CAMTRIG;"
+ 100:../src/serial.c ****     "GPS HOME;"
+ 101:../src/serial.c ****     "GPS HOLD;"
+ 102:../src/serial.c ****     "PASSTHRU;"
+ 103:../src/serial.c ****     "BEEPER;"
+ 104:../src/serial.c ****     "LEDMAX;"
+ 105:../src/serial.c ****     "LEDLOW;"
+ 106:../src/serial.c ****     "LLIGHTS;"
+ 107:../src/serial.c ****     "CALIB;"
+ 108:../src/serial.c ****     "GOVERNOR;"
+ 109:../src/serial.c ****     "OSD SW;";
+ 110:../src/serial.c **** 
+ 111:../src/serial.c **** const uint8_t boxids[] = {      // permanent IDs associated to boxes. This way, you can rely on an 
+ 112:../src/serial.c ****     0,                          // "ARM;"
+ 113:../src/serial.c ****     1,                          // "ANGLE;"
+ 114:../src/serial.c ****     2,                          // "HORIZON;"
+ 115:../src/serial.c ****     3,                          // "BARO;"
+ 116:../src/serial.c ****     4,                          // "VARIO;"
+ 117:../src/serial.c ****     5,                          // "MAG;"
+ 118:../src/serial.c ****     6,                          // "HEADFREE;"
+ 119:../src/serial.c ****     7,                          // "HEADADJ;"  
+ 120:../src/serial.c ****     8,                          // "CAMSTAB;"
+ 121:../src/serial.c ****     9,                          // "CAMTRIG;"
+ 122:../src/serial.c ****     10,                         // "GPS HOME;"
+ 123:../src/serial.c ****     11,                         // "GPS HOLD;"
+ 124:../src/serial.c ****     12,                         // "PASSTHRU;"
+ 125:../src/serial.c ****     13,                         // "BEEPER;"
+ 126:../src/serial.c ****     14,                         // "LEDMAX;"
+ 127:../src/serial.c ****     15,                         // "LEDLOW;"
+ 128:../src/serial.c ****     16,                         // "LLIGHTS;"
+ 129:../src/serial.c ****     17,                         // "CALIB;"
+ 130:../src/serial.c ****     18,                         // "GOVERNOR;"
+ 131:../src/serial.c ****     19,                         // "OSD_SWITCH;"
+ 132:../src/serial.c **** };
+ 133:../src/serial.c **** 
+ 134:../src/serial.c **** static const char pidnames[] =
+ 135:../src/serial.c ****     "ROLL;"
+ 136:../src/serial.c ****     "PITCH;"
+ 137:../src/serial.c ****     "YAW;"
+ 138:../src/serial.c ****     "ALT;"
+ 139:../src/serial.c ****     "Pos;"
+ 140:../src/serial.c ****     "PosR;"
+ 141:../src/serial.c ****     "NavR;"
+ 142:../src/serial.c ****     "LEVEL;"
+ 143:../src/serial.c ****     "MAG;"
+ 144:../src/serial.c ****     "VEL;";
+ 145:../src/serial.c **** 
+ 146:../src/serial.c **** static uint8_t checksum, indRX, inBuf[INBUF_SIZE];
+ 147:../src/serial.c **** static uint8_t cmdMSP;
+ 148:../src/serial.c **** static bool guiConnected = false;
+ 149:../src/serial.c **** // signal that we're in cli mode
+ 150:../src/serial.c **** uint8_t cliMode = 0;
+ 151:../src/serial.c **** 
+ 152:../src/serial.c **** void serialize32(uint32_t a)
+ 153:../src/serial.c **** {
+ 260              		.loc 1 153 0
+ 261              		.cfi_startproc
+ 262              		@ args = 0, pretend = 0, frame = 8
+ 263              		@ frame_needed = 1, uses_anonymous_args = 0
+ 264 0000 80B5     		push	{r7, lr}
+ 265              	.LCFI0:
+ 266              		.cfi_def_cfa_offset 8
+ 267              		.cfi_offset 7, -8
+ 268              		.cfi_offset 14, -4
+ 269 0002 82B0     		sub	sp, sp, #8
+ 270              	.LCFI1:
+ 271              		.cfi_def_cfa_offset 16
+ 272 0004 00AF     		add	r7, sp, #0
+ 273              	.LCFI2:
+ 274              		.cfi_def_cfa_register 7
+ 275 0006 7860     		str	r0, [r7, #4]
+ 154:../src/serial.c ****     static uint8_t t;
+ 155:../src/serial.c ****     t = a;
+ 276              		.loc 1 155 0
+ 277 0008 7B68     		ldr	r3, [r7, #4]
+ 278 000a DAB2     		uxtb	r2, r3
+ 279 000c 254B     		ldr	r3, .L2
+ 280 000e 1A70     		strb	r2, [r3, #0]
+ 156:../src/serial.c ****     uartWrite(t);
+ 281              		.loc 1 156 0
+ 282 0010 244B     		ldr	r3, .L2
+ 283 0012 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 284 0014 1846     		mov	r0, r3
+ 285 0016 FFF7FEFF 		bl	uartWrite
+ 157:../src/serial.c ****     checksum ^= t;
+ 286              		.loc 1 157 0
+ 287 001a 234B     		ldr	r3, .L2+4
+ 288 001c 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 289 001e 214B     		ldr	r3, .L2
+ 290 0020 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 291 0022 5340     		eors	r3, r3, r2
+ 292 0024 DAB2     		uxtb	r2, r3
+ 293 0026 204B     		ldr	r3, .L2+4
+ 294 0028 1A70     		strb	r2, [r3, #0]
+ 158:../src/serial.c ****     t = a >> 8;
+ 295              		.loc 1 158 0
+ 296 002a 7B68     		ldr	r3, [r7, #4]
+ 297 002c 4FEA1323 		lsr	r3, r3, #8
+ 298 0030 DAB2     		uxtb	r2, r3
+ 299 0032 1C4B     		ldr	r3, .L2
+ 300 0034 1A70     		strb	r2, [r3, #0]
+ 159:../src/serial.c ****     uartWrite(t);
+ 301              		.loc 1 159 0
+ 302 0036 1B4B     		ldr	r3, .L2
+ 303 0038 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 304 003a 1846     		mov	r0, r3
+ 305 003c FFF7FEFF 		bl	uartWrite
+ 160:../src/serial.c ****     checksum ^= t;
+ 306              		.loc 1 160 0
+ 307 0040 194B     		ldr	r3, .L2+4
+ 308 0042 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 309 0044 174B     		ldr	r3, .L2
+ 310 0046 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 311 0048 5340     		eors	r3, r3, r2
+ 312 004a DAB2     		uxtb	r2, r3
+ 313 004c 164B     		ldr	r3, .L2+4
+ 314 004e 1A70     		strb	r2, [r3, #0]
+ 161:../src/serial.c ****     t = a >> 16;
+ 315              		.loc 1 161 0
+ 316 0050 7B68     		ldr	r3, [r7, #4]
+ 317 0052 4FEA1343 		lsr	r3, r3, #16
+ 318 0056 DAB2     		uxtb	r2, r3
+ 319 0058 124B     		ldr	r3, .L2
+ 320 005a 1A70     		strb	r2, [r3, #0]
+ 162:../src/serial.c ****     uartWrite(t);
+ 321              		.loc 1 162 0
+ 322 005c 114B     		ldr	r3, .L2
+ 323 005e 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 324 0060 1846     		mov	r0, r3
+ 325 0062 FFF7FEFF 		bl	uartWrite
+ 163:../src/serial.c ****     checksum ^= t;
+ 326              		.loc 1 163 0
+ 327 0066 104B     		ldr	r3, .L2+4
+ 328 0068 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 329 006a 0E4B     		ldr	r3, .L2
+ 330 006c 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 331 006e 5340     		eors	r3, r3, r2
+ 332 0070 DAB2     		uxtb	r2, r3
+ 333 0072 0D4B     		ldr	r3, .L2+4
+ 334 0074 1A70     		strb	r2, [r3, #0]
+ 164:../src/serial.c ****     t = a >> 24;
+ 335              		.loc 1 164 0
+ 336 0076 7B68     		ldr	r3, [r7, #4]
+ 337 0078 4FEA1363 		lsr	r3, r3, #24
+ 338 007c DAB2     		uxtb	r2, r3
+ 339 007e 094B     		ldr	r3, .L2
+ 340 0080 1A70     		strb	r2, [r3, #0]
+ 165:../src/serial.c ****     uartWrite(t);
+ 341              		.loc 1 165 0
+ 342 0082 084B     		ldr	r3, .L2
+ 343 0084 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 344 0086 1846     		mov	r0, r3
+ 345 0088 FFF7FEFF 		bl	uartWrite
+ 166:../src/serial.c ****     checksum ^= t;
+ 346              		.loc 1 166 0
+ 347 008c 064B     		ldr	r3, .L2+4
+ 348 008e 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 349 0090 044B     		ldr	r3, .L2
+ 350 0092 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 351 0094 5340     		eors	r3, r3, r2
+ 352 0096 DAB2     		uxtb	r2, r3
+ 353 0098 034B     		ldr	r3, .L2+4
+ 354 009a 1A70     		strb	r2, [r3, #0]
+ 167:../src/serial.c **** }
+ 355              		.loc 1 167 0
+ 356 009c 07F10807 		add	r7, r7, #8
+ 357 00a0 BD46     		mov	sp, r7
+ 358 00a2 80BD     		pop	{r7, pc}
+ 359              	.L3:
+ 360              		.align	2
+ 361              	.L2:
+ 362 00a4 5F000000 		.word	t.9046
+ 363 00a8 15000000 		.word	checksum
+ 364              		.cfi_endproc
+ 365              	.LFE29:
+ 367              		.align	2
+ 368              		.global	serialize16
+ 369              		.thumb
+ 370              		.thumb_func
+ 372              	serialize16:
+ 373              	.LFB30:
+ 168:../src/serial.c **** 
+ 169:../src/serial.c **** void serialize16(int16_t a)
+ 170:../src/serial.c **** {
+ 374              		.loc 1 170 0
+ 375              		.cfi_startproc
+ 376              		@ args = 0, pretend = 0, frame = 8
+ 377              		@ frame_needed = 1, uses_anonymous_args = 0
+ 378 00ac 80B5     		push	{r7, lr}
+ 379              	.LCFI3:
+ 380              		.cfi_def_cfa_offset 8
+ 381              		.cfi_offset 7, -8
+ 382              		.cfi_offset 14, -4
+ 383 00ae 82B0     		sub	sp, sp, #8
+ 384              	.LCFI4:
+ 385              		.cfi_def_cfa_offset 16
+ 386 00b0 00AF     		add	r7, sp, #0
+ 387              	.LCFI5:
+ 388              		.cfi_def_cfa_register 7
+ 389 00b2 0346     		mov	r3, r0
+ 390 00b4 FB80     		strh	r3, [r7, #6]	@ movhi
+ 171:../src/serial.c ****     static uint8_t t;
+ 172:../src/serial.c ****     t = a;
+ 391              		.loc 1 172 0
+ 392 00b6 FB88     		ldrh	r3, [r7, #6]	@ movhi
+ 393 00b8 DAB2     		uxtb	r2, r3
+ 394 00ba 144B     		ldr	r3, .L5
+ 395 00bc 1A70     		strb	r2, [r3, #0]
+ 173:../src/serial.c ****     uartWrite(t);
+ 396              		.loc 1 173 0
+ 397 00be 134B     		ldr	r3, .L5
+ 398 00c0 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 399 00c2 1846     		mov	r0, r3
+ 400 00c4 FFF7FEFF 		bl	uartWrite
+ 174:../src/serial.c ****     checksum ^= t;
+ 401              		.loc 1 174 0
+ 402 00c8 114B     		ldr	r3, .L5+4
+ 403 00ca 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 404 00cc 0F4B     		ldr	r3, .L5
+ 405 00ce 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 406 00d0 5340     		eors	r3, r3, r2
+ 407 00d2 DAB2     		uxtb	r2, r3
+ 408 00d4 0E4B     		ldr	r3, .L5+4
+ 409 00d6 1A70     		strb	r2, [r3, #0]
+ 175:../src/serial.c ****     t = a >> 8 & 0xff;
+ 410              		.loc 1 175 0
+ 411 00d8 B7F90630 		ldrsh	r3, [r7, #6]
+ 412 00dc 4FEA2323 		asr	r3, r3, #8
+ 413 00e0 9BB2     		uxth	r3, r3
+ 414 00e2 DAB2     		uxtb	r2, r3
+ 415 00e4 094B     		ldr	r3, .L5
+ 416 00e6 1A70     		strb	r2, [r3, #0]
+ 176:../src/serial.c ****     uartWrite(t);
+ 417              		.loc 1 176 0
+ 418 00e8 084B     		ldr	r3, .L5
+ 419 00ea 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 420 00ec 1846     		mov	r0, r3
+ 421 00ee FFF7FEFF 		bl	uartWrite
+ 177:../src/serial.c ****     checksum ^= t;
+ 422              		.loc 1 177 0
+ 423 00f2 074B     		ldr	r3, .L5+4
+ 424 00f4 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 425 00f6 054B     		ldr	r3, .L5
+ 426 00f8 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 427 00fa 5340     		eors	r3, r3, r2
+ 428 00fc DAB2     		uxtb	r2, r3
+ 429 00fe 044B     		ldr	r3, .L5+4
+ 430 0100 1A70     		strb	r2, [r3, #0]
+ 178:../src/serial.c **** }
+ 431              		.loc 1 178 0
+ 432 0102 07F10807 		add	r7, r7, #8
+ 433 0106 BD46     		mov	sp, r7
+ 434 0108 80BD     		pop	{r7, pc}
+ 435              	.L6:
+ 436 010a 00BF     		.align	2
+ 437              	.L5:
+ 438 010c 5E000000 		.word	t.9050
+ 439 0110 15000000 		.word	checksum
+ 440              		.cfi_endproc
+ 441              	.LFE30:
+ 443              		.align	2
+ 444              		.global	serialize8
+ 445              		.thumb
+ 446              		.thumb_func
+ 448              	serialize8:
+ 449              	.LFB31:
+ 179:../src/serial.c **** 
+ 180:../src/serial.c **** void serialize8(uint8_t a)
+ 181:../src/serial.c **** {
+ 450              		.loc 1 181 0
+ 451              		.cfi_startproc
+ 452              		@ args = 0, pretend = 0, frame = 8
+ 453              		@ frame_needed = 1, uses_anonymous_args = 0
+ 454 0114 80B5     		push	{r7, lr}
+ 455              	.LCFI6:
+ 456              		.cfi_def_cfa_offset 8
+ 457              		.cfi_offset 7, -8
+ 458              		.cfi_offset 14, -4
+ 459 0116 82B0     		sub	sp, sp, #8
+ 460              	.LCFI7:
+ 461              		.cfi_def_cfa_offset 16
+ 462 0118 00AF     		add	r7, sp, #0
+ 463              	.LCFI8:
+ 464              		.cfi_def_cfa_register 7
+ 465 011a 0346     		mov	r3, r0
+ 466 011c FB71     		strb	r3, [r7, #7]
+ 182:../src/serial.c ****     uartWrite(a);
+ 467              		.loc 1 182 0
+ 468 011e FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 469 0120 1846     		mov	r0, r3
+ 470 0122 FFF7FEFF 		bl	uartWrite
+ 183:../src/serial.c ****     checksum ^= a;
+ 471              		.loc 1 183 0
+ 472 0126 054B     		ldr	r3, .L8
+ 473 0128 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 474 012a FB79     		ldrb	r3, [r7, #7]
+ 475 012c 5340     		eors	r3, r3, r2
+ 476 012e DAB2     		uxtb	r2, r3
+ 477 0130 024B     		ldr	r3, .L8
+ 478 0132 1A70     		strb	r2, [r3, #0]
+ 184:../src/serial.c **** }
+ 479              		.loc 1 184 0
+ 480 0134 07F10807 		add	r7, r7, #8
+ 481 0138 BD46     		mov	sp, r7
+ 482 013a 80BD     		pop	{r7, pc}
+ 483              	.L9:
+ 484              		.align	2
+ 485              	.L8:
+ 486 013c 15000000 		.word	checksum
+ 487              		.cfi_endproc
+ 488              	.LFE31:
+ 490              		.align	2
+ 491              		.global	read8
+ 492              		.thumb
+ 493              		.thumb_func
+ 495              	read8:
+ 496              	.LFB32:
+ 185:../src/serial.c **** 
+ 186:../src/serial.c **** uint8_t read8(void)
+ 187:../src/serial.c **** {
+ 497              		.loc 1 187 0
+ 498              		.cfi_startproc
+ 499              		@ args = 0, pretend = 0, frame = 0
+ 500              		@ frame_needed = 1, uses_anonymous_args = 0
+ 501              		@ link register save eliminated.
+ 502 0140 80B4     		push	{r7}
+ 503              	.LCFI9:
+ 504              		.cfi_def_cfa_offset 4
+ 505              		.cfi_offset 7, -4
+ 506 0142 00AF     		add	r7, sp, #0
+ 507              	.LCFI10:
+ 508              		.cfi_def_cfa_register 7
+ 188:../src/serial.c ****     return inBuf[indRX++] & 0xff;
+ 509              		.loc 1 188 0
+ 510 0144 074B     		ldr	r3, .L12
+ 511 0146 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 512 0148 1A46     		mov	r2, r3
+ 513 014a 0749     		ldr	r1, .L12+4
+ 514 014c 8A5C     		ldrb	r2, [r1, r2]	@ zero_extendqisi2
+ 515 014e 03F10103 		add	r3, r3, #1
+ 516 0152 D9B2     		uxtb	r1, r3
+ 517 0154 034B     		ldr	r3, .L12
+ 518 0156 1970     		strb	r1, [r3, #0]
+ 519 0158 1346     		mov	r3, r2
+ 189:../src/serial.c **** }
+ 520              		.loc 1 189 0
+ 521 015a 1846     		mov	r0, r3
+ 522 015c BD46     		mov	sp, r7
+ 523 015e 80BC     		pop	{r7}
+ 524 0160 7047     		bx	lr
+ 525              	.L13:
+ 526 0162 00BF     		.align	2
+ 527              	.L12:
+ 528 0164 16000000 		.word	indRX
+ 529 0168 18000000 		.word	inBuf
+ 530              		.cfi_endproc
+ 531              	.LFE32:
+ 533              		.align	2
+ 534              		.global	read16
+ 535              		.thumb
+ 536              		.thumb_func
+ 538              	read16:
+ 539              	.LFB33:
+ 190:../src/serial.c **** 
+ 191:../src/serial.c **** uint16_t read16(void)
+ 192:../src/serial.c **** {
+ 540              		.loc 1 192 0
+ 541              		.cfi_startproc
+ 542              		@ args = 0, pretend = 0, frame = 8
+ 543              		@ frame_needed = 1, uses_anonymous_args = 0
+ 544 016c 80B5     		push	{r7, lr}
+ 545              	.LCFI11:
+ 546              		.cfi_def_cfa_offset 8
+ 547              		.cfi_offset 7, -8
+ 548              		.cfi_offset 14, -4
+ 549 016e 82B0     		sub	sp, sp, #8
+ 550              	.LCFI12:
+ 551              		.cfi_def_cfa_offset 16
+ 552 0170 00AF     		add	r7, sp, #0
+ 553              	.LCFI13:
+ 554              		.cfi_def_cfa_register 7
+ 193:../src/serial.c ****     uint16_t t = read8();
+ 555              		.loc 1 193 0
+ 556 0172 FFF7FEFF 		bl	read8
+ 557 0176 0346     		mov	r3, r0
+ 558 0178 FB80     		strh	r3, [r7, #6]	@ movhi
+ 194:../src/serial.c ****     t += (uint16_t) read8() << 8;
+ 559              		.loc 1 194 0
+ 560 017a FFF7FEFF 		bl	read8
+ 561 017e 0346     		mov	r3, r0
+ 562 0180 4FEA0323 		lsl	r3, r3, #8
+ 563 0184 9AB2     		uxth	r2, r3
+ 564 0186 FB88     		ldrh	r3, [r7, #6]	@ movhi
+ 565 0188 D318     		adds	r3, r2, r3
+ 566 018a FB80     		strh	r3, [r7, #6]	@ movhi
+ 195:../src/serial.c ****     return t;
+ 567              		.loc 1 195 0
+ 568 018c FB88     		ldrh	r3, [r7, #6]
+ 196:../src/serial.c **** }
+ 569              		.loc 1 196 0
+ 570 018e 1846     		mov	r0, r3
+ 571 0190 07F10807 		add	r7, r7, #8
+ 572 0194 BD46     		mov	sp, r7
+ 573 0196 80BD     		pop	{r7, pc}
+ 574              		.cfi_endproc
+ 575              	.LFE33:
+ 577              		.align	2
+ 578              		.global	read32
+ 579              		.thumb
+ 580              		.thumb_func
+ 582              	read32:
+ 583              	.LFB34:
+ 197:../src/serial.c **** 
+ 198:../src/serial.c **** uint32_t read32(void)
+ 199:../src/serial.c **** {
+ 584              		.loc 1 199 0
+ 585              		.cfi_startproc
+ 586              		@ args = 0, pretend = 0, frame = 8
+ 587              		@ frame_needed = 1, uses_anonymous_args = 0
+ 588 0198 80B5     		push	{r7, lr}
+ 589              	.LCFI14:
+ 590              		.cfi_def_cfa_offset 8
+ 591              		.cfi_offset 7, -8
+ 592              		.cfi_offset 14, -4
+ 593 019a 82B0     		sub	sp, sp, #8
+ 594              	.LCFI15:
+ 595              		.cfi_def_cfa_offset 16
+ 596 019c 00AF     		add	r7, sp, #0
+ 597              	.LCFI16:
+ 598              		.cfi_def_cfa_register 7
+ 200:../src/serial.c ****     uint32_t t = read16();
+ 599              		.loc 1 200 0
+ 600 019e FFF7FEFF 		bl	read16
+ 601 01a2 0346     		mov	r3, r0
+ 602 01a4 7B60     		str	r3, [r7, #4]
+ 201:../src/serial.c ****     t += (uint32_t) read16() << 16;
+ 603              		.loc 1 201 0
+ 604 01a6 FFF7FEFF 		bl	read16
+ 605 01aa 0346     		mov	r3, r0
+ 606 01ac 4FEA0343 		lsl	r3, r3, #16
+ 607 01b0 7A68     		ldr	r2, [r7, #4]
+ 608 01b2 D318     		adds	r3, r2, r3
+ 609 01b4 7B60     		str	r3, [r7, #4]
+ 202:../src/serial.c ****     return t;
+ 610              		.loc 1 202 0
+ 611 01b6 7B68     		ldr	r3, [r7, #4]
+ 203:../src/serial.c **** }
+ 612              		.loc 1 203 0
+ 613 01b8 1846     		mov	r0, r3
+ 614 01ba 07F10807 		add	r7, r7, #8
+ 615 01be BD46     		mov	sp, r7
+ 616 01c0 80BD     		pop	{r7, pc}
+ 617              		.cfi_endproc
+ 618              	.LFE34:
+ 620 01c2 00BF     		.align	2
+ 621              		.global	headSerialResponse
+ 622              		.thumb
+ 623              		.thumb_func
+ 625              	headSerialResponse:
+ 626              	.LFB35:
+ 204:../src/serial.c **** 
+ 205:../src/serial.c **** void headSerialResponse(uint8_t err, uint8_t s)
+ 206:../src/serial.c **** {
+ 627              		.loc 1 206 0
+ 628              		.cfi_startproc
+ 629              		@ args = 0, pretend = 0, frame = 8
+ 630              		@ frame_needed = 1, uses_anonymous_args = 0
+ 631 01c4 80B5     		push	{r7, lr}
+ 632              	.LCFI17:
+ 633              		.cfi_def_cfa_offset 8
+ 634              		.cfi_offset 7, -8
+ 635              		.cfi_offset 14, -4
+ 636 01c6 82B0     		sub	sp, sp, #8
+ 637              	.LCFI18:
+ 638              		.cfi_def_cfa_offset 16
+ 639 01c8 00AF     		add	r7, sp, #0
+ 640              	.LCFI19:
+ 641              		.cfi_def_cfa_register 7
+ 642 01ca 0246     		mov	r2, r0
+ 643 01cc 0B46     		mov	r3, r1
+ 644 01ce FA71     		strb	r2, [r7, #7]
+ 645 01d0 BB71     		strb	r3, [r7, #6]
+ 207:../src/serial.c ****     serialize8('$');
+ 646              		.loc 1 207 0
+ 647 01d2 4FF02400 		mov	r0, #36
+ 648 01d6 FFF7FEFF 		bl	serialize8
+ 208:../src/serial.c ****     serialize8('M');
+ 649              		.loc 1 208 0
+ 650 01da 4FF04D00 		mov	r0, #77
+ 651 01de FFF7FEFF 		bl	serialize8
+ 209:../src/serial.c ****     serialize8(err ? '!' : '>');
+ 652              		.loc 1 209 0
+ 653 01e2 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 654 01e4 002B     		cmp	r3, #0
+ 655 01e6 02D0     		beq	.L19
+ 656              		.loc 1 209 0 is_stmt 0 discriminator 1
+ 657 01e8 4FF02103 		mov	r3, #33
+ 658 01ec 01E0     		b	.L20
+ 659              	.L19:
+ 660              		.loc 1 209 0 discriminator 2
+ 661 01ee 4FF03E03 		mov	r3, #62
+ 662              	.L20:
+ 663              		.loc 1 209 0 discriminator 3
+ 664 01f2 1846     		mov	r0, r3
+ 665 01f4 FFF7FEFF 		bl	serialize8
+ 210:../src/serial.c ****     checksum = 0;               // start calculating a new checksum
+ 666              		.loc 1 210 0 is_stmt 1 discriminator 3
+ 667 01f8 084B     		ldr	r3, .L21
+ 668 01fa 4FF00002 		mov	r2, #0
+ 669 01fe 1A70     		strb	r2, [r3, #0]
+ 211:../src/serial.c ****     serialize8(s);
+ 670              		.loc 1 211 0 discriminator 3
+ 671 0200 BB79     		ldrb	r3, [r7, #6]	@ zero_extendqisi2
+ 672 0202 1846     		mov	r0, r3
+ 673 0204 FFF7FEFF 		bl	serialize8
+ 212:../src/serial.c ****     serialize8(cmdMSP);
+ 674              		.loc 1 212 0 discriminator 3
+ 675 0208 054B     		ldr	r3, .L21+4
+ 676 020a 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 677 020c 1846     		mov	r0, r3
+ 678 020e FFF7FEFF 		bl	serialize8
+ 213:../src/serial.c **** }
+ 679              		.loc 1 213 0 discriminator 3
+ 680 0212 07F10807 		add	r7, r7, #8
+ 681 0216 BD46     		mov	sp, r7
+ 682 0218 80BD     		pop	{r7, pc}
+ 683              	.L22:
+ 684 021a 00BF     		.align	2
+ 685              	.L21:
+ 686 021c 15000000 		.word	checksum
+ 687 0220 58000000 		.word	cmdMSP
+ 688              		.cfi_endproc
+ 689              	.LFE35:
+ 691              		.align	2
+ 692              		.global	headSerialReply
+ 693              		.thumb
+ 694              		.thumb_func
+ 696              	headSerialReply:
+ 697              	.LFB36:
+ 214:../src/serial.c **** 
+ 215:../src/serial.c **** void headSerialReply(uint8_t s)
+ 216:../src/serial.c **** {
+ 698              		.loc 1 216 0
+ 699              		.cfi_startproc
+ 700              		@ args = 0, pretend = 0, frame = 8
+ 701              		@ frame_needed = 1, uses_anonymous_args = 0
+ 702 0224 80B5     		push	{r7, lr}
+ 703              	.LCFI20:
+ 704              		.cfi_def_cfa_offset 8
+ 705              		.cfi_offset 7, -8
+ 706              		.cfi_offset 14, -4
+ 707 0226 82B0     		sub	sp, sp, #8
+ 708              	.LCFI21:
+ 709              		.cfi_def_cfa_offset 16
+ 710 0228 00AF     		add	r7, sp, #0
+ 711              	.LCFI22:
+ 712              		.cfi_def_cfa_register 7
+ 713 022a 0346     		mov	r3, r0
+ 714 022c FB71     		strb	r3, [r7, #7]
+ 217:../src/serial.c ****     headSerialResponse(0, s);
+ 715              		.loc 1 217 0
+ 716 022e FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 717 0230 4FF00000 		mov	r0, #0
+ 718 0234 1946     		mov	r1, r3
+ 719 0236 FFF7FEFF 		bl	headSerialResponse
+ 218:../src/serial.c **** }
+ 720              		.loc 1 218 0
+ 721 023a 07F10807 		add	r7, r7, #8
+ 722 023e BD46     		mov	sp, r7
+ 723 0240 80BD     		pop	{r7, pc}
+ 724              		.cfi_endproc
+ 725              	.LFE36:
+ 727 0242 00BF     		.align	2
+ 728              		.global	headSerialError
+ 729              		.thumb
+ 730              		.thumb_func
+ 732              	headSerialError:
+ 733              	.LFB37:
+ 219:../src/serial.c **** 
+ 220:../src/serial.c **** void headSerialError(uint8_t s)
+ 221:../src/serial.c **** {
+ 734              		.loc 1 221 0
+ 735              		.cfi_startproc
+ 736              		@ args = 0, pretend = 0, frame = 8
+ 737              		@ frame_needed = 1, uses_anonymous_args = 0
+ 738 0244 80B5     		push	{r7, lr}
+ 739              	.LCFI23:
+ 740              		.cfi_def_cfa_offset 8
+ 741              		.cfi_offset 7, -8
+ 742              		.cfi_offset 14, -4
+ 743 0246 82B0     		sub	sp, sp, #8
+ 744              	.LCFI24:
+ 745              		.cfi_def_cfa_offset 16
+ 746 0248 00AF     		add	r7, sp, #0
+ 747              	.LCFI25:
+ 748              		.cfi_def_cfa_register 7
+ 749 024a 0346     		mov	r3, r0
+ 750 024c FB71     		strb	r3, [r7, #7]
+ 222:../src/serial.c ****     headSerialResponse(1, s);
+ 751              		.loc 1 222 0
+ 752 024e FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 753 0250 4FF00100 		mov	r0, #1
+ 754 0254 1946     		mov	r1, r3
+ 755 0256 FFF7FEFF 		bl	headSerialResponse
+ 223:../src/serial.c **** }
+ 756              		.loc 1 223 0
+ 757 025a 07F10807 		add	r7, r7, #8
+ 758 025e BD46     		mov	sp, r7
+ 759 0260 80BD     		pop	{r7, pc}
+ 760              		.cfi_endproc
+ 761              	.LFE37:
+ 763 0262 00BF     		.align	2
+ 764              		.global	tailSerialReply
+ 765              		.thumb
+ 766              		.thumb_func
+ 768              	tailSerialReply:
+ 769              	.LFB38:
+ 224:../src/serial.c **** 
+ 225:../src/serial.c **** void tailSerialReply(void)
+ 226:../src/serial.c **** {
+ 770              		.loc 1 226 0
+ 771              		.cfi_startproc
+ 772              		@ args = 0, pretend = 0, frame = 0
+ 773              		@ frame_needed = 1, uses_anonymous_args = 0
+ 774 0264 80B5     		push	{r7, lr}
+ 775              	.LCFI26:
+ 776              		.cfi_def_cfa_offset 8
+ 777              		.cfi_offset 7, -8
+ 778              		.cfi_offset 14, -4
+ 779 0266 00AF     		add	r7, sp, #0
+ 780              	.LCFI27:
+ 781              		.cfi_def_cfa_register 7
+ 227:../src/serial.c ****     serialize8(checksum);
+ 782              		.loc 1 227 0
+ 783 0268 024B     		ldr	r3, .L26
+ 784 026a 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 785 026c 1846     		mov	r0, r3
+ 786 026e FFF7FEFF 		bl	serialize8
+ 228:../src/serial.c **** }
+ 787              		.loc 1 228 0
+ 788 0272 80BD     		pop	{r7, pc}
+ 789              	.L27:
+ 790              		.align	2
+ 791              	.L26:
+ 792 0274 15000000 		.word	checksum
+ 793              		.cfi_endproc
+ 794              	.LFE38:
+ 796              		.align	2
+ 797              		.global	serializeNames
+ 798              		.thumb
+ 799              		.thumb_func
+ 801              	serializeNames:
+ 802              	.LFB39:
+ 229:../src/serial.c **** 
+ 230:../src/serial.c **** void serializeNames(const char *s)
+ 231:../src/serial.c **** {
+ 803              		.loc 1 231 0
+ 804              		.cfi_startproc
+ 805              		@ args = 0, pretend = 0, frame = 16
+ 806              		@ frame_needed = 1, uses_anonymous_args = 0
+ 807 0278 80B5     		push	{r7, lr}
+ 808              	.LCFI28:
+ 809              		.cfi_def_cfa_offset 8
+ 810              		.cfi_offset 7, -8
+ 811              		.cfi_offset 14, -4
+ 812 027a 84B0     		sub	sp, sp, #16
+ 813              	.LCFI29:
+ 814              		.cfi_def_cfa_offset 24
+ 815 027c 00AF     		add	r7, sp, #0
+ 816              	.LCFI30:
+ 817              		.cfi_def_cfa_register 7
+ 818 027e 7860     		str	r0, [r7, #4]
+ 232:../src/serial.c ****     const char *c;
+ 233:../src/serial.c ****     for (c = s; *c; c++)
+ 819              		.loc 1 233 0
+ 820 0280 7B68     		ldr	r3, [r7, #4]
+ 821 0282 FB60     		str	r3, [r7, #12]
+ 822 0284 08E0     		b	.L29
+ 823              	.L30:
+ 234:../src/serial.c ****         serialize8(*c);
+ 824              		.loc 1 234 0 discriminator 2
+ 825 0286 FB68     		ldr	r3, [r7, #12]
+ 826 0288 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 827 028a 1846     		mov	r0, r3
+ 828 028c FFF7FEFF 		bl	serialize8
+ 233:../src/serial.c ****     for (c = s; *c; c++)
+ 829              		.loc 1 233 0 discriminator 2
+ 830 0290 FB68     		ldr	r3, [r7, #12]
+ 831 0292 03F10103 		add	r3, r3, #1
+ 832 0296 FB60     		str	r3, [r7, #12]
+ 833              	.L29:
+ 233:../src/serial.c ****     for (c = s; *c; c++)
+ 834              		.loc 1 233 0 is_stmt 0 discriminator 1
+ 835 0298 FB68     		ldr	r3, [r7, #12]
+ 836 029a 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 837 029c 002B     		cmp	r3, #0
+ 838 029e F2D1     		bne	.L30
+ 235:../src/serial.c **** }
+ 839              		.loc 1 235 0 is_stmt 1
+ 840 02a0 07F11007 		add	r7, r7, #16
+ 841 02a4 BD46     		mov	sp, r7
+ 842 02a6 80BD     		pop	{r7, pc}
+ 843              		.cfi_endproc
+ 844              	.LFE39:
+ 846              		.align	2
+ 847              		.global	serializeBoxNamesReply
+ 848              		.thumb
+ 849              		.thumb_func
+ 851              	serializeBoxNamesReply:
+ 852              	.LFB40:
+ 236:../src/serial.c **** 
+ 237:../src/serial.c **** void serializeBoxNamesReply(void)
+ 238:../src/serial.c **** {
+ 853              		.loc 1 238 0
+ 854              		.cfi_startproc
+ 855              		@ args = 0, pretend = 0, frame = 272
+ 856              		@ frame_needed = 1, uses_anonymous_args = 0
+ 857 02a8 80B5     		push	{r7, lr}
+ 858              	.LCFI31:
+ 859              		.cfi_def_cfa_offset 8
+ 860              		.cfi_offset 7, -8
+ 861              		.cfi_offset 14, -4
+ 862 02aa C4B0     		sub	sp, sp, #272
+ 863              	.LCFI32:
+ 864              		.cfi_def_cfa_offset 280
+ 865 02ac 00AF     		add	r7, sp, #0
+ 866              	.LCFI33:
+ 867              		.cfi_def_cfa_register 7
+ 239:../src/serial.c ****     char buf[256]; // no fucking idea
+ 240:../src/serial.c ****     char *c;
+ 241:../src/serial.c ****     int i, j;
+ 242:../src/serial.c **** 
+ 243:../src/serial.c ****     memset(buf, 0, sizeof(buf));
+ 868              		.loc 1 243 0
+ 869 02ae 07F10403 		add	r3, r7, #4
+ 870 02b2 1846     		mov	r0, r3
+ 871 02b4 4FF00001 		mov	r1, #0
+ 872 02b8 4FF48072 		mov	r2, #256
+ 873 02bc FFF7FEFF 		bl	memset
+ 244:../src/serial.c ****     for (i = 0; i < CHECKBOXITEMS; i++) {
+ 874              		.loc 1 244 0
+ 875 02c0 4FF00003 		mov	r3, #0
+ 876 02c4 C7F80831 		str	r3, [r7, #264]
+ 877 02c8 3CE0     		b	.L32
+ 878              	.L36:
+ 245:../src/serial.c ****         for (j = 0; j < numberBoxItems; j++) {
+ 879              		.loc 1 245 0
+ 880 02ca 4FF00003 		mov	r3, #0
+ 881 02ce C7F80431 		str	r3, [r7, #260]
+ 882 02d2 2AE0     		b	.L33
+ 883              	.L35:
+ 246:../src/serial.c ****             if (boxes[i].boxIndex == availableBoxes[j])
+ 884              		.loc 1 246 0
+ 885 02d4 2F49     		ldr	r1, .L39
+ 886 02d6 D7F80821 		ldr	r2, [r7, #264]
+ 887 02da 1346     		mov	r3, r2
+ 888 02dc 4FEA4303 		lsl	r3, r3, #1
+ 889 02e0 9B18     		adds	r3, r3, r2
+ 890 02e2 4FEA8303 		lsl	r3, r3, #2
+ 891 02e6 CB18     		adds	r3, r1, r3
+ 892 02e8 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 893 02ea 2B49     		ldr	r1, .L39+4
+ 894 02ec D7F80431 		ldr	r3, [r7, #260]
+ 895 02f0 CB18     		adds	r3, r1, r3
+ 896 02f2 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 897 02f4 9A42     		cmp	r2, r3
+ 898 02f6 12D1     		bne	.L34
+ 247:../src/serial.c ****                 strcat(buf, boxes[i].boxName);
+ 899              		.loc 1 247 0
+ 900 02f8 2649     		ldr	r1, .L39
+ 901 02fa D7F80821 		ldr	r2, [r7, #264]
+ 902 02fe 1346     		mov	r3, r2
+ 903 0300 4FEA4303 		lsl	r3, r3, #1
+ 904 0304 9B18     		adds	r3, r3, r2
+ 905 0306 4FEA8303 		lsl	r3, r3, #2
+ 906 030a CB18     		adds	r3, r1, r3
+ 907 030c 03F10403 		add	r3, r3, #4
+ 908 0310 1B68     		ldr	r3, [r3, #0]
+ 909 0312 07F10402 		add	r2, r7, #4
+ 910 0316 1046     		mov	r0, r2
+ 911 0318 1946     		mov	r1, r3
+ 912 031a FFF7FEFF 		bl	strcat
+ 913              	.L34:
+ 245:../src/serial.c ****         for (j = 0; j < numberBoxItems; j++) {
+ 914              		.loc 1 245 0
+ 915 031e D7F80431 		ldr	r3, [r7, #260]
+ 916 0322 03F10103 		add	r3, r3, #1
+ 917 0326 C7F80431 		str	r3, [r7, #260]
+ 918              	.L33:
+ 245:../src/serial.c ****         for (j = 0; j < numberBoxItems; j++) {
+ 919              		.loc 1 245 0 is_stmt 0 discriminator 1
+ 920 032a 1C4B     		ldr	r3, .L39+8
+ 921 032c 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 922 032e 1A46     		mov	r2, r3
+ 923 0330 D7F80431 		ldr	r3, [r7, #260]
+ 924 0334 9A42     		cmp	r2, r3
+ 925 0336 CDDC     		bgt	.L35
+ 244:../src/serial.c ****     for (i = 0; i < CHECKBOXITEMS; i++) {
+ 926              		.loc 1 244 0 is_stmt 1
+ 927 0338 D7F80831 		ldr	r3, [r7, #264]
+ 928 033c 03F10103 		add	r3, r3, #1
+ 929 0340 C7F80831 		str	r3, [r7, #264]
+ 930              	.L32:
+ 244:../src/serial.c ****     for (i = 0; i < CHECKBOXITEMS; i++) {
+ 931              		.loc 1 244 0 is_stmt 0 discriminator 1
+ 932 0344 D7F80831 		ldr	r3, [r7, #264]
+ 933 0348 132B     		cmp	r3, #19
+ 934 034a BEDD     		ble	.L36
+ 248:../src/serial.c ****         }
+ 249:../src/serial.c ****     }
+ 250:../src/serial.c ****     
+ 251:../src/serial.c ****     headSerialReply(strlen(buf));
+ 935              		.loc 1 251 0 is_stmt 1
+ 936 034c 07F10403 		add	r3, r7, #4
+ 937 0350 1846     		mov	r0, r3
+ 938 0352 FFF7FEFF 		bl	strlen
+ 939 0356 0346     		mov	r3, r0
+ 940 0358 DBB2     		uxtb	r3, r3
+ 941 035a 1846     		mov	r0, r3
+ 942 035c FFF7FEFF 		bl	headSerialReply
+ 252:../src/serial.c ****     for (c = buf; *c; c++)
+ 943              		.loc 1 252 0
+ 944 0360 07F10403 		add	r3, r7, #4
+ 945 0364 C7F80C31 		str	r3, [r7, #268]
+ 946 0368 0BE0     		b	.L37
+ 947              	.L38:
+ 253:../src/serial.c ****         serialize8(*c);
+ 948              		.loc 1 253 0 discriminator 2
+ 949 036a D7F80C31 		ldr	r3, [r7, #268]
+ 950 036e 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 951 0370 1846     		mov	r0, r3
+ 952 0372 FFF7FEFF 		bl	serialize8
+ 252:../src/serial.c ****     for (c = buf; *c; c++)
+ 953              		.loc 1 252 0 discriminator 2
+ 954 0376 D7F80C31 		ldr	r3, [r7, #268]
+ 955 037a 03F10103 		add	r3, r3, #1
+ 956 037e C7F80C31 		str	r3, [r7, #268]
+ 957              	.L37:
+ 252:../src/serial.c ****     for (c = buf; *c; c++)
+ 958              		.loc 1 252 0 is_stmt 0 discriminator 1
+ 959 0382 D7F80C31 		ldr	r3, [r7, #268]
+ 960 0386 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 961 0388 002B     		cmp	r3, #0
+ 962 038a EED1     		bne	.L38
+ 254:../src/serial.c **** }
+ 963              		.loc 1 254 0 is_stmt 1
+ 964 038c 07F58877 		add	r7, r7, #272
+ 965 0390 BD46     		mov	sp, r7
+ 966 0392 80BD     		pop	{r7, pc}
+ 967              	.L40:
+ 968              		.align	2
+ 969              	.L39:
+ 970 0394 00000000 		.word	boxes
+ 971 0398 00000000 		.word	availableBoxes
+ 972 039c 14000000 		.word	numberBoxItems
+ 973              		.cfi_endproc
+ 974              	.LFE40:
+ 976              		.align	2
+ 977              		.global	serialInit
+ 978              		.thumb
+ 979              		.thumb_func
+ 981              	serialInit:
+ 982              	.LFB41:
+ 255:../src/serial.c **** 
+ 256:../src/serial.c **** void serialInit(uint32_t baudrate)
+ 257:../src/serial.c **** {
+ 983              		.loc 1 257 0
+ 984              		.cfi_startproc
+ 985              		@ args = 0, pretend = 0, frame = 16
+ 986              		@ frame_needed = 1, uses_anonymous_args = 0
+ 987 03a0 80B5     		push	{r7, lr}
+ 988              	.LCFI34:
+ 989              		.cfi_def_cfa_offset 8
+ 990              		.cfi_offset 7, -8
+ 991              		.cfi_offset 14, -4
+ 992 03a2 84B0     		sub	sp, sp, #16
+ 993              	.LCFI35:
+ 994              		.cfi_def_cfa_offset 24
+ 995 03a4 00AF     		add	r7, sp, #0
+ 996              	.LCFI36:
+ 997              		.cfi_def_cfa_register 7
+ 998 03a6 7860     		str	r0, [r7, #4]
+ 258:../src/serial.c ****     int idx;
+ 259:../src/serial.c **** 
+ 260:../src/serial.c ****     uartInit(baudrate);
+ 999              		.loc 1 260 0
+ 1000 03a8 7868     		ldr	r0, [r7, #4]
+ 1001 03aa FFF7FEFF 		bl	uartInit
+ 261:../src/serial.c ****     // calculate used boxes based on features and fill availableBoxes[] array
+ 262:../src/serial.c ****     memset(availableBoxes, 0xFF, sizeof(availableBoxes));
+ 1002              		.loc 1 262 0
+ 1003 03ae 6F48     		ldr	r0, .L50
+ 1004 03b0 4FF0FF01 		mov	r1, #255
+ 1005 03b4 4FF01402 		mov	r2, #20
+ 1006 03b8 FFF7FEFF 		bl	memset
+ 263:../src/serial.c **** 
+ 264:../src/serial.c ****     idx = 0;
+ 1007              		.loc 1 264 0
+ 1008 03bc 4FF00003 		mov	r3, #0
+ 1009 03c0 FB60     		str	r3, [r7, #12]
+ 265:../src/serial.c ****     availableBoxes[idx++] = BOXARM;
+ 1010              		.loc 1 265 0
+ 1011 03c2 6A4A     		ldr	r2, .L50
+ 1012 03c4 FB68     		ldr	r3, [r7, #12]
+ 1013 03c6 D318     		adds	r3, r2, r3
+ 1014 03c8 4FF00002 		mov	r2, #0
+ 1015 03cc 1A70     		strb	r2, [r3, #0]
+ 1016 03ce FB68     		ldr	r3, [r7, #12]
+ 1017 03d0 03F10103 		add	r3, r3, #1
+ 1018 03d4 FB60     		str	r3, [r7, #12]
+ 266:../src/serial.c ****     if (sensors(SENSOR_ACC)) {
+ 1019              		.loc 1 266 0
+ 1020 03d6 4FF00100 		mov	r0, #1
+ 1021 03da FFF7FEFF 		bl	sensors
+ 1022 03de 0346     		mov	r3, r0
+ 1023 03e0 002B     		cmp	r3, #0
+ 1024 03e2 13D0     		beq	.L42
+ 267:../src/serial.c ****         availableBoxes[idx++] = BOXANGLE;
+ 1025              		.loc 1 267 0
+ 1026 03e4 614A     		ldr	r2, .L50
+ 1027 03e6 FB68     		ldr	r3, [r7, #12]
+ 1028 03e8 D318     		adds	r3, r2, r3
+ 1029 03ea 4FF00102 		mov	r2, #1
+ 1030 03ee 1A70     		strb	r2, [r3, #0]
+ 1031 03f0 FB68     		ldr	r3, [r7, #12]
+ 1032 03f2 03F10103 		add	r3, r3, #1
+ 1033 03f6 FB60     		str	r3, [r7, #12]
+ 268:../src/serial.c ****         availableBoxes[idx++] = BOXHORIZON;
+ 1034              		.loc 1 268 0
+ 1035 03f8 5C4A     		ldr	r2, .L50
+ 1036 03fa FB68     		ldr	r3, [r7, #12]
+ 1037 03fc D318     		adds	r3, r2, r3
+ 1038 03fe 4FF00202 		mov	r2, #2
+ 1039 0402 1A70     		strb	r2, [r3, #0]
+ 1040 0404 FB68     		ldr	r3, [r7, #12]
+ 1041 0406 03F10103 		add	r3, r3, #1
+ 1042 040a FB60     		str	r3, [r7, #12]
+ 1043              	.L42:
+ 269:../src/serial.c ****     }
+ 270:../src/serial.c ****     if (sensors(SENSOR_BARO)) {
+ 1044              		.loc 1 270 0
+ 1045 040c 4FF00200 		mov	r0, #2
+ 1046 0410 FFF7FEFF 		bl	sensors
+ 1047 0414 0346     		mov	r3, r0
+ 1048 0416 002B     		cmp	r3, #0
+ 1049 0418 1AD0     		beq	.L43
+ 271:../src/serial.c ****         availableBoxes[idx++] = BOXBARO;
+ 1050              		.loc 1 271 0
+ 1051 041a 544A     		ldr	r2, .L50
+ 1052 041c FB68     		ldr	r3, [r7, #12]
+ 1053 041e D318     		adds	r3, r2, r3
+ 1054 0420 4FF00302 		mov	r2, #3
+ 1055 0424 1A70     		strb	r2, [r3, #0]
+ 1056 0426 FB68     		ldr	r3, [r7, #12]
+ 1057 0428 03F10103 		add	r3, r3, #1
+ 1058 042c FB60     		str	r3, [r7, #12]
+ 272:../src/serial.c ****         if (feature(FEATURE_VARIO))
+ 1059              		.loc 1 272 0
+ 1060 042e 4FF40050 		mov	r0, #8192
+ 1061 0432 FFF7FEFF 		bl	feature
+ 1062 0436 0346     		mov	r3, r0
+ 1063 0438 002B     		cmp	r3, #0
+ 1064 043a 09D0     		beq	.L43
+ 273:../src/serial.c ****             availableBoxes[idx++] = BOXVARIO;
+ 1065              		.loc 1 273 0
+ 1066 043c 4B4A     		ldr	r2, .L50
+ 1067 043e FB68     		ldr	r3, [r7, #12]
+ 1068 0440 D318     		adds	r3, r2, r3
+ 1069 0442 4FF00402 		mov	r2, #4
+ 1070 0446 1A70     		strb	r2, [r3, #0]
+ 1071 0448 FB68     		ldr	r3, [r7, #12]
+ 1072 044a 03F10103 		add	r3, r3, #1
+ 1073 044e FB60     		str	r3, [r7, #12]
+ 1074              	.L43:
+ 274:../src/serial.c ****     }
+ 275:../src/serial.c ****     if (sensors(SENSOR_MAG)) {
+ 1075              		.loc 1 275 0
+ 1076 0450 4FF00400 		mov	r0, #4
+ 1077 0454 FFF7FEFF 		bl	sensors
+ 1078 0458 0346     		mov	r3, r0
+ 1079 045a 002B     		cmp	r3, #0
+ 1080 045c 1DD0     		beq	.L44
+ 276:../src/serial.c ****         availableBoxes[idx++] = BOXMAG;
+ 1081              		.loc 1 276 0
+ 1082 045e 434A     		ldr	r2, .L50
+ 1083 0460 FB68     		ldr	r3, [r7, #12]
+ 1084 0462 D318     		adds	r3, r2, r3
+ 1085 0464 4FF00502 		mov	r2, #5
+ 1086 0468 1A70     		strb	r2, [r3, #0]
+ 1087 046a FB68     		ldr	r3, [r7, #12]
+ 1088 046c 03F10103 		add	r3, r3, #1
+ 1089 0470 FB60     		str	r3, [r7, #12]
+ 277:../src/serial.c ****         availableBoxes[idx++] = BOXHEADFREE;
+ 1090              		.loc 1 277 0
+ 1091 0472 3E4A     		ldr	r2, .L50
+ 1092 0474 FB68     		ldr	r3, [r7, #12]
+ 1093 0476 D318     		adds	r3, r2, r3
+ 1094 0478 4FF00602 		mov	r2, #6
+ 1095 047c 1A70     		strb	r2, [r3, #0]
+ 1096 047e FB68     		ldr	r3, [r7, #12]
+ 1097 0480 03F10103 		add	r3, r3, #1
+ 1098 0484 FB60     		str	r3, [r7, #12]
+ 278:../src/serial.c ****         availableBoxes[idx++] = BOXHEADADJ;
+ 1099              		.loc 1 278 0
+ 1100 0486 394A     		ldr	r2, .L50
+ 1101 0488 FB68     		ldr	r3, [r7, #12]
+ 1102 048a D318     		adds	r3, r2, r3
+ 1103 048c 4FF00702 		mov	r2, #7
+ 1104 0490 1A70     		strb	r2, [r3, #0]
+ 1105 0492 FB68     		ldr	r3, [r7, #12]
+ 1106 0494 03F10103 		add	r3, r3, #1
+ 1107 0498 FB60     		str	r3, [r7, #12]
+ 1108              	.L44:
+ 279:../src/serial.c ****     }
+ 280:../src/serial.c ****     if (feature(FEATURE_SERVO_TILT))
+ 1109              		.loc 1 280 0
+ 1110 049a 4FF02000 		mov	r0, #32
+ 1111 049e FFF7FEFF 		bl	feature
+ 1112 04a2 0346     		mov	r3, r0
+ 1113 04a4 002B     		cmp	r3, #0
+ 1114 04a6 09D0     		beq	.L45
+ 281:../src/serial.c ****         availableBoxes[idx++] = BOXCAMSTAB;
+ 1115              		.loc 1 281 0
+ 1116 04a8 304A     		ldr	r2, .L50
+ 1117 04aa FB68     		ldr	r3, [r7, #12]
+ 1118 04ac D318     		adds	r3, r2, r3
+ 1119 04ae 4FF00802 		mov	r2, #8
+ 1120 04b2 1A70     		strb	r2, [r3, #0]
+ 1121 04b4 FB68     		ldr	r3, [r7, #12]
+ 1122 04b6 03F10103 		add	r3, r3, #1
+ 1123 04ba FB60     		str	r3, [r7, #12]
+ 1124              	.L45:
+ 282:../src/serial.c ****     if (feature(FEATURE_GPS) && sensors(SENSOR_GPS)) {
+ 1125              		.loc 1 282 0
+ 1126 04bc 4FF48070 		mov	r0, #256
+ 1127 04c0 FFF7FEFF 		bl	feature
+ 1128 04c4 0346     		mov	r3, r0
+ 1129 04c6 002B     		cmp	r3, #0
+ 1130 04c8 1AD0     		beq	.L46
+ 1131              		.loc 1 282 0 is_stmt 0 discriminator 1
+ 1132 04ca 4FF01000 		mov	r0, #16
+ 1133 04ce FFF7FEFF 		bl	sensors
+ 1134 04d2 0346     		mov	r3, r0
+ 1135 04d4 002B     		cmp	r3, #0
+ 1136 04d6 13D0     		beq	.L46
+ 283:../src/serial.c ****         availableBoxes[idx++] = BOXGPSHOME;
+ 1137              		.loc 1 283 0 is_stmt 1
+ 1138 04d8 244A     		ldr	r2, .L50
+ 1139 04da FB68     		ldr	r3, [r7, #12]
+ 1140 04dc D318     		adds	r3, r2, r3
+ 1141 04de 4FF00A02 		mov	r2, #10
+ 1142 04e2 1A70     		strb	r2, [r3, #0]
+ 1143 04e4 FB68     		ldr	r3, [r7, #12]
+ 1144 04e6 03F10103 		add	r3, r3, #1
+ 1145 04ea FB60     		str	r3, [r7, #12]
+ 284:../src/serial.c ****         availableBoxes[idx++] = BOXGPSHOLD;
+ 1146              		.loc 1 284 0
+ 1147 04ec 1F4A     		ldr	r2, .L50
+ 1148 04ee FB68     		ldr	r3, [r7, #12]
+ 1149 04f0 D318     		adds	r3, r2, r3
+ 1150 04f2 4FF00B02 		mov	r2, #11
+ 1151 04f6 1A70     		strb	r2, [r3, #0]
+ 1152 04f8 FB68     		ldr	r3, [r7, #12]
+ 1153 04fa 03F10103 		add	r3, r3, #1
+ 1154 04fe FB60     		str	r3, [r7, #12]
+ 1155              	.L46:
+ 285:../src/serial.c ****     }
+ 286:../src/serial.c ****     if (mcfg.mixerConfiguration ==  MULTITYPE_FLYING_WING || mcfg.mixerConfiguration ==  MULTITYPE_
+ 1156              		.loc 1 286 0
+ 1157 0500 1B4B     		ldr	r3, .L50+4
+ 1158 0502 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 1159 0504 082B     		cmp	r3, #8
+ 1160 0506 03D0     		beq	.L47
+ 1161              		.loc 1 286 0 is_stmt 0 discriminator 1
+ 1162 0508 194B     		ldr	r3, .L50+4
+ 1163 050a 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 1164 050c 0E2B     		cmp	r3, #14
+ 1165 050e 09D1     		bne	.L48
+ 1166              	.L47:
+ 287:../src/serial.c ****         availableBoxes[idx++] = BOXPASSTHRU;
+ 1167              		.loc 1 287 0 is_stmt 1
+ 1168 0510 164A     		ldr	r2, .L50
+ 1169 0512 FB68     		ldr	r3, [r7, #12]
+ 1170 0514 D318     		adds	r3, r2, r3
+ 1171 0516 4FF00C02 		mov	r2, #12
+ 1172 051a 1A70     		strb	r2, [r3, #0]
+ 1173 051c FB68     		ldr	r3, [r7, #12]
+ 1174 051e 03F10103 		add	r3, r3, #1
+ 1175 0522 FB60     		str	r3, [r7, #12]
+ 1176              	.L48:
+ 288:../src/serial.c ****     availableBoxes[idx++] = BOXBEEPERON;
+ 1177              		.loc 1 288 0
+ 1178 0524 114A     		ldr	r2, .L50
+ 1179 0526 FB68     		ldr	r3, [r7, #12]
+ 1180 0528 D318     		adds	r3, r2, r3
+ 1181 052a 4FF00D02 		mov	r2, #13
+ 1182 052e 1A70     		strb	r2, [r3, #0]
+ 1183 0530 FB68     		ldr	r3, [r7, #12]
+ 1184 0532 03F10103 		add	r3, r3, #1
+ 1185 0536 FB60     		str	r3, [r7, #12]
+ 289:../src/serial.c ****     if (feature(FEATURE_INFLIGHT_ACC_CAL))
+ 1186              		.loc 1 289 0
+ 1187 0538 4FF00400 		mov	r0, #4
+ 1188 053c FFF7FEFF 		bl	feature
+ 1189 0540 0346     		mov	r3, r0
+ 1190 0542 002B     		cmp	r3, #0
+ 1191 0544 09D0     		beq	.L49
+ 290:../src/serial.c ****         availableBoxes[idx++] = BOXCALIB;
+ 1192              		.loc 1 290 0
+ 1193 0546 094A     		ldr	r2, .L50
+ 1194 0548 FB68     		ldr	r3, [r7, #12]
+ 1195 054a D318     		adds	r3, r2, r3
+ 1196 054c 4FF01102 		mov	r2, #17
+ 1197 0550 1A70     		strb	r2, [r3, #0]
+ 1198 0552 FB68     		ldr	r3, [r7, #12]
+ 1199 0554 03F10103 		add	r3, r3, #1
+ 1200 0558 FB60     		str	r3, [r7, #12]
+ 1201              	.L49:
+ 291:../src/serial.c ****     numberBoxItems = idx;
+ 1202              		.loc 1 291 0
+ 1203 055a FB68     		ldr	r3, [r7, #12]
+ 1204 055c DAB2     		uxtb	r2, r3
+ 1205 055e 054B     		ldr	r3, .L50+8
+ 1206 0560 1A70     		strb	r2, [r3, #0]
+ 292:../src/serial.c **** }
+ 1207              		.loc 1 292 0
+ 1208 0562 07F11007 		add	r7, r7, #16
+ 1209 0566 BD46     		mov	sp, r7
+ 1210 0568 80BD     		pop	{r7, pc}
+ 1211              	.L51:
+ 1212 056a 00BF     		.align	2
+ 1213              	.L50:
+ 1214 056c 00000000 		.word	availableBoxes
+ 1215 0570 00000000 		.word	mcfg
+ 1216 0574 14000000 		.word	numberBoxItems
+ 1217              		.cfi_endproc
+ 1218              	.LFE41:
+ 1220              		.align	2
+ 1221              		.thumb
+ 1222              		.thumb_func
+ 1224              	evaluateCommand:
+ 1225              	.LFB42:
+ 293:../src/serial.c **** 
+ 294:../src/serial.c **** static void evaluateCommand(void)
+ 295:../src/serial.c **** {
+ 1226              		.loc 1 295 0
+ 1227              		.cfi_startproc
+ 1228              		@ args = 0, pretend = 0, frame = 24
+ 1229              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1230 0578 90B5     		push	{r4, r7, lr}
+ 1231              	.LCFI37:
+ 1232              		.cfi_def_cfa_offset 12
+ 1233              		.cfi_offset 4, -12
+ 1234              		.cfi_offset 7, -8
+ 1235              		.cfi_offset 14, -4
+ 1236 057a 87B0     		sub	sp, sp, #28
+ 1237              	.LCFI38:
+ 1238              		.cfi_def_cfa_offset 40
+ 1239 057c 00AF     		add	r7, sp, #0
+ 1240              	.LCFI39:
+ 1241              		.cfi_def_cfa_register 7
+ 296:../src/serial.c ****     uint32_t i;
+ 297:../src/serial.c ****     uint8_t wp_no;
+ 298:../src/serial.c ****     int32_t lat = 0, lon = 0, alt = 0;
+ 1242              		.loc 1 298 0
+ 1243 057e 4FF00003 		mov	r3, #0
+ 1244 0582 3B61     		str	r3, [r7, #16]
+ 1245 0584 4FF00003 		mov	r3, #0
+ 1246 0588 FB60     		str	r3, [r7, #12]
+ 1247 058a 4FF00003 		mov	r3, #0
+ 1248 058e BB60     		str	r3, [r7, #8]
+ 299:../src/serial.c **** 
+ 300:../src/serial.c ****     switch (cmdMSP) {
+ 1249              		.loc 1 300 0
+ 1250 0590 CF4B     		ldr	r3, .L133
+ 1251 0592 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1252 0594 A3F16403 		sub	r3, r3, #100
+ 1253 0598 9A2B     		cmp	r3, #154
+ 1254 059a 00F23786 		bhi	.L53
+ 1255 059e 01A2     		adr	r2, .L91
+ 1256 05a0 52F823F0 		ldr	pc, [r2, r3, lsl #2]
+ 1257              		.align	2
+ 1258              	.L91:
+ 1259 05a4 570A0000 		.word	.L54+1
+ 1260 05a8 9D0A0000 		.word	.L55+1
+ 1261 05ac FB0B0000 		.word	.L56+1
+ 1262 05b0 770C0000 		.word	.L57+1
+ 1263 05b4 A70C0000 		.word	.L58+1
+ 1264 05b8 D70C0000 		.word	.L59+1
+ 1265 05bc 310D0000 		.word	.L60+1
+ 1266 05c0 8D0D0000 		.word	.L61+1
+ 1267 05c4 C10D0000 		.word	.L62+1
+ 1268 05c8 090E0000 		.word	.L63+1
+ 1269 05cc 290E0000 		.word	.L64+1
+ 1270 05d0 530E0000 		.word	.L65+1
+ 1271 05d4 AD0E0000 		.word	.L66+1
+ 1272 05d8 0F0F0000 		.word	.L67+1
+ 1273 05dc 970F0000 		.word	.L68+1
+ 1274 05e0 A90F0000 		.word	.L69+1
+ 1275 05e4 5B0F0000 		.word	.L70+1
+ 1276 05e8 FF0E0000 		.word	.L71+1
+ 1277 05ec 29100000 		.word	.L72+1
+ 1278 05f0 610F0000 		.word	.L73+1
+ 1279 05f4 0D120000 		.word	.L53+1
+ 1280 05f8 0D120000 		.word	.L53+1
+ 1281 05fc 0D120000 		.word	.L53+1
+ 1282 0600 0D120000 		.word	.L53+1
+ 1283 0604 0D120000 		.word	.L53+1
+ 1284 0608 0D120000 		.word	.L53+1
+ 1285 060c 0D120000 		.word	.L53+1
+ 1286 0610 0D120000 		.word	.L53+1
+ 1287 0614 0D120000 		.word	.L53+1
+ 1288 0618 0D120000 		.word	.L53+1
+ 1289 061c 0D120000 		.word	.L53+1
+ 1290 0620 0D120000 		.word	.L53+1
+ 1291 0624 0D120000 		.word	.L53+1
+ 1292 0628 0D120000 		.word	.L53+1
+ 1293 062c 0D120000 		.word	.L53+1
+ 1294 0630 0D120000 		.word	.L53+1
+ 1295 0634 0D120000 		.word	.L53+1
+ 1296 0638 0D120000 		.word	.L53+1
+ 1297 063c 0D120000 		.word	.L53+1
+ 1298 0640 0D120000 		.word	.L53+1
+ 1299 0644 0D120000 		.word	.L53+1
+ 1300 0648 0D120000 		.word	.L53+1
+ 1301 064c 0D120000 		.word	.L53+1
+ 1302 0650 0D120000 		.word	.L53+1
+ 1303 0654 0D120000 		.word	.L53+1
+ 1304 0658 0D120000 		.word	.L53+1
+ 1305 065c 0D120000 		.word	.L53+1
+ 1306 0660 0D120000 		.word	.L53+1
+ 1307 0664 0D120000 		.word	.L53+1
+ 1308 0668 0D120000 		.word	.L53+1
+ 1309 066c 0D120000 		.word	.L53+1
+ 1310 0670 0D120000 		.word	.L53+1
+ 1311 0674 0D120000 		.word	.L53+1
+ 1312 0678 0D120000 		.word	.L53+1
+ 1313 067c 0D120000 		.word	.L53+1
+ 1314 0680 0D120000 		.word	.L53+1
+ 1315 0684 0D120000 		.word	.L53+1
+ 1316 0688 0D120000 		.word	.L53+1
+ 1317 068c 0D120000 		.word	.L53+1
+ 1318 0690 0D120000 		.word	.L53+1
+ 1319 0694 E5110000 		.word	.L74+1
+ 1320 0698 0D120000 		.word	.L53+1
+ 1321 069c 0D120000 		.word	.L53+1
+ 1322 06a0 0D120000 		.word	.L53+1
+ 1323 06a4 0D120000 		.word	.L53+1
+ 1324 06a8 0D120000 		.word	.L53+1
+ 1325 06ac 0D120000 		.word	.L53+1
+ 1326 06b0 0D120000 		.word	.L53+1
+ 1327 06b4 0D120000 		.word	.L53+1
+ 1328 06b8 0D120000 		.word	.L53+1
+ 1329 06bc 0D120000 		.word	.L53+1
+ 1330 06c0 0D120000 		.word	.L53+1
+ 1331 06c4 0D120000 		.word	.L53+1
+ 1332 06c8 0D120000 		.word	.L53+1
+ 1333 06cc 0D120000 		.word	.L53+1
+ 1334 06d0 0D120000 		.word	.L53+1
+ 1335 06d4 0D120000 		.word	.L53+1
+ 1336 06d8 0D120000 		.word	.L53+1
+ 1337 06dc 0D120000 		.word	.L53+1
+ 1338 06e0 0D120000 		.word	.L53+1
+ 1339 06e4 0D120000 		.word	.L53+1
+ 1340 06e8 0D120000 		.word	.L53+1
+ 1341 06ec 0D120000 		.word	.L53+1
+ 1342 06f0 0D120000 		.word	.L53+1
+ 1343 06f4 0D120000 		.word	.L53+1
+ 1344 06f8 0D120000 		.word	.L53+1
+ 1345 06fc 0D120000 		.word	.L53+1
+ 1346 0700 0D120000 		.word	.L53+1
+ 1347 0704 0D120000 		.word	.L53+1
+ 1348 0708 0D120000 		.word	.L53+1
+ 1349 070c 0D120000 		.word	.L53+1
+ 1350 0710 0D120000 		.word	.L53+1
+ 1351 0714 0D120000 		.word	.L53+1
+ 1352 0718 0D120000 		.word	.L53+1
+ 1353 071c 0D120000 		.word	.L53+1
+ 1354 0720 0D120000 		.word	.L53+1
+ 1355 0724 0D120000 		.word	.L53+1
+ 1356 0728 0D120000 		.word	.L53+1
+ 1357 072c 0D120000 		.word	.L53+1
+ 1358 0730 0D120000 		.word	.L53+1
+ 1359 0734 11080000 		.word	.L75+1
+ 1360 0738 67080000 		.word	.L76+1
+ 1361 073c C9080000 		.word	.L77+1
+ 1362 0740 47090000 		.word	.L78+1
+ 1363 0744 8B090000 		.word	.L79+1
+ 1364 0748 49110000 		.word	.L80+1
+ 1365 074c 63110000 		.word	.L81+1
+ 1366 0750 F5090000 		.word	.L82+1
+ 1367 0754 2F110000 		.word	.L83+1
+ 1368 0758 9B100000 		.word	.L84+1
+ 1369 075c 010A0000 		.word	.L85+1
+ 1370 0760 410A0000 		.word	.L86+1
+ 1371 0764 0D120000 		.word	.L53+1
+ 1372 0768 0D120000 		.word	.L53+1
+ 1373 076c 0D120000 		.word	.L53+1
+ 1374 0770 0D120000 		.word	.L53+1
+ 1375 0774 0D120000 		.word	.L53+1
+ 1376 0778 0D120000 		.word	.L53+1
+ 1377 077c 0D120000 		.word	.L53+1
+ 1378 0780 0D120000 		.word	.L53+1
+ 1379 0784 0D120000 		.word	.L53+1
+ 1380 0788 0D120000 		.word	.L53+1
+ 1381 078c 0D120000 		.word	.L53+1
+ 1382 0790 0D120000 		.word	.L53+1
+ 1383 0794 0D120000 		.word	.L53+1
+ 1384 0798 0D120000 		.word	.L53+1
+ 1385 079c 0D120000 		.word	.L53+1
+ 1386 07a0 0D120000 		.word	.L53+1
+ 1387 07a4 0D120000 		.word	.L53+1
+ 1388 07a8 0D120000 		.word	.L53+1
+ 1389 07ac 0D120000 		.word	.L53+1
+ 1390 07b0 0D120000 		.word	.L53+1
+ 1391 07b4 0D120000 		.word	.L53+1
+ 1392 07b8 0D120000 		.word	.L53+1
+ 1393 07bc 0D120000 		.word	.L53+1
+ 1394 07c0 0D120000 		.word	.L53+1
+ 1395 07c4 0D120000 		.word	.L53+1
+ 1396 07c8 0D120000 		.word	.L53+1
+ 1397 07cc 0D120000 		.word	.L53+1
+ 1398 07d0 43080000 		.word	.L87+1
+ 1399 07d4 C3110000 		.word	.L88+1
+ 1400 07d8 0D120000 		.word	.L53+1
+ 1401 07dc 0D120000 		.word	.L53+1
+ 1402 07e0 0D120000 		.word	.L53+1
+ 1403 07e4 0D120000 		.word	.L53+1
+ 1404 07e8 0D120000 		.word	.L53+1
+ 1405 07ec 0D120000 		.word	.L53+1
+ 1406 07f0 0D120000 		.word	.L53+1
+ 1407 07f4 0D120000 		.word	.L53+1
+ 1408 07f8 0D120000 		.word	.L53+1
+ 1409 07fc 7D110000 		.word	.L89+1
+ 1410 0800 0D120000 		.word	.L53+1
+ 1411 0804 0D120000 		.word	.L53+1
+ 1412 0808 0D120000 		.word	.L53+1
+ 1413 080c 93110000 		.word	.L90+1
+ 1414              	.L75:
+ 301:../src/serial.c ****     case MSP_SET_RAW_RC:
+ 302:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 1415              		.loc 1 302 0
+ 1416 0810 4FF00003 		mov	r3, #0
+ 1417 0814 7B61     		str	r3, [r7, #20]
+ 1418 0816 0BE0     		b	.L92
+ 1419              	.L93:
+ 303:../src/serial.c ****             rcData[i] = read16();
+ 1420              		.loc 1 303 0 discriminator 2
+ 1421 0818 FFF7FEFF 		bl	read16
+ 1422 081c 0346     		mov	r3, r0
+ 1423 081e 99B2     		uxth	r1, r3
+ 1424 0820 2C4B     		ldr	r3, .L133+4
+ 1425 0822 7A69     		ldr	r2, [r7, #20]
+ 1426 0824 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 302:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 1427              		.loc 1 302 0 discriminator 2
+ 1428 0828 7B69     		ldr	r3, [r7, #20]
+ 1429 082a 03F10103 		add	r3, r3, #1
+ 1430 082e 7B61     		str	r3, [r7, #20]
+ 1431              	.L92:
+ 302:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 1432              		.loc 1 302 0 is_stmt 0 discriminator 1
+ 1433 0830 7B69     		ldr	r3, [r7, #20]
+ 1434 0832 072B     		cmp	r3, #7
+ 1435 0834 F0D9     		bls	.L93
+ 304:../src/serial.c ****         headSerialReply(0);
+ 1436              		.loc 1 304 0 is_stmt 1
+ 1437 0836 4FF00000 		mov	r0, #0
+ 1438 083a FFF7FEFF 		bl	headSerialReply
+ 305:../src/serial.c ****         break;
+ 1439              		.loc 1 305 0
+ 1440 083e 00F0EABC 		b	.L94
+ 1441              	.L87:
+ 306:../src/serial.c ****     case MSP_SET_ACC_TRIM:
+ 307:../src/serial.c ****         cfg.angleTrim[PITCH] = read16();
+ 1442              		.loc 1 307 0
+ 1443 0842 FFF7FEFF 		bl	read16
+ 1444 0846 0346     		mov	r3, r0
+ 1445 0848 9AB2     		uxth	r2, r3
+ 1446 084a 234B     		ldr	r3, .L133+8
+ 1447 084c 5A85     		strh	r2, [r3, #42]	@ movhi
+ 308:../src/serial.c ****         cfg.angleTrim[ROLL]  = read16();
+ 1448              		.loc 1 308 0
+ 1449 084e FFF7FEFF 		bl	read16
+ 1450 0852 0346     		mov	r3, r0
+ 1451 0854 9AB2     		uxth	r2, r3
+ 1452 0856 204B     		ldr	r3, .L133+8
+ 1453 0858 1A85     		strh	r2, [r3, #40]	@ movhi
+ 309:../src/serial.c ****         headSerialReply(0);
+ 1454              		.loc 1 309 0
+ 1455 085a 4FF00000 		mov	r0, #0
+ 1456 085e FFF7FEFF 		bl	headSerialReply
+ 310:../src/serial.c ****         break;
+ 1457              		.loc 1 310 0
+ 1458 0862 00F0D8BC 		b	.L94
+ 1459              	.L76:
+ 311:../src/serial.c ****     case MSP_SET_RAW_GPS:
+ 312:../src/serial.c ****         f.GPS_FIX = read8();
+ 1460              		.loc 1 312 0
+ 1461 0866 FFF7FEFF 		bl	read8
+ 1462 086a 0346     		mov	r3, r0
+ 1463 086c 1A46     		mov	r2, r3
+ 1464 086e 1B4B     		ldr	r3, .L133+12
+ 1465 0870 DA72     		strb	r2, [r3, #11]
+ 313:../src/serial.c ****         GPS_numSat = read8();
+ 1466              		.loc 1 313 0
+ 1467 0872 FFF7FEFF 		bl	read8
+ 1468 0876 0346     		mov	r3, r0
+ 1469 0878 1A46     		mov	r2, r3
+ 1470 087a 194B     		ldr	r3, .L133+16
+ 1471 087c 1A70     		strb	r2, [r3, #0]
+ 314:../src/serial.c ****         GPS_coord[LAT] = read32();
+ 1472              		.loc 1 314 0
+ 1473 087e FFF7FEFF 		bl	read32
+ 1474 0882 0346     		mov	r3, r0
+ 1475 0884 1A46     		mov	r2, r3
+ 1476 0886 174B     		ldr	r3, .L133+20
+ 1477 0888 1A60     		str	r2, [r3, #0]
+ 315:../src/serial.c ****         GPS_coord[LON] = read32();
+ 1478              		.loc 1 315 0
+ 1479 088a FFF7FEFF 		bl	read32
+ 1480 088e 0346     		mov	r3, r0
+ 1481 0890 1A46     		mov	r2, r3
+ 1482 0892 144B     		ldr	r3, .L133+20
+ 1483 0894 5A60     		str	r2, [r3, #4]
+ 316:../src/serial.c ****         GPS_altitude = read16();
+ 1484              		.loc 1 316 0
+ 1485 0896 FFF7FEFF 		bl	read16
+ 1486 089a 0346     		mov	r3, r0
+ 1487 089c 1A46     		mov	r2, r3
+ 1488 089e 124B     		ldr	r3, .L133+24
+ 1489 08a0 1A80     		strh	r2, [r3, #0]	@ movhi
+ 317:../src/serial.c ****         GPS_speed = read16();
+ 1490              		.loc 1 317 0
+ 1491 08a2 FFF7FEFF 		bl	read16
+ 1492 08a6 0346     		mov	r3, r0
+ 1493 08a8 1A46     		mov	r2, r3
+ 1494 08aa 104B     		ldr	r3, .L133+28
+ 1495 08ac 1A80     		strh	r2, [r3, #0]	@ movhi
+ 318:../src/serial.c ****         GPS_update |= 2;        // New data signalisation to GPS functions
+ 1496              		.loc 1 318 0
+ 1497 08ae 104B     		ldr	r3, .L133+32
+ 1498 08b0 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1499 08b2 43F00203 		orr	r3, r3, #2
+ 1500 08b6 DAB2     		uxtb	r2, r3
+ 1501 08b8 0D4B     		ldr	r3, .L133+32
+ 1502 08ba 1A70     		strb	r2, [r3, #0]
+ 319:../src/serial.c ****         headSerialReply(0);
+ 1503              		.loc 1 319 0
+ 1504 08bc 4FF00000 		mov	r0, #0
+ 1505 08c0 FFF7FEFF 		bl	headSerialReply
+ 320:../src/serial.c ****         break;
+ 1506              		.loc 1 320 0
+ 1507 08c4 00F0A7BC 		b	.L94
+ 1508              	.L77:
+ 321:../src/serial.c ****     case MSP_SET_PID:
+ 322:../src/serial.c ****         for (i = 0; i < PIDITEMS; i++) {
+ 1509              		.loc 1 322 0
+ 1510 08c8 4FF00003 		mov	r3, #0
+ 1511 08cc 7B61     		str	r3, [r7, #20]
+ 1512 08ce 31E0     		b	.L95
+ 1513              	.L134:
+ 1514              		.align	2
+ 1515              	.L133:
+ 1516 08d0 58000000 		.word	cmdMSP
+ 1517 08d4 00000000 		.word	rcData
+ 1518 08d8 00000000 		.word	cfg
+ 1519 08dc 00000000 		.word	f
+ 1520 08e0 00000000 		.word	GPS_numSat
+ 1521 08e4 00000000 		.word	GPS_coord
+ 1522 08e8 00000000 		.word	GPS_altitude
+ 1523 08ec 00000000 		.word	GPS_speed
+ 1524 08f0 00000000 		.word	GPS_update
+ 1525              	.L96:
+ 323:../src/serial.c ****             cfg.P8[i] = read8();
+ 1526              		.loc 1 323 0 discriminator 2
+ 1527 08f4 FFF7FEFF 		bl	read8
+ 1528 08f8 0346     		mov	r3, r0
+ 1529 08fa 1A46     		mov	r2, r3
+ 1530 08fc 6149     		ldr	r1, .L135
+ 1531 08fe 7B69     		ldr	r3, [r7, #20]
+ 1532 0900 CB18     		adds	r3, r1, r3
+ 1533 0902 1A70     		strb	r2, [r3, #0]
+ 324:../src/serial.c ****             cfg.I8[i] = read8();
+ 1534              		.loc 1 324 0 discriminator 2
+ 1535 0904 FFF7FEFF 		bl	read8
+ 1536 0908 0346     		mov	r3, r0
+ 1537 090a 1A46     		mov	r2, r3
+ 1538 090c 5D49     		ldr	r1, .L135
+ 1539 090e 7B69     		ldr	r3, [r7, #20]
+ 1540 0910 CB18     		adds	r3, r1, r3
+ 1541 0912 03F10803 		add	r3, r3, #8
+ 1542 0916 9A70     		strb	r2, [r3, #2]
+ 325:../src/serial.c ****             cfg.D8[i] = read8();
+ 1543              		.loc 1 325 0 discriminator 2
+ 1544 0918 FFF7FEFF 		bl	read8
+ 1545 091c 0346     		mov	r3, r0
+ 1546 091e 1A46     		mov	r2, r3
+ 1547 0920 5849     		ldr	r1, .L135
+ 1548 0922 7B69     		ldr	r3, [r7, #20]
+ 1549 0924 CB18     		adds	r3, r1, r3
+ 1550 0926 03F11003 		add	r3, r3, #16
+ 1551 092a 1A71     		strb	r2, [r3, #4]
+ 322:../src/serial.c ****         for (i = 0; i < PIDITEMS; i++) {
+ 1552              		.loc 1 322 0 discriminator 2
+ 1553 092c 7B69     		ldr	r3, [r7, #20]
+ 1554 092e 03F10103 		add	r3, r3, #1
+ 1555 0932 7B61     		str	r3, [r7, #20]
+ 1556              	.L95:
+ 322:../src/serial.c ****         for (i = 0; i < PIDITEMS; i++) {
+ 1557              		.loc 1 322 0 is_stmt 0 discriminator 1
+ 1558 0934 7B69     		ldr	r3, [r7, #20]
+ 1559 0936 092B     		cmp	r3, #9
+ 1560 0938 DCD9     		bls	.L96
+ 326:../src/serial.c ****         }
+ 327:../src/serial.c ****         headSerialReply(0);
+ 1561              		.loc 1 327 0 is_stmt 1
+ 1562 093a 4FF00000 		mov	r0, #0
+ 1563 093e FFF7FEFF 		bl	headSerialReply
+ 328:../src/serial.c ****         break;
+ 1564              		.loc 1 328 0
+ 1565 0942 00F068BC 		b	.L94
+ 1566              	.L78:
+ 329:../src/serial.c ****     case MSP_SET_BOX:
+ 330:../src/serial.c ****         for (i = 0; i < numberBoxItems; i++)
+ 1567              		.loc 1 330 0
+ 1568 0946 4FF00003 		mov	r3, #0
+ 1569 094a 7B61     		str	r3, [r7, #20]
+ 1570 094c 11E0     		b	.L97
+ 1571              	.L98:
+ 331:../src/serial.c ****             cfg.activate[availableBoxes[i]] = read16();
+ 1572              		.loc 1 331 0 discriminator 2
+ 1573 094e 4E4A     		ldr	r2, .L135+4
+ 1574 0950 7B69     		ldr	r3, [r7, #20]
+ 1575 0952 D318     		adds	r3, r2, r3
+ 1576 0954 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1577 0956 1C46     		mov	r4, r3
+ 1578 0958 FFF7FEFF 		bl	read16
+ 1579 095c 0346     		mov	r3, r0
+ 1580 095e 1946     		mov	r1, r3
+ 1581 0960 484B     		ldr	r3, .L135
+ 1582 0962 04F11C02 		add	r2, r4, #28
+ 1583 0966 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 330:../src/serial.c ****         for (i = 0; i < numberBoxItems; i++)
+ 1584              		.loc 1 330 0 discriminator 2
+ 1585 096a 7B69     		ldr	r3, [r7, #20]
+ 1586 096c 03F10103 		add	r3, r3, #1
+ 1587 0970 7B61     		str	r3, [r7, #20]
+ 1588              	.L97:
+ 330:../src/serial.c ****         for (i = 0; i < numberBoxItems; i++)
+ 1589              		.loc 1 330 0 is_stmt 0 discriminator 1
+ 1590 0972 464B     		ldr	r3, .L135+8
+ 1591 0974 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1592 0976 1A46     		mov	r2, r3
+ 1593 0978 7B69     		ldr	r3, [r7, #20]
+ 1594 097a 9A42     		cmp	r2, r3
+ 1595 097c E7D8     		bhi	.L98
+ 332:../src/serial.c ****         headSerialReply(0);
+ 1596              		.loc 1 332 0 is_stmt 1
+ 1597 097e 4FF00000 		mov	r0, #0
+ 1598 0982 FFF7FEFF 		bl	headSerialReply
+ 333:../src/serial.c ****         break;
+ 1599              		.loc 1 333 0
+ 1600 0986 00F046BC 		b	.L94
+ 1601              	.L79:
+ 334:../src/serial.c ****     case MSP_SET_RC_TUNING:
+ 335:../src/serial.c ****         cfg.rcRate8 = read8();
+ 1602              		.loc 1 335 0
+ 1603 098a FFF7FEFF 		bl	read8
+ 1604 098e 0346     		mov	r3, r0
+ 1605 0990 1A46     		mov	r2, r3
+ 1606 0992 3C4B     		ldr	r3, .L135
+ 1607 0994 9A77     		strb	r2, [r3, #30]
+ 336:../src/serial.c ****         cfg.rcExpo8 = read8();
+ 1608              		.loc 1 336 0
+ 1609 0996 FFF7FEFF 		bl	read8
+ 1610 099a 0346     		mov	r3, r0
+ 1611 099c 1A46     		mov	r2, r3
+ 1612 099e 394B     		ldr	r3, .L135
+ 1613 09a0 DA77     		strb	r2, [r3, #31]
+ 337:../src/serial.c ****         cfg.rollPitchRate = read8();
+ 1614              		.loc 1 337 0
+ 1615 09a2 FFF7FEFF 		bl	read8
+ 1616 09a6 0346     		mov	r3, r0
+ 1617 09a8 1A46     		mov	r2, r3
+ 1618 09aa 364B     		ldr	r3, .L135
+ 1619 09ac 83F82220 		strb	r2, [r3, #34]
+ 338:../src/serial.c ****         cfg.yawRate = read8();
+ 1620              		.loc 1 338 0
+ 1621 09b0 FFF7FEFF 		bl	read8
+ 1622 09b4 0346     		mov	r3, r0
+ 1623 09b6 1A46     		mov	r2, r3
+ 1624 09b8 324B     		ldr	r3, .L135
+ 1625 09ba 83F82320 		strb	r2, [r3, #35]
+ 339:../src/serial.c ****         cfg.dynThrPID = read8();
+ 1626              		.loc 1 339 0
+ 1627 09be FFF7FEFF 		bl	read8
+ 1628 09c2 0346     		mov	r3, r0
+ 1629 09c4 1A46     		mov	r2, r3
+ 1630 09c6 2F4B     		ldr	r3, .L135
+ 1631 09c8 83F82420 		strb	r2, [r3, #36]
+ 340:../src/serial.c ****         cfg.thrMid8 = read8();
+ 1632              		.loc 1 340 0
+ 1633 09cc FFF7FEFF 		bl	read8
+ 1634 09d0 0346     		mov	r3, r0
+ 1635 09d2 1A46     		mov	r2, r3
+ 1636 09d4 2B4B     		ldr	r3, .L135
+ 1637 09d6 83F82020 		strb	r2, [r3, #32]
+ 341:../src/serial.c ****         cfg.thrExpo8 = read8();
+ 1638              		.loc 1 341 0
+ 1639 09da FFF7FEFF 		bl	read8
+ 1640 09de 0346     		mov	r3, r0
+ 1641 09e0 1A46     		mov	r2, r3
+ 1642 09e2 284B     		ldr	r3, .L135
+ 1643 09e4 83F82120 		strb	r2, [r3, #33]
+ 342:../src/serial.c ****         headSerialReply(0);
+ 1644              		.loc 1 342 0
+ 1645 09e8 4FF00000 		mov	r0, #0
+ 1646 09ec FFF7FEFF 		bl	headSerialReply
+ 343:../src/serial.c ****         break;
+ 1647              		.loc 1 343 0
+ 1648 09f0 00F011BC 		b	.L94
+ 1649              	.L82:
+ 344:../src/serial.c ****     case MSP_SET_MISC:
+ 345:../src/serial.c ****         headSerialReply(0);
+ 1650              		.loc 1 345 0
+ 1651 09f4 4FF00000 		mov	r0, #0
+ 1652 09f8 FFF7FEFF 		bl	headSerialReply
+ 346:../src/serial.c ****         break;
+ 1653              		.loc 1 346 0
+ 1654 09fc 00F00BBC 		b	.L94
+ 1655              	.L85:
+ 347:../src/serial.c ****     case MSP_SELECT_SETTING:
+ 348:../src/serial.c ****         if (!f.ARMED) {
+ 1656              		.loc 1 348 0
+ 1657 0a00 234B     		ldr	r3, .L135+12
+ 1658 0a02 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 1659 0a04 002B     		cmp	r3, #0
+ 1660 0a06 16D1     		bne	.L99
+ 349:../src/serial.c ****             mcfg.current_profile = read8();
+ 1661              		.loc 1 349 0
+ 1662 0a08 FFF7FEFF 		bl	read8
+ 1663 0a0c 0346     		mov	r3, r0
+ 1664 0a0e 1A46     		mov	r2, r3
+ 1665 0a10 204B     		ldr	r3, .L135+16
+ 1666 0a12 83F8EC22 		strb	r2, [r3, #748]
+ 350:../src/serial.c ****             if (mcfg.current_profile > 2)
+ 1667              		.loc 1 350 0
+ 1668 0a16 1F4B     		ldr	r3, .L135+16
+ 1669 0a18 93F8EC32 		ldrb	r3, [r3, #748]	@ zero_extendqisi2
+ 1670 0a1c 022B     		cmp	r3, #2
+ 1671 0a1e 04D9     		bls	.L100
+ 351:../src/serial.c ****                 mcfg.current_profile = 0;
+ 1672              		.loc 1 351 0
+ 1673 0a20 1C4B     		ldr	r3, .L135+16
+ 1674 0a22 4FF00002 		mov	r2, #0
+ 1675 0a26 83F8EC22 		strb	r2, [r3, #748]
+ 1676              	.L100:
+ 352:../src/serial.c ****             // this writes new profile index and re-reads it
+ 353:../src/serial.c ****             writeEEPROM(0, false);
+ 1677              		.loc 1 353 0
+ 1678 0a2a 4FF00000 		mov	r0, #0
+ 1679 0a2e 4FF00001 		mov	r1, #0
+ 1680 0a32 FFF7FEFF 		bl	writeEEPROM
+ 1681              	.L99:
+ 354:../src/serial.c ****         }
+ 355:../src/serial.c ****         headSerialReply(0);
+ 1682              		.loc 1 355 0
+ 1683 0a36 4FF00000 		mov	r0, #0
+ 1684 0a3a FFF7FEFF 		bl	headSerialReply
+ 356:../src/serial.c ****         break;
+ 1685              		.loc 1 356 0
+ 1686 0a3e EAE3     		b	.L94
+ 1687              	.L86:
+ 357:../src/serial.c ****     case MSP_SET_HEAD:
+ 358:../src/serial.c ****         magHold = read16();
+ 1688              		.loc 1 358 0
+ 1689 0a40 FFF7FEFF 		bl	read16
+ 1690 0a44 0346     		mov	r3, r0
+ 1691 0a46 9AB2     		uxth	r2, r3
+ 1692 0a48 134B     		ldr	r3, .L135+20
+ 1693 0a4a 1A80     		strh	r2, [r3, #0]	@ movhi
+ 359:../src/serial.c ****         headSerialReply(0);
+ 1694              		.loc 1 359 0
+ 1695 0a4c 4FF00000 		mov	r0, #0
+ 1696 0a50 FFF7FEFF 		bl	headSerialReply
+ 360:../src/serial.c ****         break;
+ 1697              		.loc 1 360 0
+ 1698 0a54 DFE3     		b	.L94
+ 1699              	.L54:
+ 361:../src/serial.c ****     case MSP_IDENT:
+ 362:../src/serial.c ****         headSerialReply(7);
+ 1700              		.loc 1 362 0
+ 1701 0a56 4FF00700 		mov	r0, #7
+ 1702 0a5a FFF7FEFF 		bl	headSerialReply
+ 363:../src/serial.c ****         serialize8(VERSION);                // multiwii version
+ 1703              		.loc 1 363 0
+ 1704 0a5e 4FF0DC00 		mov	r0, #220
+ 1705 0a62 FFF7FEFF 		bl	serialize8
+ 364:../src/serial.c ****         serialize8(mcfg.mixerConfiguration); // type of multicopter
+ 1706              		.loc 1 364 0
+ 1707 0a66 0B4B     		ldr	r3, .L135+16
+ 1708 0a68 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 1709 0a6a 1846     		mov	r0, r3
+ 1710 0a6c FFF7FEFF 		bl	serialize8
+ 365:../src/serial.c ****         serialize8(MSP_VERSION);            // MultiWii Serial Protocol Version
+ 1711              		.loc 1 365 0
+ 1712 0a70 4FF00000 		mov	r0, #0
+ 1713 0a74 FFF7FEFF 		bl	serialize8
+ 366:../src/serial.c ****         serialize32(PLATFORM_32BIT);        // "capability"
+ 1714              		.loc 1 366 0
+ 1715 0a78 4FF00040 		mov	r0, #-2147483648
+ 1716 0a7c FFF7FEFF 		bl	serialize32
+ 367:../src/serial.c ****         break;
+ 1717              		.loc 1 367 0
+ 1718 0a80 C9E3     		b	.L94
+ 1719              	.L136:
+ 1720 0a82 00BF     		.align	2
+ 1721              	.L135:
+ 1722 0a84 00000000 		.word	cfg
+ 1723 0a88 00000000 		.word	availableBoxes
+ 1724 0a8c 14000000 		.word	numberBoxItems
+ 1725 0a90 00000000 		.word	f
+ 1726 0a94 00000000 		.word	mcfg
+ 1727 0a98 00000000 		.word	magHold
+ 1728              	.L55:
+ 368:../src/serial.c ****     case MSP_STATUS:
+ 369:../src/serial.c ****         headSerialReply(11);
+ 1729              		.loc 1 369 0
+ 1730 0a9c 4FF00B00 		mov	r0, #11
+ 1731 0aa0 FFF7FEFF 		bl	headSerialReply
+ 370:../src/serial.c ****         serialize16(cycleTime);
+ 1732              		.loc 1 370 0
+ 1733 0aa4 984B     		ldr	r3, .L137
+ 1734 0aa6 1B88     		ldrh	r3, [r3, #0]
+ 1735 0aa8 9BB2     		uxth	r3, r3
+ 1736 0aaa 1BB2     		sxth	r3, r3
+ 1737 0aac 1846     		mov	r0, r3
+ 1738 0aae FFF7FEFF 		bl	serialize16
+ 371:../src/serial.c ****         serialize16(i2cGetErrorCounter());
+ 1739              		.loc 1 371 0
+ 1740 0ab2 FFF7FEFF 		bl	i2cGetErrorCounter
+ 1741 0ab6 0346     		mov	r3, r0
+ 1742 0ab8 9BB2     		uxth	r3, r3
+ 1743 0aba 1BB2     		sxth	r3, r3
+ 1744 0abc 1846     		mov	r0, r3
+ 1745 0abe FFF7FEFF 		bl	serialize16
+ 372:../src/serial.c ****         serialize16(sensors(SENSOR_ACC) | sensors(SENSOR_BARO) << 1 | sensors(SENSOR_MAG) << 2 | se
+ 1746              		.loc 1 372 0
+ 1747 0ac2 4FF00100 		mov	r0, #1
+ 1748 0ac6 FFF7FEFF 		bl	sensors
+ 1749 0aca 0346     		mov	r3, r0
+ 1750 0acc 1C46     		mov	r4, r3
+ 1751 0ace 4FF00200 		mov	r0, #2
+ 1752 0ad2 FFF7FEFF 		bl	sensors
+ 1753 0ad6 0346     		mov	r3, r0
+ 1754 0ad8 4FEA4303 		lsl	r3, r3, #1
+ 1755 0adc 9BB2     		uxth	r3, r3
+ 1756 0ade 2246     		mov	r2, r4	@ movhi
+ 1757 0ae0 1343     		orrs	r3, r3, r2
+ 1758 0ae2 9CB2     		uxth	r4, r3
+ 1759 0ae4 4FF00400 		mov	r0, #4
+ 1760 0ae8 FFF7FEFF 		bl	sensors
+ 1761 0aec 0346     		mov	r3, r0
+ 1762 0aee 4FEA8303 		lsl	r3, r3, #2
+ 1763 0af2 9BB2     		uxth	r3, r3
+ 1764 0af4 2246     		mov	r2, r4	@ movhi
+ 1765 0af6 1343     		orrs	r3, r3, r2
+ 1766 0af8 9CB2     		uxth	r4, r3
+ 1767 0afa 4FF01000 		mov	r0, #16
+ 1768 0afe FFF7FEFF 		bl	sensors
+ 1769 0b02 0346     		mov	r3, r0
+ 1770 0b04 4FEAC303 		lsl	r3, r3, #3
+ 1771 0b08 9BB2     		uxth	r3, r3
+ 1772 0b0a 2246     		mov	r2, r4	@ movhi
+ 1773 0b0c 1343     		orrs	r3, r3, r2
+ 1774 0b0e 9CB2     		uxth	r4, r3
+ 1775 0b10 4FF00800 		mov	r0, #8
+ 1776 0b14 FFF7FEFF 		bl	sensors
+ 1777 0b18 0346     		mov	r3, r0
+ 1778 0b1a 4FEA0313 		lsl	r3, r3, #4
+ 1779 0b1e 9BB2     		uxth	r3, r3
+ 1780 0b20 2246     		mov	r2, r4	@ movhi
+ 1781 0b22 1343     		orrs	r3, r3, r2
+ 1782 0b24 9BB2     		uxth	r3, r3
+ 1783 0b26 1BB2     		sxth	r3, r3
+ 1784 0b28 1846     		mov	r0, r3
+ 1785 0b2a FFF7FEFF 		bl	serialize16
+ 373:../src/serial.c ****         serialize32(f.ANGLE_MODE << BOXANGLE | f.HORIZON_MODE << BOXHORIZON |
+ 1786              		.loc 1 373 0
+ 1787 0b2e 774B     		ldr	r3, .L137+4
+ 1788 0b30 DB78     		ldrb	r3, [r3, #3]	@ zero_extendqisi2
+ 1789 0b32 4FEA4302 		lsl	r2, r3, #1
+ 1790 0b36 754B     		ldr	r3, .L137+4
+ 1791 0b38 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 1792 0b3a 4FEA8303 		lsl	r3, r3, #2
+ 1793 0b3e 1A43     		orrs	r2, r2, r3
+ 374:../src/serial.c ****                     f.BARO_MODE << BOXBARO | f.MAG_MODE << BOXMAG | f.HEADFREE_MODE << BOXHEADFREE 
+ 1794              		.loc 1 374 0
+ 1795 0b40 724B     		ldr	r3, .L137+4
+ 1796 0b42 9B79     		ldrb	r3, [r3, #6]	@ zero_extendqisi2
+ 1797 0b44 4FEAC303 		lsl	r3, r3, #3
+ 373:../src/serial.c ****         serialize32(f.ANGLE_MODE << BOXANGLE | f.HORIZON_MODE << BOXHORIZON |
+ 1798              		.loc 1 373 0
+ 1799 0b48 1A43     		orrs	r2, r2, r3
+ 1800              		.loc 1 374 0
+ 1801 0b4a 704B     		ldr	r3, .L137+4
+ 1802 0b4c 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 1803 0b4e 4FEA4313 		lsl	r3, r3, #5
+ 1804 0b52 1A43     		orrs	r2, r2, r3
+ 1805 0b54 6D4B     		ldr	r3, .L137+4
+ 1806 0b56 5B7A     		ldrb	r3, [r3, #9]	@ zero_extendqisi2
+ 1807 0b58 4FEA8313 		lsl	r3, r3, #6
+ 1808 0b5c 1A43     		orrs	r2, r2, r3
+ 1809 0b5e 6C4B     		ldr	r3, .L137+8
+ 1810 0b60 DB79     		ldrb	r3, [r3, #7]	@ zero_extendqisi2
+ 1811 0b62 4FEAC313 		lsl	r3, r3, #7
+ 1812 0b66 1A43     		orrs	r2, r2, r3
+ 375:../src/serial.c ****                     rcOptions[BOXCAMSTAB] << BOXCAMSTAB | rcOptions[BOXCAMTRIG] << BOXCAMTRIG |
+ 1813              		.loc 1 375 0
+ 1814 0b68 694B     		ldr	r3, .L137+8
+ 1815 0b6a 1B7A     		ldrb	r3, [r3, #8]	@ zero_extendqisi2
+ 1816 0b6c 4FEA0323 		lsl	r3, r3, #8
+ 374:../src/serial.c ****                     f.BARO_MODE << BOXBARO | f.MAG_MODE << BOXMAG | f.HEADFREE_MODE << BOXHEADFREE 
+ 1817              		.loc 1 374 0
+ 1818 0b70 1A43     		orrs	r2, r2, r3
+ 1819              		.loc 1 375 0
+ 1820 0b72 674B     		ldr	r3, .L137+8
+ 1821 0b74 5B7A     		ldrb	r3, [r3, #9]	@ zero_extendqisi2
+ 1822 0b76 4FEA4323 		lsl	r3, r3, #9
+ 1823 0b7a 1A43     		orrs	r2, r2, r3
+ 376:../src/serial.c ****                     f.GPS_HOME_MODE << BOXGPSHOME | f.GPS_HOLD_MODE << BOXGPSHOLD |
+ 1824              		.loc 1 376 0
+ 1825 0b7c 634B     		ldr	r3, .L137+4
+ 1826 0b7e DB79     		ldrb	r3, [r3, #7]	@ zero_extendqisi2
+ 1827 0b80 4FEA8323 		lsl	r3, r3, #10
+ 375:../src/serial.c ****                     rcOptions[BOXCAMSTAB] << BOXCAMSTAB | rcOptions[BOXCAMTRIG] << BOXCAMTRIG |
+ 1828              		.loc 1 375 0
+ 1829 0b84 1A43     		orrs	r2, r2, r3
+ 1830              		.loc 1 376 0
+ 1831 0b86 614B     		ldr	r3, .L137+4
+ 1832 0b88 1B7A     		ldrb	r3, [r3, #8]	@ zero_extendqisi2
+ 1833 0b8a 4FEAC323 		lsl	r3, r3, #11
+ 1834 0b8e 1A43     		orrs	r2, r2, r3
+ 377:../src/serial.c ****                     f.PASSTHRU_MODE << BOXPASSTHRU |
+ 1835              		.loc 1 377 0
+ 1836 0b90 5E4B     		ldr	r3, .L137+4
+ 1837 0b92 9B7A     		ldrb	r3, [r3, #10]	@ zero_extendqisi2
+ 1838 0b94 4FEA0333 		lsl	r3, r3, #12
+ 376:../src/serial.c ****                     f.GPS_HOME_MODE << BOXGPSHOME | f.GPS_HOLD_MODE << BOXGPSHOLD |
+ 1839              		.loc 1 376 0
+ 1840 0b98 1A43     		orrs	r2, r2, r3
+ 378:../src/serial.c ****                     rcOptions[BOXBEEPERON] << BOXBEEPERON |
+ 1841              		.loc 1 378 0
+ 1842 0b9a 5D4B     		ldr	r3, .L137+8
+ 1843 0b9c 5B7B     		ldrb	r3, [r3, #13]	@ zero_extendqisi2
+ 1844 0b9e 4FEA4333 		lsl	r3, r3, #13
+ 377:../src/serial.c ****                     f.PASSTHRU_MODE << BOXPASSTHRU |
+ 1845              		.loc 1 377 0
+ 1846 0ba2 1A43     		orrs	r2, r2, r3
+ 379:../src/serial.c ****                     rcOptions[BOXLEDMAX] << BOXLEDMAX |
+ 1847              		.loc 1 379 0
+ 1848 0ba4 5A4B     		ldr	r3, .L137+8
+ 1849 0ba6 9B7B     		ldrb	r3, [r3, #14]	@ zero_extendqisi2
+ 1850 0ba8 4FEA8333 		lsl	r3, r3, #14
+ 378:../src/serial.c ****                     rcOptions[BOXBEEPERON] << BOXBEEPERON |
+ 1851              		.loc 1 378 0
+ 1852 0bac 1A43     		orrs	r2, r2, r3
+ 380:../src/serial.c ****                     rcOptions[BOXLLIGHTS] << BOXLLIGHTS |
+ 1853              		.loc 1 380 0
+ 1854 0bae 584B     		ldr	r3, .L137+8
+ 1855 0bb0 1B7C     		ldrb	r3, [r3, #16]	@ zero_extendqisi2
+ 1856 0bb2 4FEA0343 		lsl	r3, r3, #16
+ 379:../src/serial.c ****                     rcOptions[BOXLEDMAX] << BOXLEDMAX |
+ 1857              		.loc 1 379 0
+ 1858 0bb6 1A43     		orrs	r2, r2, r3
+ 381:../src/serial.c ****                     rcOptions[BOXVARIO] << BOXVARIO |
+ 1859              		.loc 1 381 0
+ 1860 0bb8 554B     		ldr	r3, .L137+8
+ 1861 0bba 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 1862 0bbc 4FEA0313 		lsl	r3, r3, #4
+ 380:../src/serial.c ****                     rcOptions[BOXLLIGHTS] << BOXLLIGHTS |
+ 1863              		.loc 1 380 0
+ 1864 0bc0 1A43     		orrs	r2, r2, r3
+ 382:../src/serial.c ****                     rcOptions[BOXCALIB] << BOXCALIB |
+ 1865              		.loc 1 382 0
+ 1866 0bc2 534B     		ldr	r3, .L137+8
+ 1867 0bc4 5B7C     		ldrb	r3, [r3, #17]	@ zero_extendqisi2
+ 1868 0bc6 4FEA4343 		lsl	r3, r3, #17
+ 381:../src/serial.c ****                     rcOptions[BOXVARIO] << BOXVARIO |
+ 1869              		.loc 1 381 0
+ 1870 0bca 1A43     		orrs	r2, r2, r3
+ 383:../src/serial.c ****                     rcOptions[BOXGOV] << BOXGOV |
+ 1871              		.loc 1 383 0
+ 1872 0bcc 504B     		ldr	r3, .L137+8
+ 1873 0bce 9B7C     		ldrb	r3, [r3, #18]	@ zero_extendqisi2
+ 1874 0bd0 4FEA8343 		lsl	r3, r3, #18
+ 382:../src/serial.c ****                     rcOptions[BOXCALIB] << BOXCALIB |
+ 1875              		.loc 1 382 0
+ 1876 0bd4 1A43     		orrs	r2, r2, r3
+ 384:../src/serial.c ****                     rcOptions[BOXOSD] << BOXOSD |
+ 1877              		.loc 1 384 0
+ 1878 0bd6 4E4B     		ldr	r3, .L137+8
+ 1879 0bd8 DB7C     		ldrb	r3, [r3, #19]	@ zero_extendqisi2
+ 1880 0bda 4FEAC343 		lsl	r3, r3, #19
+ 383:../src/serial.c ****                     rcOptions[BOXGOV] << BOXGOV |
+ 1881              		.loc 1 383 0
+ 1882 0bde 1A43     		orrs	r2, r2, r3
+ 385:../src/serial.c ****                     f.ARMED << BOXARM);
+ 1883              		.loc 1 385 0
+ 1884 0be0 4A4B     		ldr	r3, .L137+4
+ 1885 0be2 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 384:../src/serial.c ****                     rcOptions[BOXOSD] << BOXOSD |
+ 1886              		.loc 1 384 0
+ 1887 0be4 1343     		orrs	r3, r3, r2
+ 373:../src/serial.c ****         serialize32(f.ANGLE_MODE << BOXANGLE | f.HORIZON_MODE << BOXHORIZON |
+ 1888              		.loc 1 373 0
+ 1889 0be6 1846     		mov	r0, r3
+ 1890 0be8 FFF7FEFF 		bl	serialize32
+ 386:../src/serial.c ****         serialize8(mcfg.current_profile);
+ 1891              		.loc 1 386 0
+ 1892 0bec 494B     		ldr	r3, .L137+12
+ 1893 0bee 93F8EC32 		ldrb	r3, [r3, #748]	@ zero_extendqisi2
+ 1894 0bf2 1846     		mov	r0, r3
+ 1895 0bf4 FFF7FEFF 		bl	serialize8
+ 387:../src/serial.c ****         break;
+ 1896              		.loc 1 387 0
+ 1897 0bf8 0DE3     		b	.L94
+ 1898              	.L56:
+ 388:../src/serial.c ****     case MSP_RAW_IMU:
+ 389:../src/serial.c ****         headSerialReply(18);
+ 1899              		.loc 1 389 0
+ 1900 0bfa 4FF01200 		mov	r0, #18
+ 1901 0bfe FFF7FEFF 		bl	headSerialReply
+ 390:../src/serial.c ****         for (i = 0; i < 3; i++)
+ 1902              		.loc 1 390 0
+ 1903 0c02 4FF00003 		mov	r3, #0
+ 1904 0c06 7B61     		str	r3, [r7, #20]
+ 1905 0c08 0BE0     		b	.L101
+ 1906              	.L102:
+ 391:../src/serial.c ****             serialize16(accSmooth[i]);
+ 1907              		.loc 1 391 0 discriminator 2
+ 1908 0c0a 434B     		ldr	r3, .L137+16
+ 1909 0c0c 7A69     		ldr	r2, [r7, #20]
+ 1910 0c0e 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 1911 0c12 1BB2     		sxth	r3, r3
+ 1912 0c14 1846     		mov	r0, r3
+ 1913 0c16 FFF7FEFF 		bl	serialize16
+ 390:../src/serial.c ****         for (i = 0; i < 3; i++)
+ 1914              		.loc 1 390 0 discriminator 2
+ 1915 0c1a 7B69     		ldr	r3, [r7, #20]
+ 1916 0c1c 03F10103 		add	r3, r3, #1
+ 1917 0c20 7B61     		str	r3, [r7, #20]
+ 1918              	.L101:
+ 390:../src/serial.c ****         for (i = 0; i < 3; i++)
+ 1919              		.loc 1 390 0 is_stmt 0 discriminator 1
+ 1920 0c22 7B69     		ldr	r3, [r7, #20]
+ 1921 0c24 022B     		cmp	r3, #2
+ 1922 0c26 F0D9     		bls	.L102
+ 392:../src/serial.c ****         for (i = 0; i < 3; i++)
+ 1923              		.loc 1 392 0 is_stmt 1
+ 1924 0c28 4FF00003 		mov	r3, #0
+ 1925 0c2c 7B61     		str	r3, [r7, #20]
+ 1926 0c2e 0BE0     		b	.L103
+ 1927              	.L104:
+ 393:../src/serial.c ****             serialize16(gyroData[i]);
+ 1928              		.loc 1 393 0 discriminator 2
+ 1929 0c30 3A4B     		ldr	r3, .L137+20
+ 1930 0c32 7A69     		ldr	r2, [r7, #20]
+ 1931 0c34 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 1932 0c38 1BB2     		sxth	r3, r3
+ 1933 0c3a 1846     		mov	r0, r3
+ 1934 0c3c FFF7FEFF 		bl	serialize16
+ 392:../src/serial.c ****         for (i = 0; i < 3; i++)
+ 1935              		.loc 1 392 0 discriminator 2
+ 1936 0c40 7B69     		ldr	r3, [r7, #20]
+ 1937 0c42 03F10103 		add	r3, r3, #1
+ 1938 0c46 7B61     		str	r3, [r7, #20]
+ 1939              	.L103:
+ 392:../src/serial.c ****         for (i = 0; i < 3; i++)
+ 1940              		.loc 1 392 0 is_stmt 0 discriminator 1
+ 1941 0c48 7B69     		ldr	r3, [r7, #20]
+ 1942 0c4a 022B     		cmp	r3, #2
+ 1943 0c4c F0D9     		bls	.L104
+ 394:../src/serial.c ****         for (i = 0; i < 3; i++)
+ 1944              		.loc 1 394 0 is_stmt 1
+ 1945 0c4e 4FF00003 		mov	r3, #0
+ 1946 0c52 7B61     		str	r3, [r7, #20]
+ 1947 0c54 0BE0     		b	.L105
+ 1948              	.L106:
+ 395:../src/serial.c ****             serialize16(magADC[i]);
+ 1949              		.loc 1 395 0 discriminator 2
+ 1950 0c56 324B     		ldr	r3, .L137+24
+ 1951 0c58 7A69     		ldr	r2, [r7, #20]
+ 1952 0c5a 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 1953 0c5e 1BB2     		sxth	r3, r3
+ 1954 0c60 1846     		mov	r0, r3
+ 1955 0c62 FFF7FEFF 		bl	serialize16
+ 394:../src/serial.c ****         for (i = 0; i < 3; i++)
+ 1956              		.loc 1 394 0 discriminator 2
+ 1957 0c66 7B69     		ldr	r3, [r7, #20]
+ 1958 0c68 03F10103 		add	r3, r3, #1
+ 1959 0c6c 7B61     		str	r3, [r7, #20]
+ 1960              	.L105:
+ 394:../src/serial.c ****         for (i = 0; i < 3; i++)
+ 1961              		.loc 1 394 0 is_stmt 0 discriminator 1
+ 1962 0c6e 7B69     		ldr	r3, [r7, #20]
+ 1963 0c70 022B     		cmp	r3, #2
+ 1964 0c72 F0D9     		bls	.L106
+ 396:../src/serial.c ****         break;
+ 1965              		.loc 1 396 0 is_stmt 1
+ 1966 0c74 CFE2     		b	.L94
+ 1967              	.L57:
+ 397:../src/serial.c ****     case MSP_SERVO:
+ 398:../src/serial.c ****         headSerialReply(16);
+ 1968              		.loc 1 398 0
+ 1969 0c76 4FF01000 		mov	r0, #16
+ 1970 0c7a FFF7FEFF 		bl	headSerialReply
+ 399:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 1971              		.loc 1 399 0
+ 1972 0c7e 4FF00003 		mov	r3, #0
+ 1973 0c82 7B61     		str	r3, [r7, #20]
+ 1974 0c84 0BE0     		b	.L107
+ 1975              	.L108:
+ 400:../src/serial.c ****             serialize16(servo[i]);
+ 1976              		.loc 1 400 0 discriminator 2
+ 1977 0c86 274B     		ldr	r3, .L137+28
+ 1978 0c88 7A69     		ldr	r2, [r7, #20]
+ 1979 0c8a 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 1980 0c8e 1BB2     		sxth	r3, r3
+ 1981 0c90 1846     		mov	r0, r3
+ 1982 0c92 FFF7FEFF 		bl	serialize16
+ 399:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 1983              		.loc 1 399 0 discriminator 2
+ 1984 0c96 7B69     		ldr	r3, [r7, #20]
+ 1985 0c98 03F10103 		add	r3, r3, #1
+ 1986 0c9c 7B61     		str	r3, [r7, #20]
+ 1987              	.L107:
+ 399:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 1988              		.loc 1 399 0 is_stmt 0 discriminator 1
+ 1989 0c9e 7B69     		ldr	r3, [r7, #20]
+ 1990 0ca0 072B     		cmp	r3, #7
+ 1991 0ca2 F0D9     		bls	.L108
+ 401:../src/serial.c ****         break;
+ 1992              		.loc 1 401 0 is_stmt 1
+ 1993 0ca4 B7E2     		b	.L94
+ 1994              	.L58:
+ 402:../src/serial.c ****     case MSP_MOTOR:
+ 403:../src/serial.c ****         headSerialReply(16);
+ 1995              		.loc 1 403 0
+ 1996 0ca6 4FF01000 		mov	r0, #16
+ 1997 0caa FFF7FEFF 		bl	headSerialReply
+ 404:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 1998              		.loc 1 404 0
+ 1999 0cae 4FF00003 		mov	r3, #0
+ 2000 0cb2 7B61     		str	r3, [r7, #20]
+ 2001 0cb4 0BE0     		b	.L109
+ 2002              	.L110:
+ 405:../src/serial.c ****             serialize16(motor[i]);
+ 2003              		.loc 1 405 0 discriminator 2
+ 2004 0cb6 1C4B     		ldr	r3, .L137+32
+ 2005 0cb8 7A69     		ldr	r2, [r7, #20]
+ 2006 0cba 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 2007 0cbe 1BB2     		sxth	r3, r3
+ 2008 0cc0 1846     		mov	r0, r3
+ 2009 0cc2 FFF7FEFF 		bl	serialize16
+ 404:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 2010              		.loc 1 404 0 discriminator 2
+ 2011 0cc6 7B69     		ldr	r3, [r7, #20]
+ 2012 0cc8 03F10103 		add	r3, r3, #1
+ 2013 0ccc 7B61     		str	r3, [r7, #20]
+ 2014              	.L109:
+ 404:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 2015              		.loc 1 404 0 is_stmt 0 discriminator 1
+ 2016 0cce 7B69     		ldr	r3, [r7, #20]
+ 2017 0cd0 072B     		cmp	r3, #7
+ 2018 0cd2 F0D9     		bls	.L110
+ 406:../src/serial.c ****         break;
+ 2019              		.loc 1 406 0 is_stmt 1
+ 2020 0cd4 9FE2     		b	.L94
+ 2021              	.L59:
+ 407:../src/serial.c ****     case MSP_RC:
+ 408:../src/serial.c ****         headSerialReply(16);
+ 2022              		.loc 1 408 0
+ 2023 0cd6 4FF01000 		mov	r0, #16
+ 2024 0cda FFF7FEFF 		bl	headSerialReply
+ 409:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 2025              		.loc 1 409 0
+ 2026 0cde 4FF00003 		mov	r3, #0
+ 2027 0ce2 7B61     		str	r3, [r7, #20]
+ 2028 0ce4 0BE0     		b	.L111
+ 2029              	.L112:
+ 410:../src/serial.c ****             serialize16(rcData[i]);
+ 2030              		.loc 1 410 0 discriminator 2
+ 2031 0ce6 114B     		ldr	r3, .L137+36
+ 2032 0ce8 7A69     		ldr	r2, [r7, #20]
+ 2033 0cea 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 2034 0cee 1BB2     		sxth	r3, r3
+ 2035 0cf0 1846     		mov	r0, r3
+ 2036 0cf2 FFF7FEFF 		bl	serialize16
+ 409:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 2037              		.loc 1 409 0 discriminator 2
+ 2038 0cf6 7B69     		ldr	r3, [r7, #20]
+ 2039 0cf8 03F10103 		add	r3, r3, #1
+ 2040 0cfc 7B61     		str	r3, [r7, #20]
+ 2041              	.L111:
+ 409:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 2042              		.loc 1 409 0 is_stmt 0 discriminator 1
+ 2043 0cfe 7B69     		ldr	r3, [r7, #20]
+ 2044 0d00 072B     		cmp	r3, #7
+ 2045 0d02 F0D9     		bls	.L112
+ 411:../src/serial.c ****         break;
+ 2046              		.loc 1 411 0 is_stmt 1
+ 2047 0d04 87E2     		b	.L94
+ 2048              	.L138:
+ 2049 0d06 00BF     		.align	2
+ 2050              	.L137:
+ 2051 0d08 00000000 		.word	cycleTime
+ 2052 0d0c 00000000 		.word	f
+ 2053 0d10 00000000 		.word	rcOptions
+ 2054 0d14 00000000 		.word	mcfg
+ 2055 0d18 00000000 		.word	accSmooth
+ 2056 0d1c 00000000 		.word	gyroData
+ 2057 0d20 00000000 		.word	magADC
+ 2058 0d24 00000000 		.word	servo
+ 2059 0d28 00000000 		.word	motor
+ 2060 0d2c 00000000 		.word	rcData
+ 2061              	.L60:
+ 412:../src/serial.c ****     case MSP_RAW_GPS:
+ 413:../src/serial.c ****         headSerialReply(16);
+ 2062              		.loc 1 413 0
+ 2063 0d30 4FF01000 		mov	r0, #16
+ 2064 0d34 FFF7FEFF 		bl	headSerialReply
+ 414:../src/serial.c ****         serialize8(f.GPS_FIX);
+ 2065              		.loc 1 414 0
+ 2066 0d38 A74B     		ldr	r3, .L139
+ 2067 0d3a DB7A     		ldrb	r3, [r3, #11]	@ zero_extendqisi2
+ 2068 0d3c 1846     		mov	r0, r3
+ 2069 0d3e FFF7FEFF 		bl	serialize8
+ 415:../src/serial.c ****         serialize8(GPS_numSat);
+ 2070              		.loc 1 415 0
+ 2071 0d42 A64B     		ldr	r3, .L139+4
+ 2072 0d44 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2073 0d46 1846     		mov	r0, r3
+ 2074 0d48 FFF7FEFF 		bl	serialize8
+ 416:../src/serial.c ****         serialize32(GPS_coord[LAT]);
+ 2075              		.loc 1 416 0
+ 2076 0d4c A44B     		ldr	r3, .L139+8
+ 2077 0d4e 1B68     		ldr	r3, [r3, #0]
+ 2078 0d50 1846     		mov	r0, r3
+ 2079 0d52 FFF7FEFF 		bl	serialize32
+ 417:../src/serial.c ****         serialize32(GPS_coord[LON]);
+ 2080              		.loc 1 417 0
+ 2081 0d56 A24B     		ldr	r3, .L139+8
+ 2082 0d58 5B68     		ldr	r3, [r3, #4]
+ 2083 0d5a 1846     		mov	r0, r3
+ 2084 0d5c FFF7FEFF 		bl	serialize32
+ 418:../src/serial.c ****         serialize16(GPS_altitude);
+ 2085              		.loc 1 418 0
+ 2086 0d60 A04B     		ldr	r3, .L139+12
+ 2087 0d62 1B88     		ldrh	r3, [r3, #0]
+ 2088 0d64 9BB2     		uxth	r3, r3
+ 2089 0d66 1BB2     		sxth	r3, r3
+ 2090 0d68 1846     		mov	r0, r3
+ 2091 0d6a FFF7FEFF 		bl	serialize16
+ 419:../src/serial.c ****         serialize16(GPS_speed);
+ 2092              		.loc 1 419 0
+ 2093 0d6e 9E4B     		ldr	r3, .L139+16
+ 2094 0d70 1B88     		ldrh	r3, [r3, #0]
+ 2095 0d72 9BB2     		uxth	r3, r3
+ 2096 0d74 1BB2     		sxth	r3, r3
+ 2097 0d76 1846     		mov	r0, r3
+ 2098 0d78 FFF7FEFF 		bl	serialize16
+ 420:../src/serial.c ****         serialize16(GPS_ground_course);
+ 2099              		.loc 1 420 0
+ 2100 0d7c 9B4B     		ldr	r3, .L139+20
+ 2101 0d7e 1B88     		ldrh	r3, [r3, #0]
+ 2102 0d80 9BB2     		uxth	r3, r3
+ 2103 0d82 1BB2     		sxth	r3, r3
+ 2104 0d84 1846     		mov	r0, r3
+ 2105 0d86 FFF7FEFF 		bl	serialize16
+ 421:../src/serial.c ****         break;
+ 2106              		.loc 1 421 0
+ 2107 0d8a 44E2     		b	.L94
+ 2108              	.L61:
+ 422:../src/serial.c ****     case MSP_COMP_GPS:
+ 423:../src/serial.c ****         headSerialReply(5);
+ 2109              		.loc 1 423 0
+ 2110 0d8c 4FF00500 		mov	r0, #5
+ 2111 0d90 FFF7FEFF 		bl	headSerialReply
+ 424:../src/serial.c ****         serialize16(GPS_distanceToHome);
+ 2112              		.loc 1 424 0
+ 2113 0d94 964B     		ldr	r3, .L139+24
+ 2114 0d96 1B88     		ldrh	r3, [r3, #0]
+ 2115 0d98 9BB2     		uxth	r3, r3
+ 2116 0d9a 1BB2     		sxth	r3, r3
+ 2117 0d9c 1846     		mov	r0, r3
+ 2118 0d9e FFF7FEFF 		bl	serialize16
+ 425:../src/serial.c ****         serialize16(GPS_directionToHome);
+ 2119              		.loc 1 425 0
+ 2120 0da2 944B     		ldr	r3, .L139+28
+ 2121 0da4 1B88     		ldrh	r3, [r3, #0]
+ 2122 0da6 1BB2     		sxth	r3, r3
+ 2123 0da8 1846     		mov	r0, r3
+ 2124 0daa FFF7FEFF 		bl	serialize16
+ 426:../src/serial.c ****         serialize8(GPS_update & 1);
+ 2125              		.loc 1 426 0
+ 2126 0dae 924B     		ldr	r3, .L139+32
+ 2127 0db0 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2128 0db2 03F00103 		and	r3, r3, #1
+ 2129 0db6 DBB2     		uxtb	r3, r3
+ 2130 0db8 1846     		mov	r0, r3
+ 2131 0dba FFF7FEFF 		bl	serialize8
+ 427:../src/serial.c ****         break;
+ 2132              		.loc 1 427 0
+ 2133 0dbe 2AE2     		b	.L94
+ 2134              	.L62:
+ 428:../src/serial.c ****     case MSP_ATTITUDE:
+ 429:../src/serial.c ****         headSerialReply(8);
+ 2135              		.loc 1 429 0
+ 2136 0dc0 4FF00800 		mov	r0, #8
+ 2137 0dc4 FFF7FEFF 		bl	headSerialReply
+ 430:../src/serial.c ****         for (i = 0; i < 2; i++)
+ 2138              		.loc 1 430 0
+ 2139 0dc8 4FF00003 		mov	r3, #0
+ 2140 0dcc 7B61     		str	r3, [r7, #20]
+ 2141 0dce 0BE0     		b	.L113
+ 2142              	.L114:
+ 431:../src/serial.c ****             serialize16(angle[i]);
+ 2143              		.loc 1 431 0 discriminator 2
+ 2144 0dd0 8A4B     		ldr	r3, .L139+36
+ 2145 0dd2 7A69     		ldr	r2, [r7, #20]
+ 2146 0dd4 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 2147 0dd8 1BB2     		sxth	r3, r3
+ 2148 0dda 1846     		mov	r0, r3
+ 2149 0ddc FFF7FEFF 		bl	serialize16
+ 430:../src/serial.c ****         for (i = 0; i < 2; i++)
+ 2150              		.loc 1 430 0 discriminator 2
+ 2151 0de0 7B69     		ldr	r3, [r7, #20]
+ 2152 0de2 03F10103 		add	r3, r3, #1
+ 2153 0de6 7B61     		str	r3, [r7, #20]
+ 2154              	.L113:
+ 430:../src/serial.c ****         for (i = 0; i < 2; i++)
+ 2155              		.loc 1 430 0 is_stmt 0 discriminator 1
+ 2156 0de8 7B69     		ldr	r3, [r7, #20]
+ 2157 0dea 012B     		cmp	r3, #1
+ 2158 0dec F0D9     		bls	.L114
+ 432:../src/serial.c ****         serialize16(heading);
+ 2159              		.loc 1 432 0 is_stmt 1
+ 2160 0dee 844B     		ldr	r3, .L139+40
+ 2161 0df0 1B88     		ldrh	r3, [r3, #0]
+ 2162 0df2 1BB2     		sxth	r3, r3
+ 2163 0df4 1846     		mov	r0, r3
+ 2164 0df6 FFF7FEFF 		bl	serialize16
+ 433:../src/serial.c ****         serialize16(headFreeModeHold);
+ 2165              		.loc 1 433 0
+ 2166 0dfa 824B     		ldr	r3, .L139+44
+ 2167 0dfc 1B88     		ldrh	r3, [r3, #0]
+ 2168 0dfe 1BB2     		sxth	r3, r3
+ 2169 0e00 1846     		mov	r0, r3
+ 2170 0e02 FFF7FEFF 		bl	serialize16
+ 434:../src/serial.c ****         break;
+ 2171              		.loc 1 434 0
+ 2172 0e06 06E2     		b	.L94
+ 2173              	.L63:
+ 435:../src/serial.c ****     case MSP_ALTITUDE:
+ 436:../src/serial.c ****         headSerialReply(6);
+ 2174              		.loc 1 436 0
+ 2175 0e08 4FF00600 		mov	r0, #6
+ 2176 0e0c FFF7FEFF 		bl	headSerialReply
+ 437:../src/serial.c ****         serialize32(EstAlt);
+ 2177              		.loc 1 437 0
+ 2178 0e10 7D4B     		ldr	r3, .L139+48
+ 2179 0e12 1B68     		ldr	r3, [r3, #0]
+ 2180 0e14 1846     		mov	r0, r3
+ 2181 0e16 FFF7FEFF 		bl	serialize32
+ 438:../src/serial.c ****         serialize16(vario);
+ 2182              		.loc 1 438 0
+ 2183 0e1a 7C4B     		ldr	r3, .L139+52
+ 2184 0e1c 1B88     		ldrh	r3, [r3, #0]
+ 2185 0e1e 1BB2     		sxth	r3, r3
+ 2186 0e20 1846     		mov	r0, r3
+ 2187 0e22 FFF7FEFF 		bl	serialize16
+ 439:../src/serial.c ****         break;
+ 2188              		.loc 1 439 0
+ 2189 0e26 F6E1     		b	.L94
+ 2190              	.L64:
+ 440:../src/serial.c ****     case MSP_ANALOG:
+ 441:../src/serial.c ****         headSerialReply(5);
+ 2191              		.loc 1 441 0
+ 2192 0e28 4FF00500 		mov	r0, #5
+ 2193 0e2c FFF7FEFF 		bl	headSerialReply
+ 442:../src/serial.c ****         serialize8(vbat);
+ 2194              		.loc 1 442 0
+ 2195 0e30 774B     		ldr	r3, .L139+56
+ 2196 0e32 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2197 0e34 1846     		mov	r0, r3
+ 2198 0e36 FFF7FEFF 		bl	serialize8
+ 443:../src/serial.c ****         serialize16(0); // power meter trash
+ 2199              		.loc 1 443 0
+ 2200 0e3a 4FF00000 		mov	r0, #0
+ 2201 0e3e FFF7FEFF 		bl	serialize16
+ 444:../src/serial.c ****         serialize16(rssi);
+ 2202              		.loc 1 444 0
+ 2203 0e42 744B     		ldr	r3, .L139+60
+ 2204 0e44 1B88     		ldrh	r3, [r3, #0]
+ 2205 0e46 9BB2     		uxth	r3, r3
+ 2206 0e48 1BB2     		sxth	r3, r3
+ 2207 0e4a 1846     		mov	r0, r3
+ 2208 0e4c FFF7FEFF 		bl	serialize16
+ 445:../src/serial.c ****         break;
+ 2209              		.loc 1 445 0
+ 2210 0e50 E1E1     		b	.L94
+ 2211              	.L65:
+ 446:../src/serial.c ****     case MSP_RC_TUNING:
+ 447:../src/serial.c ****         headSerialReply(7);
+ 2212              		.loc 1 447 0
+ 2213 0e52 4FF00700 		mov	r0, #7
+ 2214 0e56 FFF7FEFF 		bl	headSerialReply
+ 448:../src/serial.c ****         serialize8(cfg.rcRate8);
+ 2215              		.loc 1 448 0
+ 2216 0e5a 6F4B     		ldr	r3, .L139+64
+ 2217 0e5c 9B7F     		ldrb	r3, [r3, #30]	@ zero_extendqisi2
+ 2218 0e5e 1846     		mov	r0, r3
+ 2219 0e60 FFF7FEFF 		bl	serialize8
+ 449:../src/serial.c ****         serialize8(cfg.rcExpo8);
+ 2220              		.loc 1 449 0
+ 2221 0e64 6C4B     		ldr	r3, .L139+64
+ 2222 0e66 DB7F     		ldrb	r3, [r3, #31]	@ zero_extendqisi2
+ 2223 0e68 1846     		mov	r0, r3
+ 2224 0e6a FFF7FEFF 		bl	serialize8
+ 450:../src/serial.c ****         serialize8(cfg.rollPitchRate);
+ 2225              		.loc 1 450 0
+ 2226 0e6e 6A4B     		ldr	r3, .L139+64
+ 2227 0e70 93F82230 		ldrb	r3, [r3, #34]	@ zero_extendqisi2
+ 2228 0e74 1846     		mov	r0, r3
+ 2229 0e76 FFF7FEFF 		bl	serialize8
+ 451:../src/serial.c ****         serialize8(cfg.yawRate);
+ 2230              		.loc 1 451 0
+ 2231 0e7a 674B     		ldr	r3, .L139+64
+ 2232 0e7c 93F82330 		ldrb	r3, [r3, #35]	@ zero_extendqisi2
+ 2233 0e80 1846     		mov	r0, r3
+ 2234 0e82 FFF7FEFF 		bl	serialize8
+ 452:../src/serial.c ****         serialize8(cfg.dynThrPID);
+ 2235              		.loc 1 452 0
+ 2236 0e86 644B     		ldr	r3, .L139+64
+ 2237 0e88 93F82430 		ldrb	r3, [r3, #36]	@ zero_extendqisi2
+ 2238 0e8c 1846     		mov	r0, r3
+ 2239 0e8e FFF7FEFF 		bl	serialize8
+ 453:../src/serial.c ****         serialize8(cfg.thrMid8);
+ 2240              		.loc 1 453 0
+ 2241 0e92 614B     		ldr	r3, .L139+64
+ 2242 0e94 93F82030 		ldrb	r3, [r3, #32]	@ zero_extendqisi2
+ 2243 0e98 1846     		mov	r0, r3
+ 2244 0e9a FFF7FEFF 		bl	serialize8
+ 454:../src/serial.c ****         serialize8(cfg.thrExpo8);
+ 2245              		.loc 1 454 0
+ 2246 0e9e 5E4B     		ldr	r3, .L139+64
+ 2247 0ea0 93F82130 		ldrb	r3, [r3, #33]	@ zero_extendqisi2
+ 2248 0ea4 1846     		mov	r0, r3
+ 2249 0ea6 FFF7FEFF 		bl	serialize8
+ 455:../src/serial.c ****         break;
+ 2250              		.loc 1 455 0
+ 2251 0eaa B4E1     		b	.L94
+ 2252              	.L66:
+ 456:../src/serial.c ****     case MSP_PID:
+ 457:../src/serial.c ****         headSerialReply(3 * PIDITEMS);
+ 2253              		.loc 1 457 0
+ 2254 0eac 4FF01E00 		mov	r0, #30
+ 2255 0eb0 FFF7FEFF 		bl	headSerialReply
+ 458:../src/serial.c ****         for (i = 0; i < PIDITEMS; i++) {
+ 2256              		.loc 1 458 0
+ 2257 0eb4 4FF00003 		mov	r3, #0
+ 2258 0eb8 7B61     		str	r3, [r7, #20]
+ 2259 0eba 1CE0     		b	.L115
+ 2260              	.L116:
+ 459:../src/serial.c ****             serialize8(cfg.P8[i]);
+ 2261              		.loc 1 459 0 discriminator 2
+ 2262 0ebc 564A     		ldr	r2, .L139+64
+ 2263 0ebe 7B69     		ldr	r3, [r7, #20]
+ 2264 0ec0 D318     		adds	r3, r2, r3
+ 2265 0ec2 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2266 0ec4 1846     		mov	r0, r3
+ 2267 0ec6 FFF7FEFF 		bl	serialize8
+ 460:../src/serial.c ****             serialize8(cfg.I8[i]);
+ 2268              		.loc 1 460 0 discriminator 2
+ 2269 0eca 534A     		ldr	r2, .L139+64
+ 2270 0ecc 7B69     		ldr	r3, [r7, #20]
+ 2271 0ece D318     		adds	r3, r2, r3
+ 2272 0ed0 03F10803 		add	r3, r3, #8
+ 2273 0ed4 9B78     		ldrb	r3, [r3, #2]	@ zero_extendqisi2
+ 2274 0ed6 1846     		mov	r0, r3
+ 2275 0ed8 FFF7FEFF 		bl	serialize8
+ 461:../src/serial.c ****             serialize8(cfg.D8[i]);
+ 2276              		.loc 1 461 0 discriminator 2
+ 2277 0edc 4E4A     		ldr	r2, .L139+64
+ 2278 0ede 7B69     		ldr	r3, [r7, #20]
+ 2279 0ee0 D318     		adds	r3, r2, r3
+ 2280 0ee2 03F11003 		add	r3, r3, #16
+ 2281 0ee6 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 2282 0ee8 1846     		mov	r0, r3
+ 2283 0eea FFF7FEFF 		bl	serialize8
+ 458:../src/serial.c ****         for (i = 0; i < PIDITEMS; i++) {
+ 2284              		.loc 1 458 0 discriminator 2
+ 2285 0eee 7B69     		ldr	r3, [r7, #20]
+ 2286 0ef0 03F10103 		add	r3, r3, #1
+ 2287 0ef4 7B61     		str	r3, [r7, #20]
+ 2288              	.L115:
+ 458:../src/serial.c ****         for (i = 0; i < PIDITEMS; i++) {
+ 2289              		.loc 1 458 0 is_stmt 0 discriminator 1
+ 2290 0ef6 7B69     		ldr	r3, [r7, #20]
+ 2291 0ef8 092B     		cmp	r3, #9
+ 2292 0efa DFD9     		bls	.L116
+ 462:../src/serial.c ****         }
+ 463:../src/serial.c ****         break;
+ 2293              		.loc 1 463 0 is_stmt 1
+ 2294 0efc 8BE1     		b	.L94
+ 2295              	.L71:
+ 464:../src/serial.c ****     case MSP_PIDNAMES:
+ 465:../src/serial.c ****         headSerialReply(sizeof(pidnames) - 1);
+ 2296              		.loc 1 465 0
+ 2297 0efe 4FF02F00 		mov	r0, #47
+ 2298 0f02 FFF7FEFF 		bl	headSerialReply
+ 466:../src/serial.c ****         serializeNames(pidnames);
+ 2299              		.loc 1 466 0
+ 2300 0f06 4548     		ldr	r0, .L139+68
+ 2301 0f08 FFF7FEFF 		bl	serializeNames
+ 467:../src/serial.c ****         break;
+ 2302              		.loc 1 467 0
+ 2303 0f0c 83E1     		b	.L94
+ 2304              	.L67:
+ 468:../src/serial.c ****     case MSP_BOX:
+ 469:../src/serial.c ****         headSerialReply(2 * numberBoxItems);
+ 2305              		.loc 1 469 0
+ 2306 0f0e 444B     		ldr	r3, .L139+72
+ 2307 0f10 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2308 0f12 4FEA4303 		lsl	r3, r3, #1
+ 2309 0f16 DBB2     		uxtb	r3, r3
+ 2310 0f18 1846     		mov	r0, r3
+ 2311 0f1a FFF7FEFF 		bl	headSerialReply
+ 470:../src/serial.c ****         for (i = 0; i < numberBoxItems; i++)
+ 2312              		.loc 1 470 0
+ 2313 0f1e 4FF00003 		mov	r3, #0
+ 2314 0f22 7B61     		str	r3, [r7, #20]
+ 2315 0f24 12E0     		b	.L117
+ 2316              	.L118:
+ 471:../src/serial.c ****             serialize16(cfg.activate[availableBoxes[i]]);
+ 2317              		.loc 1 471 0 discriminator 2
+ 2318 0f26 3F4A     		ldr	r2, .L139+76
+ 2319 0f28 7B69     		ldr	r3, [r7, #20]
+ 2320 0f2a D318     		adds	r3, r2, r3
+ 2321 0f2c 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2322 0f2e 1A46     		mov	r2, r3
+ 2323 0f30 394B     		ldr	r3, .L139+64
+ 2324 0f32 02F11C02 		add	r2, r2, #28
+ 2325 0f36 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 2326 0f3a 9BB2     		uxth	r3, r3
+ 2327 0f3c 1BB2     		sxth	r3, r3
+ 2328 0f3e 1846     		mov	r0, r3
+ 2329 0f40 FFF7FEFF 		bl	serialize16
+ 470:../src/serial.c ****         for (i = 0; i < numberBoxItems; i++)
+ 2330              		.loc 1 470 0 discriminator 2
+ 2331 0f44 7B69     		ldr	r3, [r7, #20]
+ 2332 0f46 03F10103 		add	r3, r3, #1
+ 2333 0f4a 7B61     		str	r3, [r7, #20]
+ 2334              	.L117:
+ 470:../src/serial.c ****         for (i = 0; i < numberBoxItems; i++)
+ 2335              		.loc 1 470 0 is_stmt 0 discriminator 1
+ 2336 0f4c 344B     		ldr	r3, .L139+72
+ 2337 0f4e 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2338 0f50 1A46     		mov	r2, r3
+ 2339 0f52 7B69     		ldr	r3, [r7, #20]
+ 2340 0f54 9A42     		cmp	r2, r3
+ 2341 0f56 E6D8     		bhi	.L118
+ 472:../src/serial.c ****         break;
+ 2342              		.loc 1 472 0 is_stmt 1
+ 2343 0f58 5DE1     		b	.L94
+ 2344              	.L70:
+ 473:../src/serial.c ****     case MSP_BOXNAMES:
+ 474:../src/serial.c ****         // headSerialReply(sizeof(boxnames) - 1);
+ 475:../src/serial.c ****         serializeBoxNamesReply();
+ 2345              		.loc 1 475 0
+ 2346 0f5a FFF7FEFF 		bl	serializeBoxNamesReply
+ 476:../src/serial.c ****         break;
+ 2347              		.loc 1 476 0
+ 2348 0f5e 5AE1     		b	.L94
+ 2349              	.L73:
+ 477:../src/serial.c ****     case MSP_BOXIDS:
+ 478:../src/serial.c ****         headSerialReply(numberBoxItems);
+ 2350              		.loc 1 478 0
+ 2351 0f60 2F4B     		ldr	r3, .L139+72
+ 2352 0f62 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2353 0f64 1846     		mov	r0, r3
+ 2354 0f66 FFF7FEFF 		bl	headSerialReply
+ 479:../src/serial.c ****         for (i = 0; i < numberBoxItems; i++)
+ 2355              		.loc 1 479 0
+ 2356 0f6a 4FF00003 		mov	r3, #0
+ 2357 0f6e 7B61     		str	r3, [r7, #20]
+ 2358 0f70 0AE0     		b	.L119
+ 2359              	.L120:
+ 480:../src/serial.c ****             serialize8(availableBoxes[i]);
+ 2360              		.loc 1 480 0 discriminator 2
+ 2361 0f72 2C4A     		ldr	r2, .L139+76
+ 2362 0f74 7B69     		ldr	r3, [r7, #20]
+ 2363 0f76 D318     		adds	r3, r2, r3
+ 2364 0f78 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2365 0f7a 1846     		mov	r0, r3
+ 2366 0f7c FFF7FEFF 		bl	serialize8
+ 479:../src/serial.c ****         for (i = 0; i < numberBoxItems; i++)
+ 2367              		.loc 1 479 0 discriminator 2
+ 2368 0f80 7B69     		ldr	r3, [r7, #20]
+ 2369 0f82 03F10103 		add	r3, r3, #1
+ 2370 0f86 7B61     		str	r3, [r7, #20]
+ 2371              	.L119:
+ 479:../src/serial.c ****         for (i = 0; i < numberBoxItems; i++)
+ 2372              		.loc 1 479 0 is_stmt 0 discriminator 1
+ 2373 0f88 254B     		ldr	r3, .L139+72
+ 2374 0f8a 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2375 0f8c 1A46     		mov	r2, r3
+ 2376 0f8e 7B69     		ldr	r3, [r7, #20]
+ 2377 0f90 9A42     		cmp	r2, r3
+ 2378 0f92 EED8     		bhi	.L120
+ 481:../src/serial.c ****         break;
+ 2379              		.loc 1 481 0 is_stmt 1
+ 2380 0f94 3FE1     		b	.L94
+ 2381              	.L68:
+ 482:../src/serial.c ****     case MSP_MISC:
+ 483:../src/serial.c ****         headSerialReply(2);
+ 2382              		.loc 1 483 0
+ 2383 0f96 4FF00200 		mov	r0, #2
+ 2384 0f9a FFF7FEFF 		bl	headSerialReply
+ 484:../src/serial.c ****         serialize16(0); // intPowerTrigger1
+ 2385              		.loc 1 484 0
+ 2386 0f9e 4FF00000 		mov	r0, #0
+ 2387 0fa2 FFF7FEFF 		bl	serialize16
+ 485:../src/serial.c ****         break;
+ 2388              		.loc 1 485 0
+ 2389 0fa6 36E1     		b	.L94
+ 2390              	.L69:
+ 486:../src/serial.c ****     case MSP_MOTOR_PINS:
+ 487:../src/serial.c ****         headSerialReply(8);
+ 2391              		.loc 1 487 0
+ 2392 0fa8 4FF00800 		mov	r0, #8
+ 2393 0fac FFF7FEFF 		bl	headSerialReply
+ 488:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 2394              		.loc 1 488 0
+ 2395 0fb0 4FF00003 		mov	r3, #0
+ 2396 0fb4 7B61     		str	r3, [r7, #20]
+ 2397 0fb6 0BE0     		b	.L121
+ 2398              	.L122:
+ 489:../src/serial.c ****             serialize8(i + 1);
+ 2399              		.loc 1 489 0 discriminator 2
+ 2400 0fb8 7B69     		ldr	r3, [r7, #20]
+ 2401 0fba DBB2     		uxtb	r3, r3
+ 2402 0fbc 03F10103 		add	r3, r3, #1
+ 2403 0fc0 DBB2     		uxtb	r3, r3
+ 2404 0fc2 1846     		mov	r0, r3
+ 2405 0fc4 FFF7FEFF 		bl	serialize8
+ 488:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 2406              		.loc 1 488 0 discriminator 2
+ 2407 0fc8 7B69     		ldr	r3, [r7, #20]
+ 2408 0fca 03F10103 		add	r3, r3, #1
+ 2409 0fce 7B61     		str	r3, [r7, #20]
+ 2410              	.L121:
+ 488:../src/serial.c ****         for (i = 0; i < 8; i++)
+ 2411              		.loc 1 488 0 is_stmt 0 discriminator 1
+ 2412 0fd0 7B69     		ldr	r3, [r7, #20]
+ 2413 0fd2 072B     		cmp	r3, #7
+ 2414 0fd4 F0D9     		bls	.L122
+ 490:../src/serial.c ****         break;
+ 2415              		.loc 1 490 0 is_stmt 1
+ 2416 0fd6 1EE1     		b	.L94
+ 2417              	.L140:
+ 2418              		.align	2
+ 2419              	.L139:
+ 2420 0fd8 00000000 		.word	f
+ 2421 0fdc 00000000 		.word	GPS_numSat
+ 2422 0fe0 00000000 		.word	GPS_coord
+ 2423 0fe4 00000000 		.word	GPS_altitude
+ 2424 0fe8 00000000 		.word	GPS_speed
+ 2425 0fec 00000000 		.word	GPS_ground_course
+ 2426 0ff0 00000000 		.word	GPS_distanceToHome
+ 2427 0ff4 00000000 		.word	GPS_directionToHome
+ 2428 0ff8 00000000 		.word	GPS_update
+ 2429 0ffc 00000000 		.word	angle
+ 2430 1000 00000000 		.word	heading
+ 2431 1004 00000000 		.word	headFreeModeHold
+ 2432 1008 00000000 		.word	EstAlt
+ 2433 100c 00000000 		.word	vario
+ 2434 1010 00000000 		.word	vbat
+ 2435 1014 00000000 		.word	rssi
+ 2436 1018 00000000 		.word	cfg
+ 2437 101c 70010000 		.word	pidnames
+ 2438 1020 14000000 		.word	numberBoxItems
+ 2439 1024 00000000 		.word	availableBoxes
+ 2440              	.L72:
+ 491:../src/serial.c ****     case MSP_WP:
+ 492:../src/serial.c ****         wp_no = read8();    // get the wp number
+ 2441              		.loc 1 492 0
+ 2442 1028 FFF7FEFF 		bl	read8
+ 2443 102c 0346     		mov	r3, r0
+ 2444 102e FB71     		strb	r3, [r7, #7]
+ 493:../src/serial.c ****         headSerialReply(18);
+ 2445              		.loc 1 493 0
+ 2446 1030 4FF01200 		mov	r0, #18
+ 2447 1034 FFF7FEFF 		bl	headSerialReply
+ 494:../src/serial.c ****         if (wp_no == 0) {
+ 2448              		.loc 1 494 0
+ 2449 1038 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 2450 103a 002B     		cmp	r3, #0
+ 2451 103c 06D1     		bne	.L123
+ 495:../src/serial.c ****             lat = GPS_home[LAT];
+ 2452              		.loc 1 495 0
+ 2453 103e 794B     		ldr	r3, .L141
+ 2454 1040 1B68     		ldr	r3, [r3, #0]
+ 2455 1042 3B61     		str	r3, [r7, #16]
+ 496:../src/serial.c ****             lon = GPS_home[LON];
+ 2456              		.loc 1 496 0
+ 2457 1044 774B     		ldr	r3, .L141
+ 2458 1046 5B68     		ldr	r3, [r3, #4]
+ 2459 1048 FB60     		str	r3, [r7, #12]
+ 2460 104a 08E0     		b	.L124
+ 2461              	.L123:
+ 497:../src/serial.c ****         } else if (wp_no == 16) {
+ 2462              		.loc 1 497 0
+ 2463 104c FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 2464 104e 102B     		cmp	r3, #16
+ 2465 1050 05D1     		bne	.L124
+ 498:../src/serial.c ****             lat = GPS_hold[LAT];
+ 2466              		.loc 1 498 0
+ 2467 1052 754B     		ldr	r3, .L141+4
+ 2468 1054 1B68     		ldr	r3, [r3, #0]
+ 2469 1056 3B61     		str	r3, [r7, #16]
+ 499:../src/serial.c ****             lon = GPS_hold[LON];
+ 2470              		.loc 1 499 0
+ 2471 1058 734B     		ldr	r3, .L141+4
+ 2472 105a 5B68     		ldr	r3, [r3, #4]
+ 2473 105c FB60     		str	r3, [r7, #12]
+ 2474              	.L124:
+ 500:../src/serial.c ****         }
+ 501:../src/serial.c ****         serialize8(wp_no);
+ 2475              		.loc 1 501 0
+ 2476 105e FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 2477 1060 1846     		mov	r0, r3
+ 2478 1062 FFF7FEFF 		bl	serialize8
+ 502:../src/serial.c ****         serialize32(lat);
+ 2479              		.loc 1 502 0
+ 2480 1066 3B69     		ldr	r3, [r7, #16]
+ 2481 1068 1846     		mov	r0, r3
+ 2482 106a FFF7FEFF 		bl	serialize32
+ 503:../src/serial.c ****         serialize32(lon);
+ 2483              		.loc 1 503 0
+ 2484 106e FB68     		ldr	r3, [r7, #12]
+ 2485 1070 1846     		mov	r0, r3
+ 2486 1072 FFF7FEFF 		bl	serialize32
+ 504:../src/serial.c ****         serialize32(AltHold);           // altitude (cm) will come here -- temporary implementation
+ 2487              		.loc 1 504 0
+ 2488 1076 6D4B     		ldr	r3, .L141+8
+ 2489 1078 1B68     		ldr	r3, [r3, #0]
+ 2490 107a 1846     		mov	r0, r3
+ 2491 107c FFF7FEFF 		bl	serialize32
+ 505:../src/serial.c ****         serialize16(0);                 // heading  will come here (deg)
+ 2492              		.loc 1 505 0
+ 2493 1080 4FF00000 		mov	r0, #0
+ 2494 1084 FFF7FEFF 		bl	serialize16
+ 506:../src/serial.c ****         serialize16(0);                 // time to stay (ms) will come here 
+ 2495              		.loc 1 506 0
+ 2496 1088 4FF00000 		mov	r0, #0
+ 2497 108c FFF7FEFF 		bl	serialize16
+ 507:../src/serial.c ****         serialize8(0);                  // nav flag will come here
+ 2498              		.loc 1 507 0
+ 2499 1090 4FF00000 		mov	r0, #0
+ 2500 1094 FFF7FEFF 		bl	serialize8
+ 508:../src/serial.c ****         break;
+ 2501              		.loc 1 508 0
+ 2502 1098 BDE0     		b	.L94
+ 2503              	.L84:
+ 509:../src/serial.c ****     case MSP_SET_WP:
+ 510:../src/serial.c ****         wp_no = read8();    //get the wp number
+ 2504              		.loc 1 510 0
+ 2505 109a FFF7FEFF 		bl	read8
+ 2506 109e 0346     		mov	r3, r0
+ 2507 10a0 FB71     		strb	r3, [r7, #7]
+ 511:../src/serial.c ****         lat = read32();
+ 2508              		.loc 1 511 0
+ 2509 10a2 FFF7FEFF 		bl	read32
+ 2510 10a6 0346     		mov	r3, r0
+ 2511 10a8 3B61     		str	r3, [r7, #16]
+ 512:../src/serial.c ****         lon = read32();
+ 2512              		.loc 1 512 0
+ 2513 10aa FFF7FEFF 		bl	read32
+ 2514 10ae 0346     		mov	r3, r0
+ 2515 10b0 FB60     		str	r3, [r7, #12]
+ 513:../src/serial.c ****         alt = read32();     // to set altitude (cm)
+ 2516              		.loc 1 513 0
+ 2517 10b2 FFF7FEFF 		bl	read32
+ 2518 10b6 0346     		mov	r3, r0
+ 2519 10b8 BB60     		str	r3, [r7, #8]
+ 514:../src/serial.c ****         read16();           // future: to set heading (deg)
+ 2520              		.loc 1 514 0
+ 2521 10ba FFF7FEFF 		bl	read16
+ 515:../src/serial.c ****         read16();           // future: to set time to stay (ms)
+ 2522              		.loc 1 515 0
+ 2523 10be FFF7FEFF 		bl	read16
+ 516:../src/serial.c ****         read8();            // future: to set nav flag
+ 2524              		.loc 1 516 0
+ 2525 10c2 FFF7FEFF 		bl	read8
+ 517:../src/serial.c ****         if (wp_no == 0) {
+ 2526              		.loc 1 517 0
+ 2527 10c6 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 2528 10c8 002B     		cmp	r3, #0
+ 2529 10ca 14D1     		bne	.L125
+ 518:../src/serial.c ****             GPS_home[LAT] = lat;
+ 2530              		.loc 1 518 0
+ 2531 10cc 554B     		ldr	r3, .L141
+ 2532 10ce 3A69     		ldr	r2, [r7, #16]
+ 2533 10d0 1A60     		str	r2, [r3, #0]
+ 519:../src/serial.c ****             GPS_home[LON] = lon;
+ 2534              		.loc 1 519 0
+ 2535 10d2 544B     		ldr	r3, .L141
+ 2536 10d4 FA68     		ldr	r2, [r7, #12]
+ 2537 10d6 5A60     		str	r2, [r3, #4]
+ 520:../src/serial.c ****             f.GPS_HOME_MODE = 0;        // with this flag, GPS_set_next_wp will be called in the ne
+ 2538              		.loc 1 520 0
+ 2539 10d8 554B     		ldr	r3, .L141+12
+ 2540 10da 4FF00002 		mov	r2, #0
+ 2541 10de DA71     		strb	r2, [r3, #7]
+ 521:../src/serial.c ****             f.GPS_FIX_HOME = 1;
+ 2542              		.loc 1 521 0
+ 2543 10e0 534B     		ldr	r3, .L141+12
+ 2544 10e2 4FF00102 		mov	r2, #1
+ 2545 10e6 1A73     		strb	r2, [r3, #12]
+ 522:../src/serial.c ****             if (alt != 0)
+ 2546              		.loc 1 522 0
+ 2547 10e8 BB68     		ldr	r3, [r7, #8]
+ 2548 10ea 002B     		cmp	r3, #0
+ 2549 10ec 1AD0     		beq	.L126
+ 523:../src/serial.c ****                 AltHold = alt;          // temporary implementation to test feature with apps
+ 2550              		.loc 1 523 0
+ 2551 10ee 4F4B     		ldr	r3, .L141+8
+ 2552 10f0 BA68     		ldr	r2, [r7, #8]
+ 2553 10f2 1A60     		str	r2, [r3, #0]
+ 2554 10f4 16E0     		b	.L126
+ 2555              	.L125:
+ 524:../src/serial.c ****         } else if (wp_no == 16) {       // OK with SERIAL GPS  --  NOK for I2C GPS / needs more cod
+ 2556              		.loc 1 524 0
+ 2557 10f6 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 2558 10f8 102B     		cmp	r3, #16
+ 2559 10fa 13D1     		bne	.L126
+ 525:../src/serial.c ****             GPS_hold[LAT] = lat;
+ 2560              		.loc 1 525 0
+ 2561 10fc 4A4B     		ldr	r3, .L141+4
+ 2562 10fe 3A69     		ldr	r2, [r7, #16]
+ 2563 1100 1A60     		str	r2, [r3, #0]
+ 526:../src/serial.c ****             GPS_hold[LON] = lon;
+ 2564              		.loc 1 526 0
+ 2565 1102 494B     		ldr	r3, .L141+4
+ 2566 1104 FA68     		ldr	r2, [r7, #12]
+ 2567 1106 5A60     		str	r2, [r3, #4]
+ 527:../src/serial.c ****             if (alt != 0)
+ 2568              		.loc 1 527 0
+ 2569 1108 BB68     		ldr	r3, [r7, #8]
+ 2570 110a 002B     		cmp	r3, #0
+ 2571 110c 02D0     		beq	.L127
+ 528:../src/serial.c ****                 AltHold = alt;          // temporary implementation to test feature with apps
+ 2572              		.loc 1 528 0
+ 2573 110e 474B     		ldr	r3, .L141+8
+ 2574 1110 BA68     		ldr	r2, [r7, #8]
+ 2575 1112 1A60     		str	r2, [r3, #0]
+ 2576              	.L127:
+ 529:../src/serial.c ****             nav_mode = NAV_MODE_WP;
+ 2577              		.loc 1 529 0
+ 2578 1114 474B     		ldr	r3, .L141+16
+ 2579 1116 4FF00202 		mov	r2, #2
+ 2580 111a 1A70     		strb	r2, [r3, #0]
+ 530:../src/serial.c ****             GPS_set_next_wp(&GPS_hold[LAT], &GPS_hold[LON]);
+ 2581              		.loc 1 530 0
+ 2582 111c 4248     		ldr	r0, .L141+4
+ 2583 111e 4649     		ldr	r1, .L141+20
+ 2584 1120 FFF7FEFF 		bl	GPS_set_next_wp
+ 2585              	.L126:
+ 531:../src/serial.c ****         }
+ 532:../src/serial.c ****         headSerialReply(0);
+ 2586              		.loc 1 532 0
+ 2587 1124 4FF00000 		mov	r0, #0
+ 2588 1128 FFF7FEFF 		bl	headSerialReply
+ 533:../src/serial.c ****         break;
+ 2589              		.loc 1 533 0
+ 2590 112c 73E0     		b	.L94
+ 2591              	.L83:
+ 534:../src/serial.c ****     case MSP_RESET_CONF:
+ 535:../src/serial.c ****         if (!f.ARMED)
+ 2592              		.loc 1 535 0
+ 2593 112e 404B     		ldr	r3, .L141+12
+ 2594 1130 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 2595 1132 002B     		cmp	r3, #0
+ 2596 1134 03D1     		bne	.L128
+ 536:../src/serial.c ****             checkFirstTime(true);
+ 2597              		.loc 1 536 0
+ 2598 1136 4FF00100 		mov	r0, #1
+ 2599 113a FFF7FEFF 		bl	checkFirstTime
+ 2600              	.L128:
+ 537:../src/serial.c ****         headSerialReply(0);
+ 2601              		.loc 1 537 0
+ 2602 113e 4FF00000 		mov	r0, #0
+ 2603 1142 FFF7FEFF 		bl	headSerialReply
+ 538:../src/serial.c ****         break;
+ 2604              		.loc 1 538 0
+ 2605 1146 66E0     		b	.L94
+ 2606              	.L80:
+ 539:../src/serial.c ****     case MSP_ACC_CALIBRATION:
+ 540:../src/serial.c ****         if (!f.ARMED)
+ 2607              		.loc 1 540 0
+ 2608 1148 394B     		ldr	r3, .L141+12
+ 2609 114a 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 2610 114c 002B     		cmp	r3, #0
+ 2611 114e 03D1     		bne	.L129
+ 541:../src/serial.c ****             calibratingA = 400;
+ 2612              		.loc 1 541 0
+ 2613 1150 3A4B     		ldr	r3, .L141+24
+ 2614 1152 4FF4C872 		mov	r2, #400
+ 2615 1156 1A80     		strh	r2, [r3, #0]	@ movhi
+ 2616              	.L129:
+ 542:../src/serial.c ****         headSerialReply(0);
+ 2617              		.loc 1 542 0
+ 2618 1158 4FF00000 		mov	r0, #0
+ 2619 115c FFF7FEFF 		bl	headSerialReply
+ 543:../src/serial.c ****         break;
+ 2620              		.loc 1 543 0
+ 2621 1160 59E0     		b	.L94
+ 2622              	.L81:
+ 544:../src/serial.c ****     case MSP_MAG_CALIBRATION:
+ 545:../src/serial.c ****         if (!f.ARMED)
+ 2623              		.loc 1 545 0
+ 2624 1162 334B     		ldr	r3, .L141+12
+ 2625 1164 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 2626 1166 002B     		cmp	r3, #0
+ 2627 1168 03D1     		bne	.L130
+ 546:../src/serial.c ****             f.CALIBRATE_MAG = 1;
+ 2628              		.loc 1 546 0
+ 2629 116a 314B     		ldr	r3, .L141+12
+ 2630 116c 4FF00102 		mov	r2, #1
+ 2631 1170 9A73     		strb	r2, [r3, #14]
+ 2632              	.L130:
+ 547:../src/serial.c ****         headSerialReply(0);
+ 2633              		.loc 1 547 0
+ 2634 1172 4FF00000 		mov	r0, #0
+ 2635 1176 FFF7FEFF 		bl	headSerialReply
+ 548:../src/serial.c ****         break;
+ 2636              		.loc 1 548 0
+ 2637 117a 4CE0     		b	.L94
+ 2638              	.L89:
+ 549:../src/serial.c ****     case MSP_EEPROM_WRITE:
+ 550:../src/serial.c ****         writeEEPROM(0, true);
+ 2639              		.loc 1 550 0
+ 2640 117c 4FF00000 		mov	r0, #0
+ 2641 1180 4FF00101 		mov	r1, #1
+ 2642 1184 FFF7FEFF 		bl	writeEEPROM
+ 551:../src/serial.c ****         headSerialReply(0);
+ 2643              		.loc 1 551 0
+ 2644 1188 4FF00000 		mov	r0, #0
+ 2645 118c FFF7FEFF 		bl	headSerialReply
+ 552:../src/serial.c ****         break;
+ 2646              		.loc 1 552 0
+ 2647 1190 41E0     		b	.L94
+ 2648              	.L90:
+ 553:../src/serial.c ****     case MSP_DEBUG:
+ 554:../src/serial.c ****         headSerialReply(8);
+ 2649              		.loc 1 554 0
+ 2650 1192 4FF00800 		mov	r0, #8
+ 2651 1196 FFF7FEFF 		bl	headSerialReply
+ 555:../src/serial.c ****         for (i = 0; i < 4; i++)
+ 2652              		.loc 1 555 0
+ 2653 119a 4FF00003 		mov	r3, #0
+ 2654 119e 7B61     		str	r3, [r7, #20]
+ 2655 11a0 0BE0     		b	.L131
+ 2656              	.L132:
+ 556:../src/serial.c ****             serialize16(debug[i]);      // 4 variables are here for general monitoring purpose
+ 2657              		.loc 1 556 0 discriminator 2
+ 2658 11a2 274B     		ldr	r3, .L141+28
+ 2659 11a4 7A69     		ldr	r2, [r7, #20]
+ 2660 11a6 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 2661 11aa 1BB2     		sxth	r3, r3
+ 2662 11ac 1846     		mov	r0, r3
+ 2663 11ae FFF7FEFF 		bl	serialize16
+ 555:../src/serial.c ****         for (i = 0; i < 4; i++)
+ 2664              		.loc 1 555 0 discriminator 2
+ 2665 11b2 7B69     		ldr	r3, [r7, #20]
+ 2666 11b4 03F10103 		add	r3, r3, #1
+ 2667 11b8 7B61     		str	r3, [r7, #20]
+ 2668              	.L131:
+ 555:../src/serial.c ****         for (i = 0; i < 4; i++)
+ 2669              		.loc 1 555 0 is_stmt 0 discriminator 1
+ 2670 11ba 7B69     		ldr	r3, [r7, #20]
+ 2671 11bc 032B     		cmp	r3, #3
+ 2672 11be F0D9     		bls	.L132
+ 557:../src/serial.c ****         break;
+ 2673              		.loc 1 557 0 is_stmt 1
+ 2674 11c0 29E0     		b	.L94
+ 2675              	.L88:
+ 558:../src/serial.c **** 
+ 559:../src/serial.c ****     // Additional commands that are not compatible with MultiWii
+ 560:../src/serial.c ****     case MSP_ACC_TRIM:
+ 561:../src/serial.c ****         headSerialReply(4);
+ 2676              		.loc 1 561 0
+ 2677 11c2 4FF00400 		mov	r0, #4
+ 2678 11c6 FFF7FEFF 		bl	headSerialReply
+ 562:../src/serial.c ****         serialize16(cfg.angleTrim[PITCH]);
+ 2679              		.loc 1 562 0
+ 2680 11ca 1E4B     		ldr	r3, .L141+32
+ 2681 11cc 5B8D     		ldrh	r3, [r3, #42]
+ 2682 11ce 1BB2     		sxth	r3, r3
+ 2683 11d0 1846     		mov	r0, r3
+ 2684 11d2 FFF7FEFF 		bl	serialize16
+ 563:../src/serial.c ****         serialize16(cfg.angleTrim[ROLL]);
+ 2685              		.loc 1 563 0
+ 2686 11d6 1B4B     		ldr	r3, .L141+32
+ 2687 11d8 1B8D     		ldrh	r3, [r3, #40]
+ 2688 11da 1BB2     		sxth	r3, r3
+ 2689 11dc 1846     		mov	r0, r3
+ 2690 11de FFF7FEFF 		bl	serialize16
+ 564:../src/serial.c ****         break;
+ 2691              		.loc 1 564 0
+ 2692 11e2 18E0     		b	.L94
+ 2693              	.L74:
+ 565:../src/serial.c ****     case MSP_UID:
+ 566:../src/serial.c ****         headSerialReply(12);
+ 2694              		.loc 1 566 0
+ 2695 11e4 4FF00C00 		mov	r0, #12
+ 2696 11e8 FFF7FEFF 		bl	headSerialReply
+ 567:../src/serial.c ****         serialize32(U_ID_0);
+ 2697              		.loc 1 567 0
+ 2698 11ec 164B     		ldr	r3, .L141+36
+ 2699 11ee 1B68     		ldr	r3, [r3, #0]
+ 2700 11f0 1846     		mov	r0, r3
+ 2701 11f2 FFF7FEFF 		bl	serialize32
+ 568:../src/serial.c ****         serialize32(U_ID_1);
+ 2702              		.loc 1 568 0
+ 2703 11f6 154B     		ldr	r3, .L141+40
+ 2704 11f8 1B68     		ldr	r3, [r3, #0]
+ 2705 11fa 1846     		mov	r0, r3
+ 2706 11fc FFF7FEFF 		bl	serialize32
+ 569:../src/serial.c ****         serialize32(U_ID_2);
+ 2707              		.loc 1 569 0
+ 2708 1200 134B     		ldr	r3, .L141+44
+ 2709 1202 1B68     		ldr	r3, [r3, #0]
+ 2710 1204 1846     		mov	r0, r3
+ 2711 1206 FFF7FEFF 		bl	serialize32
+ 570:../src/serial.c ****         break;
+ 2712              		.loc 1 570 0
+ 2713 120a 04E0     		b	.L94
+ 2714              	.L53:
+ 571:../src/serial.c **** 
+ 572:../src/serial.c ****     default:                   // we do not know how to handle the (valid) message, indicate error 
+ 573:../src/serial.c ****         headSerialError(0);
+ 2715              		.loc 1 573 0
+ 2716 120c 4FF00000 		mov	r0, #0
+ 2717 1210 FFF7FEFF 		bl	headSerialError
+ 574:../src/serial.c ****         break;
+ 2718              		.loc 1 574 0
+ 2719 1214 00BF     		nop
+ 2720              	.L94:
+ 575:../src/serial.c ****     }
+ 576:../src/serial.c ****     tailSerialReply();
+ 2721              		.loc 1 576 0
+ 2722 1216 FFF7FEFF 		bl	tailSerialReply
+ 577:../src/serial.c **** }
+ 2723              		.loc 1 577 0
+ 2724 121a 07F11C07 		add	r7, r7, #28
+ 2725 121e BD46     		mov	sp, r7
+ 2726 1220 90BD     		pop	{r4, r7, pc}
+ 2727              	.L142:
+ 2728 1222 00BF     		.align	2
+ 2729              	.L141:
+ 2730 1224 00000000 		.word	GPS_home
+ 2731 1228 00000000 		.word	GPS_hold
+ 2732 122c 00000000 		.word	AltHold
+ 2733 1230 00000000 		.word	f
+ 2734 1234 00000000 		.word	nav_mode
+ 2735 1238 04000000 		.word	GPS_hold+4
+ 2736 123c 00000000 		.word	calibratingA
+ 2737 1240 00000000 		.word	debug
+ 2738 1244 00000000 		.word	cfg
+ 2739 1248 E8F7FF1F 		.word	536868840
+ 2740 124c ECF7FF1F 		.word	536868844
+ 2741 1250 F0F7FF1F 		.word	536868848
+ 2742              		.cfi_endproc
+ 2743              	.LFE42:
+ 2745              		.align	2
+ 2746              		.thumb
+ 2747              		.thumb_func
+ 2749              	evaluateOtherData:
+ 2750              	.LFB43:
+ 578:../src/serial.c **** 
+ 579:../src/serial.c **** // evaluate all other incoming serial data
+ 580:../src/serial.c **** static void evaluateOtherData(uint8_t sr)
+ 581:../src/serial.c **** {
+ 2751              		.loc 1 581 0
+ 2752              		.cfi_startproc
+ 2753              		@ args = 0, pretend = 0, frame = 8
+ 2754              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2755 1254 80B5     		push	{r7, lr}
+ 2756              	.LCFI40:
+ 2757              		.cfi_def_cfa_offset 8
+ 2758              		.cfi_offset 7, -8
+ 2759              		.cfi_offset 14, -4
+ 2760 1256 82B0     		sub	sp, sp, #8
+ 2761              	.LCFI41:
+ 2762              		.cfi_def_cfa_offset 16
+ 2763 1258 00AF     		add	r7, sp, #0
+ 2764              	.LCFI42:
+ 2765              		.cfi_def_cfa_register 7
+ 2766 125a 0346     		mov	r3, r0
+ 2767 125c FB71     		strb	r3, [r7, #7]
+ 582:../src/serial.c ****     switch (sr) {
+ 2768              		.loc 1 582 0
+ 2769 125e FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 2770 1260 232B     		cmp	r3, #35
+ 2771 1262 02D0     		beq	.L145
+ 2772 1264 522B     		cmp	r3, #82
+ 2773 1266 03D0     		beq	.L146
+ 2774 1268 07E0     		b	.L143
+ 2775              	.L145:
+ 583:../src/serial.c ****         case '#':
+ 584:../src/serial.c ****             cliProcess();
+ 2776              		.loc 1 584 0
+ 2777 126a FFF7FEFF 		bl	cliProcess
+ 585:../src/serial.c ****             break;
+ 2778              		.loc 1 585 0
+ 2779 126e 04E0     		b	.L143
+ 2780              	.L146:
+ 586:../src/serial.c ****         case 'R':
+ 587:../src/serial.c ****             systemReset(true);      // reboot to bootloader
+ 2781              		.loc 1 587 0
+ 2782 1270 4FF00100 		mov	r0, #1
+ 2783 1274 FFF7FEFF 		bl	systemReset
+ 588:../src/serial.c ****             break;
+ 2784              		.loc 1 588 0
+ 2785 1278 00BF     		nop
+ 2786              	.L143:
+ 589:../src/serial.c ****     }
+ 590:../src/serial.c **** }
+ 2787              		.loc 1 590 0
+ 2788 127a 07F10807 		add	r7, r7, #8
+ 2789 127e BD46     		mov	sp, r7
+ 2790 1280 80BD     		pop	{r7, pc}
+ 2791              		.cfi_endproc
+ 2792              	.LFE43:
+ 2794 1282 00BF     		.align	2
+ 2795              		.global	serialCom
+ 2796              		.thumb
+ 2797              		.thumb_func
+ 2799              	serialCom:
+ 2800              	.LFB44:
+ 591:../src/serial.c **** 
+ 592:../src/serial.c **** void serialCom(void)
+ 593:../src/serial.c **** {
+ 2801              		.loc 1 593 0
+ 2802              		.cfi_startproc
+ 2803              		@ args = 0, pretend = 0, frame = 8
+ 2804              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2805 1284 80B5     		push	{r7, lr}
+ 2806              	.LCFI43:
+ 2807              		.cfi_def_cfa_offset 8
+ 2808              		.cfi_offset 7, -8
+ 2809              		.cfi_offset 14, -4
+ 2810 1286 82B0     		sub	sp, sp, #8
+ 2811              	.LCFI44:
+ 2812              		.cfi_def_cfa_offset 16
+ 2813 1288 00AF     		add	r7, sp, #0
+ 2814              	.LCFI45:
+ 2815              		.cfi_def_cfa_register 7
+ 594:../src/serial.c ****     uint8_t c;
+ 595:../src/serial.c ****     static uint8_t offset;
+ 596:../src/serial.c ****     static uint8_t dataSize;
+ 597:../src/serial.c ****     static enum _serial_state {
+ 598:../src/serial.c ****         IDLE,
+ 599:../src/serial.c ****         HEADER_START,
+ 600:../src/serial.c ****         HEADER_M,
+ 601:../src/serial.c ****         HEADER_ARROW,
+ 602:../src/serial.c ****         HEADER_SIZE,
+ 603:../src/serial.c ****         HEADER_CMD,
+ 604:../src/serial.c ****     } c_state = IDLE;
+ 605:../src/serial.c **** 
+ 606:../src/serial.c ****     // in cli mode, all uart stuff goes to here. enter cli mode by sending #
+ 607:../src/serial.c ****     if (cliMode) {
+ 2816              		.loc 1 607 0
+ 2817 128a 6A4B     		ldr	r3, .L165
+ 2818 128c 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2819 128e 002B     		cmp	r3, #0
+ 2820 1290 00F0AD80 		beq	.L164
+ 608:../src/serial.c ****         cliProcess();
+ 2821              		.loc 1 608 0
+ 2822 1294 FFF7FEFF 		bl	cliProcess
+ 609:../src/serial.c ****         return;
+ 2823              		.loc 1 609 0
+ 2824 1298 C7E0     		b	.L147
+ 2825              	.L163:
+ 610:../src/serial.c ****     }
+ 611:../src/serial.c **** 
+ 612:../src/serial.c ****     while (uartAvailable()) {
+ 613:../src/serial.c ****         c = uartRead();
+ 2826              		.loc 1 613 0
+ 2827 129a FFF7FEFF 		bl	uartRead
+ 2828 129e 0346     		mov	r3, r0
+ 2829 12a0 FB71     		strb	r3, [r7, #7]
+ 614:../src/serial.c **** 
+ 615:../src/serial.c ****         if (c_state == IDLE) {
+ 2830              		.loc 1 615 0
+ 2831 12a2 654B     		ldr	r3, .L165+4
+ 2832 12a4 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2833 12a6 002B     		cmp	r3, #0
+ 2834 12a8 12D1     		bne	.L151
+ 616:../src/serial.c ****             c_state = (c == '$') ? HEADER_START : IDLE;
+ 2835              		.loc 1 616 0
+ 2836 12aa FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 2837 12ac 242B     		cmp	r3, #36
+ 2838 12ae 14BF     		ite	ne
+ 2839 12b0 0023     		movne	r3, #0
+ 2840 12b2 0123     		moveq	r3, #1
+ 2841 12b4 DBB2     		uxtb	r3, r3
+ 2842 12b6 1A46     		mov	r2, r3
+ 2843 12b8 5F4B     		ldr	r3, .L165+4
+ 2844 12ba 1A70     		strb	r2, [r3, #0]
+ 617:../src/serial.c ****             if (c_state == IDLE)
+ 2845              		.loc 1 617 0
+ 2846 12bc 5E4B     		ldr	r3, .L165+4
+ 2847 12be 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2848 12c0 002B     		cmp	r3, #0
+ 2849 12c2 40F09580 		bne	.L150
+ 618:../src/serial.c ****                 evaluateOtherData(c); // evaluate all other incoming serial data
+ 2850              		.loc 1 618 0
+ 2851 12c6 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 2852 12c8 1846     		mov	r0, r3
+ 2853 12ca FFF7C3FF 		bl	evaluateOtherData
+ 2854 12ce 8FE0     		b	.L150
+ 2855              	.L151:
+ 619:../src/serial.c ****         } else if (c_state == HEADER_START) {
+ 2856              		.loc 1 619 0
+ 2857 12d0 594B     		ldr	r3, .L165+4
+ 2858 12d2 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2859 12d4 012B     		cmp	r3, #1
+ 2860 12d6 0AD1     		bne	.L152
+ 620:../src/serial.c ****             c_state = (c == 'M') ? HEADER_M : IDLE;
+ 2861              		.loc 1 620 0
+ 2862 12d8 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 2863 12da 4D2B     		cmp	r3, #77
+ 2864 12dc 02D1     		bne	.L153
+ 2865              		.loc 1 620 0 is_stmt 0 discriminator 1
+ 2866 12de 4FF00203 		mov	r3, #2
+ 2867 12e2 01E0     		b	.L154
+ 2868              	.L153:
+ 2869              		.loc 1 620 0 discriminator 2
+ 2870 12e4 4FF00003 		mov	r3, #0
+ 2871              	.L154:
+ 2872              		.loc 1 620 0 discriminator 3
+ 2873 12e8 534A     		ldr	r2, .L165+4
+ 2874 12ea 1370     		strb	r3, [r2, #0]
+ 2875 12ec 80E0     		b	.L150
+ 2876              	.L152:
+ 621:../src/serial.c ****         } else if (c_state == HEADER_M) {
+ 2877              		.loc 1 621 0 is_stmt 1
+ 2878 12ee 524B     		ldr	r3, .L165+4
+ 2879 12f0 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2880 12f2 022B     		cmp	r3, #2
+ 2881 12f4 0AD1     		bne	.L155
+ 622:../src/serial.c ****             c_state = (c == '<') ? HEADER_ARROW : IDLE;
+ 2882              		.loc 1 622 0
+ 2883 12f6 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 2884 12f8 3C2B     		cmp	r3, #60
+ 2885 12fa 02D1     		bne	.L156
+ 2886              		.loc 1 622 0 is_stmt 0 discriminator 1
+ 2887 12fc 4FF00303 		mov	r3, #3
+ 2888 1300 01E0     		b	.L157
+ 2889              	.L156:
+ 2890              		.loc 1 622 0 discriminator 2
+ 2891 1302 4FF00003 		mov	r3, #0
+ 2892              	.L157:
+ 2893              		.loc 1 622 0 discriminator 3
+ 2894 1306 4C4A     		ldr	r2, .L165+4
+ 2895 1308 1370     		strb	r3, [r2, #0]
+ 2896 130a 71E0     		b	.L150
+ 2897              	.L155:
+ 623:../src/serial.c ****         } else if (c_state == HEADER_ARROW) {
+ 2898              		.loc 1 623 0 is_stmt 1
+ 2899 130c 4A4B     		ldr	r3, .L165+4
+ 2900 130e 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2901 1310 032B     		cmp	r3, #3
+ 2902 1312 26D1     		bne	.L158
+ 624:../src/serial.c ****             if (c > INBUF_SIZE) {       // now we are expecting the payload size
+ 2903              		.loc 1 624 0
+ 2904 1314 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 2905 1316 402B     		cmp	r3, #64
+ 2906 1318 04D9     		bls	.L159
+ 625:../src/serial.c ****                 c_state = IDLE;
+ 2907              		.loc 1 625 0
+ 2908 131a 474B     		ldr	r3, .L165+4
+ 2909 131c 4FF00002 		mov	r2, #0
+ 2910 1320 1A70     		strb	r2, [r3, #0]
+ 626:../src/serial.c ****                 continue;
+ 2911              		.loc 1 626 0
+ 2912 1322 65E0     		b	.L150
+ 2913              	.L159:
+ 627:../src/serial.c ****             }
+ 628:../src/serial.c ****             dataSize = c;
+ 2914              		.loc 1 628 0
+ 2915 1324 454B     		ldr	r3, .L165+8
+ 2916 1326 FA79     		ldrb	r2, [r7, #7]
+ 2917 1328 1A70     		strb	r2, [r3, #0]
+ 629:../src/serial.c ****             offset = 0;
+ 2918              		.loc 1 629 0
+ 2919 132a 454B     		ldr	r3, .L165+12
+ 2920 132c 4FF00002 		mov	r2, #0
+ 2921 1330 1A70     		strb	r2, [r3, #0]
+ 630:../src/serial.c ****             checksum = 0;
+ 2922              		.loc 1 630 0
+ 2923 1332 444B     		ldr	r3, .L165+16
+ 2924 1334 4FF00002 		mov	r2, #0
+ 2925 1338 1A70     		strb	r2, [r3, #0]
+ 631:../src/serial.c ****             indRX = 0;
+ 2926              		.loc 1 631 0
+ 2927 133a 434B     		ldr	r3, .L165+20
+ 2928 133c 4FF00002 		mov	r2, #0
+ 2929 1340 1A70     		strb	r2, [r3, #0]
+ 632:../src/serial.c ****             checksum ^= c;
+ 2930              		.loc 1 632 0
+ 2931 1342 404B     		ldr	r3, .L165+16
+ 2932 1344 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 2933 1346 FB79     		ldrb	r3, [r7, #7]
+ 2934 1348 5340     		eors	r3, r3, r2
+ 2935 134a DAB2     		uxtb	r2, r3
+ 2936 134c 3D4B     		ldr	r3, .L165+16
+ 2937 134e 1A70     		strb	r2, [r3, #0]
+ 633:../src/serial.c ****             c_state = HEADER_SIZE;      // the command is to follow
+ 2938              		.loc 1 633 0
+ 2939 1350 394B     		ldr	r3, .L165+4
+ 2940 1352 4FF00402 		mov	r2, #4
+ 2941 1356 1A70     		strb	r2, [r3, #0]
+ 634:../src/serial.c ****             guiConnected = true;
+ 2942              		.loc 1 634 0
+ 2943 1358 3C4B     		ldr	r3, .L165+24
+ 2944 135a 4FF00102 		mov	r2, #1
+ 2945 135e 1A70     		strb	r2, [r3, #0]
+ 2946 1360 46E0     		b	.L150
+ 2947              	.L158:
+ 635:../src/serial.c ****         } else if (c_state == HEADER_SIZE) {
+ 2948              		.loc 1 635 0
+ 2949 1362 354B     		ldr	r3, .L165+4
+ 2950 1364 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2951 1366 042B     		cmp	r3, #4
+ 2952 1368 0ED1     		bne	.L160
+ 636:../src/serial.c ****             cmdMSP = c;
+ 2953              		.loc 1 636 0
+ 2954 136a 394B     		ldr	r3, .L165+28
+ 2955 136c FA79     		ldrb	r2, [r7, #7]
+ 2956 136e 1A70     		strb	r2, [r3, #0]
+ 637:../src/serial.c ****             checksum ^= c;
+ 2957              		.loc 1 637 0
+ 2958 1370 344B     		ldr	r3, .L165+16
+ 2959 1372 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 2960 1374 FB79     		ldrb	r3, [r7, #7]
+ 2961 1376 5340     		eors	r3, r3, r2
+ 2962 1378 DAB2     		uxtb	r2, r3
+ 2963 137a 324B     		ldr	r3, .L165+16
+ 2964 137c 1A70     		strb	r2, [r3, #0]
+ 638:../src/serial.c ****             c_state = HEADER_CMD;
+ 2965              		.loc 1 638 0
+ 2966 137e 2E4B     		ldr	r3, .L165+4
+ 2967 1380 4FF00502 		mov	r2, #5
+ 2968 1384 1A70     		strb	r2, [r3, #0]
+ 2969 1386 33E0     		b	.L150
+ 2970              	.L160:
+ 639:../src/serial.c ****         } else if (c_state == HEADER_CMD && offset < dataSize) {
+ 2971              		.loc 1 639 0
+ 2972 1388 2B4B     		ldr	r3, .L165+4
+ 2973 138a 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2974 138c 052B     		cmp	r3, #5
+ 2975 138e 18D1     		bne	.L161
+ 2976              		.loc 1 639 0 is_stmt 0 discriminator 1
+ 2977 1390 2B4B     		ldr	r3, .L165+12
+ 2978 1392 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 2979 1394 294B     		ldr	r3, .L165+8
+ 2980 1396 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2981 1398 9A42     		cmp	r2, r3
+ 2982 139a 12D2     		bcs	.L161
+ 640:../src/serial.c ****             checksum ^= c;
+ 2983              		.loc 1 640 0 is_stmt 1
+ 2984 139c 294B     		ldr	r3, .L165+16
+ 2985 139e 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 2986 13a0 FB79     		ldrb	r3, [r7, #7]
+ 2987 13a2 5340     		eors	r3, r3, r2
+ 2988 13a4 DAB2     		uxtb	r2, r3
+ 2989 13a6 274B     		ldr	r3, .L165+16
+ 2990 13a8 1A70     		strb	r2, [r3, #0]
+ 641:../src/serial.c ****             inBuf[offset++] = c;
+ 2991              		.loc 1 641 0
+ 2992 13aa 254B     		ldr	r3, .L165+12
+ 2993 13ac 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2994 13ae 1A46     		mov	r2, r3
+ 2995 13b0 2849     		ldr	r1, .L165+32
+ 2996 13b2 F879     		ldrb	r0, [r7, #7]
+ 2997 13b4 8854     		strb	r0, [r1, r2]
+ 2998 13b6 03F10103 		add	r3, r3, #1
+ 2999 13ba DAB2     		uxtb	r2, r3
+ 3000 13bc 204B     		ldr	r3, .L165+12
+ 3001 13be 1A70     		strb	r2, [r3, #0]
+ 3002 13c0 16E0     		b	.L150
+ 3003              	.L161:
+ 642:../src/serial.c ****         } else if (c_state == HEADER_CMD && offset >= dataSize) {
+ 3004              		.loc 1 642 0
+ 3005 13c2 1D4B     		ldr	r3, .L165+4
+ 3006 13c4 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 3007 13c6 052B     		cmp	r3, #5
+ 3008 13c8 12D1     		bne	.L150
+ 3009              		.loc 1 642 0 is_stmt 0 discriminator 1
+ 3010 13ca 1D4B     		ldr	r3, .L165+12
+ 3011 13cc 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 3012 13ce 1B4B     		ldr	r3, .L165+8
+ 3013 13d0 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 3014 13d2 9A42     		cmp	r2, r3
+ 3015 13d4 0CD3     		bcc	.L150
+ 643:../src/serial.c ****             if (checksum == c) {        // compare calculated and transferred checksum
+ 3016              		.loc 1 643 0 is_stmt 1
+ 3017 13d6 1B4B     		ldr	r3, .L165+16
+ 3018 13d8 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 3019 13da FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 3020 13dc 9A42     		cmp	r2, r3
+ 3021 13de 01D1     		bne	.L162
+ 644:../src/serial.c ****                 evaluateCommand();      // we got a valid packet, evaluate it
+ 3022              		.loc 1 644 0
+ 3023 13e0 FFF7CAF8 		bl	evaluateCommand
+ 3024              	.L162:
+ 645:../src/serial.c ****             }
+ 646:../src/serial.c ****             c_state = IDLE;
+ 3025              		.loc 1 646 0
+ 3026 13e4 144B     		ldr	r3, .L165+4
+ 3027 13e6 4FF00002 		mov	r2, #0
+ 3028 13ea 1A70     		strb	r2, [r3, #0]
+ 3029 13ec 00E0     		b	.L150
+ 3030              	.L164:
+ 612:../src/serial.c ****     while (uartAvailable()) {
+ 3031              		.loc 1 612 0
+ 3032 13ee 00BF     		nop
+ 3033              	.L150:
+ 612:../src/serial.c ****     while (uartAvailable()) {
+ 3034              		.loc 1 612 0 is_stmt 0 discriminator 1
+ 3035 13f0 FFF7FEFF 		bl	uartAvailable
+ 3036 13f4 0346     		mov	r3, r0
+ 3037 13f6 002B     		cmp	r3, #0
+ 3038 13f8 7FF44FAF 		bne	.L163
+ 647:../src/serial.c ****         }
+ 648:../src/serial.c ****     }
+ 649:../src/serial.c ****     if (!cliMode && !uartAvailable() && feature(FEATURE_TELEMETRY) && f.ARMED) { // The first 2 con
+ 3039              		.loc 1 649 0 is_stmt 1
+ 3040 13fc 0D4B     		ldr	r3, .L165
+ 3041 13fe 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 3042 1400 002B     		cmp	r3, #0
+ 3043 1402 12D1     		bne	.L147
+ 3044              		.loc 1 649 0 is_stmt 0 discriminator 1
+ 3045 1404 FFF7FEFF 		bl	uartAvailable
+ 3046 1408 0346     		mov	r3, r0
+ 3047 140a 002B     		cmp	r3, #0
+ 3048 140c 0DD1     		bne	.L147
+ 3049 140e 4FF40060 		mov	r0, #2048
+ 3050 1412 FFF7FEFF 		bl	feature
+ 3051 1416 0346     		mov	r3, r0
+ 3052 1418 002B     		cmp	r3, #0
+ 3053 141a 06D0     		beq	.L147
+ 3054 141c 0E4B     		ldr	r3, .L165+36
+ 3055 141e 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 3056 1420 002B     		cmp	r3, #0
+ 3057 1422 02D0     		beq	.L147
+ 650:../src/serial.c ****         sendTelemetry();
+ 3058              		.loc 1 650 0 is_stmt 1
+ 3059 1424 FFF7FEFF 		bl	sendTelemetry
+ 651:../src/serial.c ****         return;
+ 3060              		.loc 1 651 0
+ 3061 1428 00BF     		nop
+ 3062              	.L147:
+ 652:../src/serial.c ****     }
+ 653:../src/serial.c **** }
+ 3063              		.loc 1 653 0
+ 3064 142a 07F10807 		add	r7, r7, #8
+ 3065 142e BD46     		mov	sp, r7
+ 3066 1430 80BD     		pop	{r7, pc}
+ 3067              	.L166:
+ 3068 1432 00BF     		.align	2
+ 3069              	.L165:
+ 3070 1434 00000000 		.word	cliMode
+ 3071 1438 5B000000 		.word	c_state.9216
+ 3072 143c 5C000000 		.word	dataSize.9208
+ 3073 1440 5D000000 		.word	offset.9207
+ 3074 1444 15000000 		.word	checksum
+ 3075 1448 16000000 		.word	indRX
+ 3076 144c 59000000 		.word	guiConnected
+ 3077 1450 58000000 		.word	cmdMSP
+ 3078 1454 18000000 		.word	inBuf
+ 3079 1458 00000000 		.word	f
+ 3080              		.cfi_endproc
+ 3081              	.LFE44:
+ 3083              		.bss
+ 3084              	c_state.9216:
+ 3085 005b 00       		.space	1
+ 3086              	dataSize.9208:
+ 3087 005c 00       		.space	1
+ 3088              	offset.9207:
+ 3089 005d 00       		.space	1
+ 3090              	t.9050:
+ 3091 005e 00       		.space	1
+ 3092              	t.9046:
+ 3093 005f 00       		.space	1
+ 3094              		.text
+ 3095              	.Letext0:
+ 3096              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 3097              		.file 3 "../src/board.h"
+ 3098              		.file 4 "../src/mw.h"
+ 3099              		.file 5 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 serial.c
+     /tmp/ccqGrDc2.s:84     .data:00000000 boxes
+     /tmp/ccqGrDc2.s:20     .rodata:00000000 $d
+     /tmp/ccqGrDc2.s:81     .data:00000000 $d
+     /tmp/ccqGrDc2.s:191    .bss:00000000 $d
+     /tmp/ccqGrDc2.s:192    .bss:00000000 availableBoxes
+     /tmp/ccqGrDc2.s:194    .bss:00000014 numberBoxItems
+     /tmp/ccqGrDc2.s:200    .rodata:000000c8 boxnames
+     /tmp/ccqGrDc2.s:208    .rodata:0000015c boxids
+     /tmp/ccqGrDc2.s:232    .rodata:00000170 pidnames
+     /tmp/ccqGrDc2.s:235    .bss:00000015 checksum
+     /tmp/ccqGrDc2.s:237    .bss:00000016 indRX
+     /tmp/ccqGrDc2.s:240    .bss:00000018 inBuf
+     /tmp/ccqGrDc2.s:242    .bss:00000058 cmdMSP
+     /tmp/ccqGrDc2.s:244    .bss:00000059 guiConnected
+     /tmp/ccqGrDc2.s:249    .bss:0000005a cliMode
+     /tmp/ccqGrDc2.s:252    .text:00000000 $t
+     /tmp/ccqGrDc2.s:257    .text:00000000 serialize32
+     /tmp/ccqGrDc2.s:362    .text:000000a4 $d
+     /tmp/ccqGrDc2.s:3092   .bss:0000005f t.9046
+     /tmp/ccqGrDc2.s:367    .text:000000ac $t
+     /tmp/ccqGrDc2.s:372    .text:000000ac serialize16
+     /tmp/ccqGrDc2.s:438    .text:0000010c $d
+     /tmp/ccqGrDc2.s:3090   .bss:0000005e t.9050
+     /tmp/ccqGrDc2.s:443    .text:00000114 $t
+     /tmp/ccqGrDc2.s:448    .text:00000114 serialize8
+     /tmp/ccqGrDc2.s:486    .text:0000013c $d
+     /tmp/ccqGrDc2.s:490    .text:00000140 $t
+     /tmp/ccqGrDc2.s:495    .text:00000140 read8
+     /tmp/ccqGrDc2.s:528    .text:00000164 $d
+     /tmp/ccqGrDc2.s:533    .text:0000016c $t
+     /tmp/ccqGrDc2.s:538    .text:0000016c read16
+     /tmp/ccqGrDc2.s:582    .text:00000198 read32
+     /tmp/ccqGrDc2.s:625    .text:000001c4 headSerialResponse
+     /tmp/ccqGrDc2.s:686    .text:0000021c $d
+     /tmp/ccqGrDc2.s:691    .text:00000224 $t
+     /tmp/ccqGrDc2.s:696    .text:00000224 headSerialReply
+     /tmp/ccqGrDc2.s:732    .text:00000244 headSerialError
+     /tmp/ccqGrDc2.s:768    .text:00000264 tailSerialReply
+     /tmp/ccqGrDc2.s:792    .text:00000274 $d
+     /tmp/ccqGrDc2.s:796    .text:00000278 $t
+     /tmp/ccqGrDc2.s:801    .text:00000278 serializeNames
+     /tmp/ccqGrDc2.s:851    .text:000002a8 serializeBoxNamesReply
+     /tmp/ccqGrDc2.s:970    .text:00000394 $d
+     /tmp/ccqGrDc2.s:976    .text:000003a0 $t
+     /tmp/ccqGrDc2.s:981    .text:000003a0 serialInit
+     /tmp/ccqGrDc2.s:1214   .text:0000056c $d
+     /tmp/ccqGrDc2.s:1220   .text:00000578 $t
+     /tmp/ccqGrDc2.s:1224   .text:00000578 evaluateCommand
+     /tmp/ccqGrDc2.s:1259   .text:000005a4 $d
+     /tmp/ccqGrDc2.s:1416   .text:00000810 $t
+     /tmp/ccqGrDc2.s:1516   .text:000008d0 $d
+     /tmp/ccqGrDc2.s:1527   .text:000008f4 $t
+     /tmp/ccqGrDc2.s:1722   .text:00000a84 $d
+     /tmp/ccqGrDc2.s:1730   .text:00000a9c $t
+     /tmp/ccqGrDc2.s:2051   .text:00000d08 $d
+     /tmp/ccqGrDc2.s:2063   .text:00000d30 $t
+     /tmp/ccqGrDc2.s:2420   .text:00000fd8 $d
+     /tmp/ccqGrDc2.s:2442   .text:00001028 $t
+     /tmp/ccqGrDc2.s:2730   .text:00001224 $d
+     /tmp/ccqGrDc2.s:2745   .text:00001254 $t
+     /tmp/ccqGrDc2.s:2749   .text:00001254 evaluateOtherData
+     /tmp/ccqGrDc2.s:2799   .text:00001284 serialCom
+     /tmp/ccqGrDc2.s:3070   .text:00001434 $d
+     /tmp/ccqGrDc2.s:3084   .bss:0000005b c_state.9216
+     /tmp/ccqGrDc2.s:3086   .bss:0000005c dataSize.9208
+     /tmp/ccqGrDc2.s:3088   .bss:0000005d offset.9207
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+                           .group:00000000 wm4.mw.h.4.b0e233e0e6ae9c4c07b142ad41413d4c
+
+UNDEFINED SYMBOLS
+uartWrite
+memset
+strcat
+strlen
+uartInit
+sensors
+feature
+mcfg
+rcData
+cfg
+f
+GPS_numSat
+GPS_coord
+GPS_altitude
+GPS_speed
+GPS_update
+writeEEPROM
+magHold
+i2cGetErrorCounter
+cycleTime
+rcOptions
+accSmooth
+gyroData
+magADC
+servo
+motor
+GPS_ground_course
+GPS_distanceToHome
+GPS_directionToHome
+angle
+heading
+headFreeModeHold
+EstAlt
+vario
+vbat
+rssi
+GPS_set_next_wp
+checkFirstTime
+GPS_home
+GPS_hold
+AltHold
+nav_mode
+calibratingA
+debug
+cliProcess
+systemReset
+uartRead
+uartAvailable
+sendTelemetry

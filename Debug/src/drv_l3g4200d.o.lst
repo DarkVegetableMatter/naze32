@@ -1,0 +1,511 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"drv_l3g4200d.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.bss
+  19              	mpuLowPassFilter:
+  20 0000 00       		.space	1
+  21              		.text
+  22              		.align	2
+  23              		.global	l3g4200dDetect
+  24              		.thumb
+  25              		.thumb_func
+  27              	l3g4200dDetect:
+  28              	.LFB29:
+  29              		.file 1 "../src/drv_l3g4200d.c"
+   1:../src/drv_l3g4200d.c **** #include "board.h"
+   2:../src/drv_l3g4200d.c **** 
+   3:../src/drv_l3g4200d.c **** // L3G4200D, Standard address 0x68
+   4:../src/drv_l3g4200d.c **** #define L3G4200D_ADDRESS         0x68
+   5:../src/drv_l3g4200d.c **** #define L3G4200D_ID              0xD3
+   6:../src/drv_l3g4200d.c **** 
+   7:../src/drv_l3g4200d.c **** // Registers
+   8:../src/drv_l3g4200d.c **** #define L3G4200D_WHO_AM_I        0x0F
+   9:../src/drv_l3g4200d.c **** #define L3G4200D_CTRL_REG1       0x20
+  10:../src/drv_l3g4200d.c **** #define L3G4200D_CTRL_REG2       0x21
+  11:../src/drv_l3g4200d.c **** #define L3G4200D_CTRL_REG3       0x22
+  12:../src/drv_l3g4200d.c **** #define L3G4200D_CTRL_REG4       0x23
+  13:../src/drv_l3g4200d.c **** #define L3G4200D_CTRL_REG5       0x24
+  14:../src/drv_l3g4200d.c **** #define L3G4200D_REFERENCE       0x25
+  15:../src/drv_l3g4200d.c **** #define L3G4200D_STATUS_REG      0x27
+  16:../src/drv_l3g4200d.c **** #define L3G4200D_GYRO_OUT        0xA8
+  17:../src/drv_l3g4200d.c **** 
+  18:../src/drv_l3g4200d.c **** // Bits
+  19:../src/drv_l3g4200d.c **** #define L3G4200D_POWER_ON        0x0F
+  20:../src/drv_l3g4200d.c **** #define L3G4200D_FS_SEL_2000DPS  0xF0
+  21:../src/drv_l3g4200d.c **** #define L3G4200D_DLPF_32HZ       0x00
+  22:../src/drv_l3g4200d.c **** #define L3G4200D_DLPF_54HZ       0x40
+  23:../src/drv_l3g4200d.c **** #define L3G4200D_DLPF_78HZ       0x80
+  24:../src/drv_l3g4200d.c **** #define L3G4200D_DLPF_93HZ       0xC0
+  25:../src/drv_l3g4200d.c **** 
+  26:../src/drv_l3g4200d.c **** static uint8_t mpuLowPassFilter = L3G4200D_DLPF_32HZ;
+  27:../src/drv_l3g4200d.c **** 
+  28:../src/drv_l3g4200d.c **** static void l3g4200dInit(void);
+  29:../src/drv_l3g4200d.c **** static void l3g4200dRead(int16_t *gyroData);
+  30:../src/drv_l3g4200d.c **** static void l3g4200dAlign(int16_t *gyroData);
+  31:../src/drv_l3g4200d.c **** 
+  32:../src/drv_l3g4200d.c **** bool l3g4200dDetect(sensor_t *gyro, uint16_t lpf)
+  33:../src/drv_l3g4200d.c **** {
+  30              		.loc 1 33 0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 16
+  33              		@ frame_needed = 1, uses_anonymous_args = 0
+  34 0000 80B5     		push	{r7, lr}
+  35              	.LCFI0:
+  36              		.cfi_def_cfa_offset 8
+  37              		.cfi_offset 7, -8
+  38              		.cfi_offset 14, -4
+  39 0002 84B0     		sub	sp, sp, #16
+  40              	.LCFI1:
+  41              		.cfi_def_cfa_offset 24
+  42 0004 00AF     		add	r7, sp, #0
+  43              	.LCFI2:
+  44              		.cfi_def_cfa_register 7
+  45 0006 7860     		str	r0, [r7, #4]
+  46 0008 0B46     		mov	r3, r1
+  47 000a 7B80     		strh	r3, [r7, #2]	@ movhi
+  34:../src/drv_l3g4200d.c ****     uint8_t deviceid;
+  35:../src/drv_l3g4200d.c **** 
+  36:../src/drv_l3g4200d.c ****     delay(25);
+  48              		.loc 1 36 0
+  49 000c 4FF01900 		mov	r0, #25
+  50 0010 FFF7FEFF 		bl	delay
+  37:../src/drv_l3g4200d.c **** 
+  38:../src/drv_l3g4200d.c ****     i2cRead(L3G4200D_ADDRESS, L3G4200D_WHO_AM_I, 1, &deviceid);
+  51              		.loc 1 38 0
+  52 0014 07F10F03 		add	r3, r7, #15
+  53 0018 4FF06800 		mov	r0, #104
+  54 001c 4FF00F01 		mov	r1, #15
+  55 0020 4FF00102 		mov	r2, #1
+  56 0024 FFF7FEFF 		bl	i2cRead
+  39:../src/drv_l3g4200d.c ****     if (deviceid != L3G4200D_ID)
+  57              		.loc 1 39 0
+  58 0028 FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+  59 002a D32B     		cmp	r3, #211
+  60 002c 02D0     		beq	.L2
+  40:../src/drv_l3g4200d.c ****         return false;
+  61              		.loc 1 40 0
+  62 002e 4FF00003 		mov	r3, #0
+  63 0032 28E0     		b	.L9
+  64              	.L2:
+  41:../src/drv_l3g4200d.c **** 
+  42:../src/drv_l3g4200d.c ****     gyro->init = l3g4200dInit;
+  65              		.loc 1 42 0
+  66 0034 7B68     		ldr	r3, [r7, #4]
+  67 0036 164A     		ldr	r2, .L10
+  68 0038 1A60     		str	r2, [r3, #0]
+  43:../src/drv_l3g4200d.c ****     gyro->read = l3g4200dRead;
+  69              		.loc 1 43 0
+  70 003a 7B68     		ldr	r3, [r7, #4]
+  71 003c 154A     		ldr	r2, .L10+4
+  72 003e 5A60     		str	r2, [r3, #4]
+  44:../src/drv_l3g4200d.c ****     gyro->align = l3g4200dAlign;
+  73              		.loc 1 44 0
+  74 0040 7B68     		ldr	r3, [r7, #4]
+  75 0042 154A     		ldr	r2, .L10+8
+  76 0044 9A60     		str	r2, [r3, #8]
+  45:../src/drv_l3g4200d.c ****     // 14.2857dps/lsb scalefactor
+  46:../src/drv_l3g4200d.c ****     gyro->scale = (((32767.0f / 14.2857f) * M_PI) / ((32767.0f / 4.0f) * 180.0f * 1000000.0f));
+  77              		.loc 1 46 0
+  78 0046 7B68     		ldr	r3, [r7, #4]
+  79 0048 154A     		ldr	r2, .L10+16	@ float
+  80 004a 1A61     		str	r2, [r3, #16]	@ float
+  47:../src/drv_l3g4200d.c **** 
+  48:../src/drv_l3g4200d.c ****     // default LPF is set to 32Hz
+  49:../src/drv_l3g4200d.c ****     switch (lpf) {
+  81              		.loc 1 49 0
+  82 004c 7B88     		ldrh	r3, [r7, #2]
+  83 004e 4E2B     		cmp	r3, #78
+  84 0050 0DD0     		beq	.L6
+  85 0052 5D2B     		cmp	r3, #93
+  86 0054 10D0     		beq	.L7
+  87 0056 362B     		cmp	r3, #54
+  88 0058 04D0     		beq	.L5
+  50:../src/drv_l3g4200d.c ****         default:
+  51:../src/drv_l3g4200d.c ****         case 32:
+  52:../src/drv_l3g4200d.c ****             mpuLowPassFilter = L3G4200D_DLPF_32HZ;
+  89              		.loc 1 52 0
+  90 005a 104B     		ldr	r3, .L10+12
+  91 005c 4FF00002 		mov	r2, #0
+  92 0060 1A70     		strb	r2, [r3, #0]
+  53:../src/drv_l3g4200d.c ****             break;
+  93              		.loc 1 53 0
+  94 0062 0EE0     		b	.L8
+  95              	.L5:
+  54:../src/drv_l3g4200d.c ****         case 54:
+  55:../src/drv_l3g4200d.c ****             mpuLowPassFilter = L3G4200D_DLPF_54HZ;
+  96              		.loc 1 55 0
+  97 0064 0D4B     		ldr	r3, .L10+12
+  98 0066 4FF04002 		mov	r2, #64
+  99 006a 1A70     		strb	r2, [r3, #0]
+  56:../src/drv_l3g4200d.c ****             break;
+ 100              		.loc 1 56 0
+ 101 006c 09E0     		b	.L8
+ 102              	.L6:
+  57:../src/drv_l3g4200d.c ****         case 78:
+  58:../src/drv_l3g4200d.c ****             mpuLowPassFilter = L3G4200D_DLPF_78HZ;
+ 103              		.loc 1 58 0
+ 104 006e 0B4B     		ldr	r3, .L10+12
+ 105 0070 4FF08002 		mov	r2, #128
+ 106 0074 1A70     		strb	r2, [r3, #0]
+  59:../src/drv_l3g4200d.c ****             break;
+ 107              		.loc 1 59 0
+ 108 0076 04E0     		b	.L8
+ 109              	.L7:
+  60:../src/drv_l3g4200d.c ****         case 93:
+  61:../src/drv_l3g4200d.c ****             mpuLowPassFilter = L3G4200D_DLPF_93HZ;
+ 110              		.loc 1 61 0
+ 111 0078 084B     		ldr	r3, .L10+12
+ 112 007a 4FF0C002 		mov	r2, #192
+ 113 007e 1A70     		strb	r2, [r3, #0]
+  62:../src/drv_l3g4200d.c ****             break;
+ 114              		.loc 1 62 0
+ 115 0080 00BF     		nop
+ 116              	.L8:
+  63:../src/drv_l3g4200d.c ****     }
+  64:../src/drv_l3g4200d.c **** 
+  65:../src/drv_l3g4200d.c ****     return true;
+ 117              		.loc 1 65 0
+ 118 0082 4FF00103 		mov	r3, #1
+ 119              	.L9:
+  66:../src/drv_l3g4200d.c **** }
+ 120              		.loc 1 66 0
+ 121 0086 1846     		mov	r0, r3
+ 122 0088 07F11007 		add	r7, r7, #16
+ 123 008c BD46     		mov	sp, r7
+ 124 008e 80BD     		pop	{r7, pc}
+ 125              	.L11:
+ 126              		.align	2
+ 127              	.L10:
+ 128 0090 00000000 		.word	l3g4200dInit
+ 129 0094 00000000 		.word	l3g4200dRead
+ 130 0098 00000000 		.word	l3g4200dAlign
+ 131 009c 00000000 		.word	mpuLowPassFilter
+ 132 00a0 DDE9A731 		.word	833087965
+ 133              		.cfi_endproc
+ 134              	.LFE29:
+ 136              		.align	2
+ 137              		.thumb
+ 138              		.thumb_func
+ 140              	l3g4200dInit:
+ 141              	.LFB30:
+  67:../src/drv_l3g4200d.c **** 
+  68:../src/drv_l3g4200d.c **** static void l3g4200dInit(void)
+  69:../src/drv_l3g4200d.c **** {
+ 142              		.loc 1 69 0
+ 143              		.cfi_startproc
+ 144              		@ args = 0, pretend = 0, frame = 8
+ 145              		@ frame_needed = 1, uses_anonymous_args = 0
+ 146 00a4 80B5     		push	{r7, lr}
+ 147              	.LCFI3:
+ 148              		.cfi_def_cfa_offset 8
+ 149              		.cfi_offset 7, -8
+ 150              		.cfi_offset 14, -4
+ 151 00a6 82B0     		sub	sp, sp, #8
+ 152              	.LCFI4:
+ 153              		.cfi_def_cfa_offset 16
+ 154 00a8 00AF     		add	r7, sp, #0
+ 155              	.LCFI5:
+ 156              		.cfi_def_cfa_register 7
+  70:../src/drv_l3g4200d.c ****     bool ack;
+  71:../src/drv_l3g4200d.c **** 
+  72:../src/drv_l3g4200d.c ****     delay(100);
+ 157              		.loc 1 72 0
+ 158 00aa 4FF06400 		mov	r0, #100
+ 159 00ae FFF7FEFF 		bl	delay
+  73:../src/drv_l3g4200d.c **** 
+  74:../src/drv_l3g4200d.c ****     ack = i2cWrite(L3G4200D_ADDRESS, L3G4200D_CTRL_REG4, L3G4200D_FS_SEL_2000DPS);
+ 160              		.loc 1 74 0
+ 161 00b2 4FF06800 		mov	r0, #104
+ 162 00b6 4FF02301 		mov	r1, #35
+ 163 00ba 4FF0F002 		mov	r2, #240
+ 164 00be FFF7FEFF 		bl	i2cWrite
+ 165 00c2 0346     		mov	r3, r0
+ 166 00c4 FB71     		strb	r3, [r7, #7]
+  75:../src/drv_l3g4200d.c ****     if (!ack)
+ 167              		.loc 1 75 0
+ 168 00c6 FB79     		ldrb	r3, [r7, #7]
+ 169 00c8 83F00103 		eor	r3, r3, #1
+ 170 00cc DBB2     		uxtb	r3, r3
+ 171 00ce 002B     		cmp	r3, #0
+ 172 00d0 03D0     		beq	.L13
+  76:../src/drv_l3g4200d.c ****         failureMode(3);
+ 173              		.loc 1 76 0
+ 174 00d2 4FF00300 		mov	r0, #3
+ 175 00d6 FFF7FEFF 		bl	failureMode
+ 176              	.L13:
+  77:../src/drv_l3g4200d.c **** 
+  78:../src/drv_l3g4200d.c ****     delay(5);
+ 177              		.loc 1 78 0
+ 178 00da 4FF00500 		mov	r0, #5
+ 179 00de FFF7FEFF 		bl	delay
+  79:../src/drv_l3g4200d.c ****     i2cWrite(L3G4200D_ADDRESS, L3G4200D_CTRL_REG1, L3G4200D_POWER_ON | mpuLowPassFilter);
+ 180              		.loc 1 79 0
+ 181 00e2 084B     		ldr	r3, .L14
+ 182 00e4 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 183 00e6 43F00F03 		orr	r3, r3, #15
+ 184 00ea DBB2     		uxtb	r3, r3
+ 185 00ec 4FF06800 		mov	r0, #104
+ 186 00f0 4FF02001 		mov	r1, #32
+ 187 00f4 1A46     		mov	r2, r3
+ 188 00f6 FFF7FEFF 		bl	i2cWrite
+  80:../src/drv_l3g4200d.c **** }
+ 189              		.loc 1 80 0
+ 190 00fa 07F10807 		add	r7, r7, #8
+ 191 00fe BD46     		mov	sp, r7
+ 192 0100 80BD     		pop	{r7, pc}
+ 193              	.L15:
+ 194 0102 00BF     		.align	2
+ 195              	.L14:
+ 196 0104 00000000 		.word	mpuLowPassFilter
+ 197              		.cfi_endproc
+ 198              	.LFE30:
+ 200              		.align	2
+ 201              		.thumb
+ 202              		.thumb_func
+ 204              	l3g4200dAlign:
+ 205              	.LFB31:
+  81:../src/drv_l3g4200d.c **** 
+  82:../src/drv_l3g4200d.c **** static void l3g4200dAlign(int16_t *gyroData)
+  83:../src/drv_l3g4200d.c **** {
+ 206              		.loc 1 83 0
+ 207              		.cfi_startproc
+ 208              		@ args = 0, pretend = 0, frame = 8
+ 209              		@ frame_needed = 1, uses_anonymous_args = 0
+ 210              		@ link register save eliminated.
+ 211 0108 80B4     		push	{r7}
+ 212              	.LCFI6:
+ 213              		.cfi_def_cfa_offset 4
+ 214              		.cfi_offset 7, -4
+ 215 010a 83B0     		sub	sp, sp, #12
+ 216              	.LCFI7:
+ 217              		.cfi_def_cfa_offset 16
+ 218 010c 00AF     		add	r7, sp, #0
+ 219              	.LCFI8:
+ 220              		.cfi_def_cfa_register 7
+ 221 010e 7860     		str	r0, [r7, #4]
+  84:../src/drv_l3g4200d.c ****     gyroData[0] = -gyroData[0];
+ 222              		.loc 1 84 0
+ 223 0110 7B68     		ldr	r3, [r7, #4]
+ 224 0112 1B88     		ldrh	r3, [r3, #0]
+ 225 0114 9BB2     		uxth	r3, r3
+ 226 0116 C3F10003 		rsb	r3, r3, #0
+ 227 011a 9BB2     		uxth	r3, r3
+ 228 011c 9AB2     		uxth	r2, r3
+ 229 011e 7B68     		ldr	r3, [r7, #4]
+ 230 0120 1A80     		strh	r2, [r3, #0]	@ movhi
+  85:../src/drv_l3g4200d.c ****     gyroData[1] = gyroData[1];
+ 231              		.loc 1 85 0
+ 232 0122 7B68     		ldr	r3, [r7, #4]
+ 233 0124 03F10203 		add	r3, r3, #2
+ 234 0128 7A68     		ldr	r2, [r7, #4]
+ 235 012a 5288     		ldrh	r2, [r2, #2]
+ 236 012c 1A80     		strh	r2, [r3, #0]	@ movhi
+  86:../src/drv_l3g4200d.c ****     gyroData[2] = -gyroData[2];
+ 237              		.loc 1 86 0
+ 238 012e 7B68     		ldr	r3, [r7, #4]
+ 239 0130 03F10403 		add	r3, r3, #4
+ 240 0134 7A68     		ldr	r2, [r7, #4]
+ 241 0136 02F10402 		add	r2, r2, #4
+ 242 013a 1288     		ldrh	r2, [r2, #0]
+ 243 013c 92B2     		uxth	r2, r2
+ 244 013e C2F10002 		rsb	r2, r2, #0
+ 245 0142 92B2     		uxth	r2, r2
+ 246 0144 92B2     		uxth	r2, r2
+ 247 0146 1A80     		strh	r2, [r3, #0]	@ movhi
+  87:../src/drv_l3g4200d.c **** }
+ 248              		.loc 1 87 0
+ 249 0148 07F10C07 		add	r7, r7, #12
+ 250 014c BD46     		mov	sp, r7
+ 251 014e 80BC     		pop	{r7}
+ 252 0150 7047     		bx	lr
+ 253              		.cfi_endproc
+ 254              	.LFE31:
+ 256 0152 00BF     		.align	2
+ 257              		.thumb
+ 258              		.thumb_func
+ 260              	l3g4200dRead:
+ 261              	.LFB32:
+  88:../src/drv_l3g4200d.c **** 
+  89:../src/drv_l3g4200d.c **** // Read 3 gyro values into user-provided buffer. No overrun checking is done.
+  90:../src/drv_l3g4200d.c **** static void l3g4200dRead(int16_t *gyroData)
+  91:../src/drv_l3g4200d.c **** {
+ 262              		.loc 1 91 0
+ 263              		.cfi_startproc
+ 264              		@ args = 0, pretend = 0, frame = 16
+ 265              		@ frame_needed = 1, uses_anonymous_args = 0
+ 266 0154 80B5     		push	{r7, lr}
+ 267              	.LCFI9:
+ 268              		.cfi_def_cfa_offset 8
+ 269              		.cfi_offset 7, -8
+ 270              		.cfi_offset 14, -4
+ 271 0156 84B0     		sub	sp, sp, #16
+ 272              	.LCFI10:
+ 273              		.cfi_def_cfa_offset 24
+ 274 0158 00AF     		add	r7, sp, #0
+ 275              	.LCFI11:
+ 276              		.cfi_def_cfa_register 7
+ 277 015a 7860     		str	r0, [r7, #4]
+  92:../src/drv_l3g4200d.c ****     uint8_t buf[6];
+  93:../src/drv_l3g4200d.c ****     i2cRead(L3G4200D_ADDRESS, L3G4200D_GYRO_OUT, 6, buf);
+ 278              		.loc 1 93 0
+ 279 015c 07F10803 		add	r3, r7, #8
+ 280 0160 4FF06800 		mov	r0, #104
+ 281 0164 4FF0A801 		mov	r1, #168
+ 282 0168 4FF00602 		mov	r2, #6
+ 283 016c FFF7FEFF 		bl	i2cRead
+  94:../src/drv_l3g4200d.c ****     gyroData[1] = (int16_t)((buf[0] << 8) | buf[1]) / 4;
+ 284              		.loc 1 94 0
+ 285 0170 7B68     		ldr	r3, [r7, #4]
+ 286 0172 03F10202 		add	r2, r3, #2
+ 287 0176 3B7A     		ldrb	r3, [r7, #8]	@ zero_extendqisi2
+ 288 0178 4FEA0323 		lsl	r3, r3, #8
+ 289 017c 99B2     		uxth	r1, r3
+ 290 017e 7B7A     		ldrb	r3, [r7, #9]	@ zero_extendqisi2
+ 291 0180 0B43     		orrs	r3, r3, r1
+ 292 0182 9BB2     		uxth	r3, r3
+ 293 0184 1BB2     		sxth	r3, r3
+ 294 0186 002B     		cmp	r3, #0
+ 295 0188 01DA     		bge	.L18
+ 296 018a 03F10303 		add	r3, r3, #3
+ 297              	.L18:
+ 298 018e 4FEAA303 		asr	r3, r3, #2
+ 299 0192 9BB2     		uxth	r3, r3
+ 300 0194 1380     		strh	r3, [r2, #0]	@ movhi
+  95:../src/drv_l3g4200d.c ****     gyroData[0] = (int16_t)((buf[2] << 8) | buf[3]) / 4;
+ 301              		.loc 1 95 0
+ 302 0196 BB7A     		ldrb	r3, [r7, #10]	@ zero_extendqisi2
+ 303 0198 4FEA0323 		lsl	r3, r3, #8
+ 304 019c 9AB2     		uxth	r2, r3
+ 305 019e FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 306 01a0 1343     		orrs	r3, r3, r2
+ 307 01a2 9BB2     		uxth	r3, r3
+ 308 01a4 1BB2     		sxth	r3, r3
+ 309 01a6 002B     		cmp	r3, #0
+ 310 01a8 01DA     		bge	.L19
+ 311 01aa 03F10303 		add	r3, r3, #3
+ 312              	.L19:
+ 313 01ae 4FEAA303 		asr	r3, r3, #2
+ 314 01b2 9AB2     		uxth	r2, r3
+ 315 01b4 7B68     		ldr	r3, [r7, #4]
+ 316 01b6 1A80     		strh	r2, [r3, #0]	@ movhi
+  96:../src/drv_l3g4200d.c ****     gyroData[2] = (int16_t)((buf[4] << 8) | buf[5]) / 4;
+ 317              		.loc 1 96 0
+ 318 01b8 7B68     		ldr	r3, [r7, #4]
+ 319 01ba 03F10402 		add	r2, r3, #4
+ 320 01be 3B7B     		ldrb	r3, [r7, #12]	@ zero_extendqisi2
+ 321 01c0 4FEA0323 		lsl	r3, r3, #8
+ 322 01c4 99B2     		uxth	r1, r3
+ 323 01c6 7B7B     		ldrb	r3, [r7, #13]	@ zero_extendqisi2
+ 324 01c8 0B43     		orrs	r3, r3, r1
+ 325 01ca 9BB2     		uxth	r3, r3
+ 326 01cc 1BB2     		sxth	r3, r3
+ 327 01ce 002B     		cmp	r3, #0
+ 328 01d0 01DA     		bge	.L20
+ 329 01d2 03F10303 		add	r3, r3, #3
+ 330              	.L20:
+ 331 01d6 4FEAA303 		asr	r3, r3, #2
+ 332 01da 9BB2     		uxth	r3, r3
+ 333 01dc 1380     		strh	r3, [r2, #0]	@ movhi
+  97:../src/drv_l3g4200d.c **** }
+ 334              		.loc 1 97 0
+ 335 01de 07F11007 		add	r7, r7, #16
+ 336 01e2 BD46     		mov	sp, r7
+ 337 01e4 80BD     		pop	{r7, pc}
+ 338              		.cfi_endproc
+ 339              	.LFE32:
+ 341              	.Letext0:
+ 342              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 343              		.file 3 "../src/board.h"
+ 344              		.file 4 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 drv_l3g4200d.c
+     /tmp/ccrkkZEG.s:19     .bss:00000000 mpuLowPassFilter
+     /tmp/ccrkkZEG.s:20     .bss:00000000 $d
+     /tmp/ccrkkZEG.s:22     .text:00000000 $t
+     /tmp/ccrkkZEG.s:27     .text:00000000 l3g4200dDetect
+     /tmp/ccrkkZEG.s:128    .text:00000090 $d
+     /tmp/ccrkkZEG.s:140    .text:000000a4 l3g4200dInit
+     /tmp/ccrkkZEG.s:260    .text:00000154 l3g4200dRead
+     /tmp/ccrkkZEG.s:204    .text:00000108 l3g4200dAlign
+     /tmp/ccrkkZEG.s:136    .text:000000a4 $t
+     /tmp/ccrkkZEG.s:196    .text:00000104 $d
+     /tmp/ccrkkZEG.s:200    .text:00000108 $t
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+
+UNDEFINED SYMBOLS
+delay
+i2cRead
+i2cWrite
+failureMode

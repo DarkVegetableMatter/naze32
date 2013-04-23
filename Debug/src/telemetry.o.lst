@@ -1,0 +1,1394 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"telemetry.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.align	2
+  19              		.thumb
+  20              		.thumb_func
+  22              	sendDataHead:
+  23              	.LFB29:
+  24              		.file 1 "../src/telemetry.c"
+   1:../src/telemetry.c **** /* 
+   2:../src/telemetry.c ****  * FrSky Telemetry implementation by silpstream @ rcgroups
+   3:../src/telemetry.c ****  */
+   4:../src/telemetry.c **** #include "board.h"
+   5:../src/telemetry.c **** #include "mw.h"
+   6:../src/telemetry.c **** 
+   7:../src/telemetry.c **** #define CYCLETIME             125
+   8:../src/telemetry.c **** 
+   9:../src/telemetry.c **** #define PROTOCOL_HEADER       0x5E
+  10:../src/telemetry.c **** #define PROTOCOL_TAIL         0x5E
+  11:../src/telemetry.c **** 
+  12:../src/telemetry.c **** // Data Ids  (bp = before decimal point; af = after decimal point)
+  13:../src/telemetry.c **** // Official data IDs
+  14:../src/telemetry.c **** #define ID_GPS_ALTIDUTE_BP    0x01
+  15:../src/telemetry.c **** #define ID_GPS_ALTIDUTE_AP    0x09
+  16:../src/telemetry.c **** #define ID_TEMPRATURE1        0x02
+  17:../src/telemetry.c **** #define ID_RPM                0x03
+  18:../src/telemetry.c **** #define ID_FUEL_LEVEL         0x04
+  19:../src/telemetry.c **** #define ID_TEMPRATURE2        0x05
+  20:../src/telemetry.c **** #define ID_VOLT               0x06
+  21:../src/telemetry.c **** #define ID_ALTITUDE_BP        0x10
+  22:../src/telemetry.c **** #define ID_ALTITUDE_AP        0x21
+  23:../src/telemetry.c **** #define ID_GPS_SPEED_BP       0x11
+  24:../src/telemetry.c **** #define ID_GPS_SPEED_AP       0x19
+  25:../src/telemetry.c **** #define ID_LONGITUDE_BP       0x12
+  26:../src/telemetry.c **** #define ID_LONGITUDE_AP       0x1A
+  27:../src/telemetry.c **** #define ID_E_W                0x22
+  28:../src/telemetry.c **** #define ID_LATITUDE_BP        0x13
+  29:../src/telemetry.c **** #define ID_LATITUDE_AP        0x1B
+  30:../src/telemetry.c **** #define ID_N_S                0x23
+  31:../src/telemetry.c **** #define ID_COURSE_BP          0x14
+  32:../src/telemetry.c **** #define ID_COURSE_AP          0x1C
+  33:../src/telemetry.c **** #define ID_DATE_MONTH         0x15
+  34:../src/telemetry.c **** #define ID_YEAR               0x16
+  35:../src/telemetry.c **** #define ID_HOUR_MINUTE        0x17
+  36:../src/telemetry.c **** #define ID_SECOND             0x18
+  37:../src/telemetry.c **** #define ID_ACC_X              0x24
+  38:../src/telemetry.c **** #define ID_ACC_Y              0x25
+  39:../src/telemetry.c **** #define ID_ACC_Z              0x26
+  40:../src/telemetry.c **** #define ID_VOLTAGE_AMP_BP     0x3A
+  41:../src/telemetry.c **** #define ID_VOLTAGE_AMP_AP     0x3B
+  42:../src/telemetry.c **** #define ID_CURRENT            0x28
+  43:../src/telemetry.c **** // User defined data IDs
+  44:../src/telemetry.c **** #define ID_GYRO_X             0x40
+  45:../src/telemetry.c **** #define ID_GYRO_Y             0x41
+  46:../src/telemetry.c **** #define ID_GYRO_Z             0x42
+  47:../src/telemetry.c **** 
+  48:../src/telemetry.c **** // from sensors.c
+  49:../src/telemetry.c **** extern uint8_t batteryCellCount;
+  50:../src/telemetry.c **** 
+  51:../src/telemetry.c ****  
+  52:../src/telemetry.c **** static void sendDataHead(uint8_t id)
+  53:../src/telemetry.c **** {
+  25              		.loc 1 53 0
+  26              		.cfi_startproc
+  27              		@ args = 0, pretend = 0, frame = 8
+  28              		@ frame_needed = 1, uses_anonymous_args = 0
+  29 0000 80B5     		push	{r7, lr}
+  30              	.LCFI0:
+  31              		.cfi_def_cfa_offset 8
+  32              		.cfi_offset 7, -8
+  33              		.cfi_offset 14, -4
+  34 0002 82B0     		sub	sp, sp, #8
+  35              	.LCFI1:
+  36              		.cfi_def_cfa_offset 16
+  37 0004 00AF     		add	r7, sp, #0
+  38              	.LCFI2:
+  39              		.cfi_def_cfa_register 7
+  40 0006 0346     		mov	r3, r0
+  41 0008 FB71     		strb	r3, [r7, #7]
+  54:../src/telemetry.c ****     uartWrite(PROTOCOL_HEADER);
+  42              		.loc 1 54 0
+  43 000a 4FF05E00 		mov	r0, #94
+  44 000e FFF7FEFF 		bl	uartWrite
+  55:../src/telemetry.c ****     uartWrite(id);
+  45              		.loc 1 55 0
+  46 0012 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+  47 0014 1846     		mov	r0, r3
+  48 0016 FFF7FEFF 		bl	uartWrite
+  56:../src/telemetry.c **** }
+  49              		.loc 1 56 0
+  50 001a 07F10807 		add	r7, r7, #8
+  51 001e BD46     		mov	sp, r7
+  52 0020 80BD     		pop	{r7, pc}
+  53              		.cfi_endproc
+  54              	.LFE29:
+  56 0022 00BF     		.align	2
+  57              		.thumb
+  58              		.thumb_func
+  60              	sendTelemetryTail:
+  61              	.LFB30:
+  57:../src/telemetry.c **** 
+  58:../src/telemetry.c **** static void sendTelemetryTail(void)
+  59:../src/telemetry.c **** {
+  62              		.loc 1 59 0
+  63              		.cfi_startproc
+  64              		@ args = 0, pretend = 0, frame = 0
+  65              		@ frame_needed = 1, uses_anonymous_args = 0
+  66 0024 80B5     		push	{r7, lr}
+  67              	.LCFI3:
+  68              		.cfi_def_cfa_offset 8
+  69              		.cfi_offset 7, -8
+  70              		.cfi_offset 14, -4
+  71 0026 00AF     		add	r7, sp, #0
+  72              	.LCFI4:
+  73              		.cfi_def_cfa_register 7
+  60:../src/telemetry.c ****     uartWrite(PROTOCOL_TAIL);
+  74              		.loc 1 60 0
+  75 0028 4FF05E00 		mov	r0, #94
+  76 002c FFF7FEFF 		bl	uartWrite
+  61:../src/telemetry.c **** }
+  77              		.loc 1 61 0
+  78 0030 80BD     		pop	{r7, pc}
+  79              		.cfi_endproc
+  80              	.LFE30:
+  82 0032 00BF     		.align	2
+  83              		.thumb
+  84              		.thumb_func
+  86              	serializeFrsky:
+  87              	.LFB31:
+  62:../src/telemetry.c **** 
+  63:../src/telemetry.c **** static void serializeFrsky(uint8_t data)
+  64:../src/telemetry.c **** {
+  88              		.loc 1 64 0
+  89              		.cfi_startproc
+  90              		@ args = 0, pretend = 0, frame = 8
+  91              		@ frame_needed = 1, uses_anonymous_args = 0
+  92 0034 80B5     		push	{r7, lr}
+  93              	.LCFI5:
+  94              		.cfi_def_cfa_offset 8
+  95              		.cfi_offset 7, -8
+  96              		.cfi_offset 14, -4
+  97 0036 82B0     		sub	sp, sp, #8
+  98              	.LCFI6:
+  99              		.cfi_def_cfa_offset 16
+ 100 0038 00AF     		add	r7, sp, #0
+ 101              	.LCFI7:
+ 102              		.cfi_def_cfa_register 7
+ 103 003a 0346     		mov	r3, r0
+ 104 003c FB71     		strb	r3, [r7, #7]
+  65:../src/telemetry.c ****     // take care of byte stuffing
+  66:../src/telemetry.c ****     if (data == 0x5e) {
+ 105              		.loc 1 66 0
+ 106 003e FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 107 0040 5E2B     		cmp	r3, #94
+ 108 0042 08D1     		bne	.L4
+  67:../src/telemetry.c ****         uartWrite(0x5d);
+ 109              		.loc 1 67 0
+ 110 0044 4FF05D00 		mov	r0, #93
+ 111 0048 FFF7FEFF 		bl	uartWrite
+  68:../src/telemetry.c ****         uartWrite(0x3e);
+ 112              		.loc 1 68 0
+ 113 004c 4FF03E00 		mov	r0, #62
+ 114 0050 FFF7FEFF 		bl	uartWrite
+ 115 0054 0FE0     		b	.L3
+ 116              	.L4:
+  69:../src/telemetry.c ****     } else if (data == 0x5d) {
+ 117              		.loc 1 69 0
+ 118 0056 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 119 0058 5D2B     		cmp	r3, #93
+ 120 005a 08D1     		bne	.L6
+  70:../src/telemetry.c ****         uartWrite(0x5d);
+ 121              		.loc 1 70 0
+ 122 005c 4FF05D00 		mov	r0, #93
+ 123 0060 FFF7FEFF 		bl	uartWrite
+  71:../src/telemetry.c ****         uartWrite(0x3d);
+ 124              		.loc 1 71 0
+ 125 0064 4FF03D00 		mov	r0, #61
+ 126 0068 FFF7FEFF 		bl	uartWrite
+ 127 006c 03E0     		b	.L3
+ 128              	.L6:
+  72:../src/telemetry.c ****     } else
+  73:../src/telemetry.c ****         uartWrite(data);
+ 129              		.loc 1 73 0
+ 130 006e FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 131 0070 1846     		mov	r0, r3
+ 132 0072 FFF7FEFF 		bl	uartWrite
+ 133              	.L3:
+  74:../src/telemetry.c **** }
+ 134              		.loc 1 74 0
+ 135 0076 07F10807 		add	r7, r7, #8
+ 136 007a BD46     		mov	sp, r7
+ 137 007c 80BD     		pop	{r7, pc}
+ 138              		.cfi_endproc
+ 139              	.LFE31:
+ 141 007e 00BF     		.align	2
+ 142              		.thumb
+ 143              		.thumb_func
+ 145              	serialize16:
+ 146              	.LFB32:
+  75:../src/telemetry.c **** 
+  76:../src/telemetry.c **** static void serialize16(int16_t a)
+  77:../src/telemetry.c **** {
+ 147              		.loc 1 77 0
+ 148              		.cfi_startproc
+ 149              		@ args = 0, pretend = 0, frame = 16
+ 150              		@ frame_needed = 1, uses_anonymous_args = 0
+ 151 0080 80B5     		push	{r7, lr}
+ 152              	.LCFI8:
+ 153              		.cfi_def_cfa_offset 8
+ 154              		.cfi_offset 7, -8
+ 155              		.cfi_offset 14, -4
+ 156 0082 84B0     		sub	sp, sp, #16
+ 157              	.LCFI9:
+ 158              		.cfi_def_cfa_offset 24
+ 159 0084 00AF     		add	r7, sp, #0
+ 160              	.LCFI10:
+ 161              		.cfi_def_cfa_register 7
+ 162 0086 0346     		mov	r3, r0
+ 163 0088 FB80     		strh	r3, [r7, #6]	@ movhi
+  78:../src/telemetry.c ****     uint8_t t;
+  79:../src/telemetry.c ****     t = a;
+ 164              		.loc 1 79 0
+ 165 008a FB88     		ldrh	r3, [r7, #6]	@ movhi
+ 166 008c FB73     		strb	r3, [r7, #15]
+  80:../src/telemetry.c ****     serializeFrsky(t);
+ 167              		.loc 1 80 0
+ 168 008e FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 169 0090 1846     		mov	r0, r3
+ 170 0092 FFF7CFFF 		bl	serializeFrsky
+  81:../src/telemetry.c ****     t = a >> 8 & 0xff;
+ 171              		.loc 1 81 0
+ 172 0096 B7F90630 		ldrsh	r3, [r7, #6]
+ 173 009a 4FEA2323 		asr	r3, r3, #8
+ 174 009e 9BB2     		uxth	r3, r3
+ 175 00a0 FB73     		strb	r3, [r7, #15]
+  82:../src/telemetry.c ****     serializeFrsky(t);
+ 176              		.loc 1 82 0
+ 177 00a2 FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 178 00a4 1846     		mov	r0, r3
+ 179 00a6 FFF7C5FF 		bl	serializeFrsky
+  83:../src/telemetry.c **** }
+ 180              		.loc 1 83 0
+ 181 00aa 07F11007 		add	r7, r7, #16
+ 182 00ae BD46     		mov	sp, r7
+ 183 00b0 80BD     		pop	{r7, pc}
+ 184              		.cfi_endproc
+ 185              	.LFE32:
+ 187              		.global	__aeabi_i2f
+ 188              		.global	__aeabi_fdiv
+ 189              		.global	__aeabi_fmul
+ 190              		.global	__aeabi_f2iz
+ 191 00b2 00BF     		.align	2
+ 192              		.thumb
+ 193              		.thumb_func
+ 195              	sendAccel:
+ 196              	.LFB33:
+  84:../src/telemetry.c **** 
+  85:../src/telemetry.c **** static void sendAccel(void)
+  86:../src/telemetry.c **** {
+ 197              		.loc 1 86 0
+ 198              		.cfi_startproc
+ 199              		@ args = 0, pretend = 0, frame = 8
+ 200              		@ frame_needed = 1, uses_anonymous_args = 0
+ 201 00b4 90B5     		push	{r4, r7, lr}
+ 202              	.LCFI11:
+ 203              		.cfi_def_cfa_offset 12
+ 204              		.cfi_offset 4, -12
+ 205              		.cfi_offset 7, -8
+ 206              		.cfi_offset 14, -4
+ 207 00b6 83B0     		sub	sp, sp, #12
+ 208              	.LCFI12:
+ 209              		.cfi_def_cfa_offset 24
+ 210 00b8 00AF     		add	r7, sp, #0
+ 211              	.LCFI13:
+ 212              		.cfi_def_cfa_register 7
+  87:../src/telemetry.c ****     int i;
+  88:../src/telemetry.c **** 
+  89:../src/telemetry.c ****     for (i = 0; i < 3; i++) {
+ 213              		.loc 1 89 0
+ 214 00ba 4FF00003 		mov	r3, #0
+ 215 00be 7B60     		str	r3, [r7, #4]
+ 216 00c0 2DE0     		b	.L9
+ 217              	.L10:
+  90:../src/telemetry.c ****         sendDataHead(ID_ACC_X + i);
+ 218              		.loc 1 90 0 discriminator 2
+ 219 00c2 7B68     		ldr	r3, [r7, #4]
+ 220 00c4 DBB2     		uxtb	r3, r3
+ 221 00c6 03F12403 		add	r3, r3, #36
+ 222 00ca DBB2     		uxtb	r3, r3
+ 223 00cc 1846     		mov	r0, r3
+ 224 00ce FFF797FF 		bl	sendDataHead
+  91:../src/telemetry.c ****         serialize16(((float)accSmooth[i] / acc_1G) * 1000);
+ 225              		.loc 1 91 0 discriminator 2
+ 226 00d2 164B     		ldr	r3, .L11
+ 227 00d4 7A68     		ldr	r2, [r7, #4]
+ 228 00d6 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 229 00da 1BB2     		sxth	r3, r3
+ 230 00dc 1846     		mov	r0, r3
+ 231 00de FFF7FEFF 		bl	__aeabi_i2f
+ 232 00e2 0446     		mov	r4, r0
+ 233 00e4 124B     		ldr	r3, .L11+4
+ 234 00e6 1B88     		ldrh	r3, [r3, #0]
+ 235 00e8 1846     		mov	r0, r3
+ 236 00ea FFF7FEFF 		bl	__aeabi_i2f
+ 237 00ee 0346     		mov	r3, r0
+ 238 00f0 2046     		mov	r0, r4
+ 239 00f2 1946     		mov	r1, r3
+ 240 00f4 FFF7FEFF 		bl	__aeabi_fdiv
+ 241 00f8 0346     		mov	r3, r0
+ 242 00fa 1846     		mov	r0, r3
+ 243 00fc 0D49     		ldr	r1, .L11+8	@ float
+ 244 00fe FFF7FEFF 		bl	__aeabi_fmul
+ 245 0102 0346     		mov	r3, r0
+ 246 0104 1846     		mov	r0, r3
+ 247 0106 FFF7FEFF 		bl	__aeabi_f2iz
+ 248 010a 0346     		mov	r3, r0
+ 249 010c 9BB2     		uxth	r3, r3
+ 250 010e 1BB2     		sxth	r3, r3
+ 251 0110 1846     		mov	r0, r3
+ 252 0112 FFF7B5FF 		bl	serialize16
+  89:../src/telemetry.c ****     for (i = 0; i < 3; i++) {
+ 253              		.loc 1 89 0 discriminator 2
+ 254 0116 7B68     		ldr	r3, [r7, #4]
+ 255 0118 03F10103 		add	r3, r3, #1
+ 256 011c 7B60     		str	r3, [r7, #4]
+ 257              	.L9:
+  89:../src/telemetry.c ****     for (i = 0; i < 3; i++) {
+ 258              		.loc 1 89 0 is_stmt 0 discriminator 1
+ 259 011e 7B68     		ldr	r3, [r7, #4]
+ 260 0120 022B     		cmp	r3, #2
+ 261 0122 CEDD     		ble	.L10
+  92:../src/telemetry.c ****     }
+  93:../src/telemetry.c **** }
+ 262              		.loc 1 93 0 is_stmt 1
+ 263 0124 07F10C07 		add	r7, r7, #12
+ 264 0128 BD46     		mov	sp, r7
+ 265 012a 90BD     		pop	{r4, r7, pc}
+ 266              	.L12:
+ 267              		.align	2
+ 268              	.L11:
+ 269 012c 00000000 		.word	accSmooth
+ 270 0130 00000000 		.word	acc_1G
+ 271 0134 00007A44 		.word	1148846080
+ 272              		.cfi_endproc
+ 273              	.LFE33:
+ 275              		.align	2
+ 276              		.thumb
+ 277              		.thumb_func
+ 279              	sendBaro:
+ 280              	.LFB34:
+  94:../src/telemetry.c **** 
+  95:../src/telemetry.c **** static void sendBaro(void)
+  96:../src/telemetry.c **** {
+ 281              		.loc 1 96 0
+ 282              		.cfi_startproc
+ 283              		@ args = 0, pretend = 0, frame = 0
+ 284              		@ frame_needed = 1, uses_anonymous_args = 0
+ 285 0138 80B5     		push	{r7, lr}
+ 286              	.LCFI14:
+ 287              		.cfi_def_cfa_offset 8
+ 288              		.cfi_offset 7, -8
+ 289              		.cfi_offset 14, -4
+ 290 013a 00AF     		add	r7, sp, #0
+ 291              	.LCFI15:
+ 292              		.cfi_def_cfa_register 7
+  97:../src/telemetry.c ****     sendDataHead(ID_ALTITUDE_BP);
+ 293              		.loc 1 97 0
+ 294 013c 4FF01000 		mov	r0, #16
+ 295 0140 FFF75EFF 		bl	sendDataHead
+  98:../src/telemetry.c ****     serialize16(BaroAlt / 100);
+ 296              		.loc 1 98 0
+ 297 0144 134B     		ldr	r3, .L14
+ 298 0146 1B68     		ldr	r3, [r3, #0]
+ 299 0148 134A     		ldr	r2, .L14+4
+ 300 014a 82FB0312 		smull	r1, r2, r2, r3
+ 301 014e 4FEA6212 		asr	r2, r2, #5
+ 302 0152 4FEAE373 		asr	r3, r3, #31
+ 303 0156 D31A     		subs	r3, r2, r3
+ 304 0158 9BB2     		uxth	r3, r3
+ 305 015a 1BB2     		sxth	r3, r3
+ 306 015c 1846     		mov	r0, r3
+ 307 015e FFF78FFF 		bl	serialize16
+  99:../src/telemetry.c ****     sendDataHead(ID_ALTITUDE_AP);
+ 308              		.loc 1 99 0
+ 309 0162 4FF02100 		mov	r0, #33
+ 310 0166 FFF74BFF 		bl	sendDataHead
+ 100:../src/telemetry.c ****     serialize16(BaroAlt % 100);
+ 311              		.loc 1 100 0
+ 312 016a 0A4B     		ldr	r3, .L14
+ 313 016c 1A68     		ldr	r2, [r3, #0]
+ 314 016e 0A4B     		ldr	r3, .L14+4
+ 315 0170 83FB0213 		smull	r1, r3, r3, r2
+ 316 0174 4FEA6311 		asr	r1, r3, #5
+ 317 0178 4FEAE273 		asr	r3, r2, #31
+ 318 017c CB1A     		subs	r3, r1, r3
+ 319 017e 4FF06401 		mov	r1, #100
+ 320 0182 01FB03F3 		mul	r3, r1, r3
+ 321 0186 D31A     		subs	r3, r2, r3
+ 322 0188 9BB2     		uxth	r3, r3
+ 323 018a 1BB2     		sxth	r3, r3
+ 324 018c 1846     		mov	r0, r3
+ 325 018e FFF777FF 		bl	serialize16
+ 101:../src/telemetry.c **** }
+ 326              		.loc 1 101 0
+ 327 0192 80BD     		pop	{r7, pc}
+ 328              	.L15:
+ 329              		.align	2
+ 330              	.L14:
+ 331 0194 00000000 		.word	BaroAlt
+ 332 0198 1F85EB51 		.word	1374389535
+ 333              		.cfi_endproc
+ 334              	.LFE34:
+ 336              		.align	2
+ 337              		.thumb
+ 338              		.thumb_func
+ 340              	sendTemperature1:
+ 341              	.LFB35:
+ 102:../src/telemetry.c **** 
+ 103:../src/telemetry.c **** static void sendTemperature1(void)
+ 104:../src/telemetry.c **** {
+ 342              		.loc 1 104 0
+ 343              		.cfi_startproc
+ 344              		@ args = 0, pretend = 0, frame = 0
+ 345              		@ frame_needed = 1, uses_anonymous_args = 0
+ 346 019c 80B5     		push	{r7, lr}
+ 347              	.LCFI16:
+ 348              		.cfi_def_cfa_offset 8
+ 349              		.cfi_offset 7, -8
+ 350              		.cfi_offset 14, -4
+ 351 019e 00AF     		add	r7, sp, #0
+ 352              	.LCFI17:
+ 353              		.cfi_def_cfa_register 7
+ 105:../src/telemetry.c ****     sendDataHead(ID_TEMPRATURE1);
+ 354              		.loc 1 105 0
+ 355 01a0 4FF00200 		mov	r0, #2
+ 356 01a4 FFF72CFF 		bl	sendDataHead
+ 106:../src/telemetry.c ****     serialize16(telemTemperature1 / 10);
+ 357              		.loc 1 106 0
+ 358 01a8 084B     		ldr	r3, .L17
+ 359 01aa 1B88     		ldrh	r3, [r3, #0]
+ 360 01ac 1BB2     		sxth	r3, r3
+ 361 01ae 084A     		ldr	r2, .L17+4
+ 362 01b0 82FB0312 		smull	r1, r2, r2, r3
+ 363 01b4 4FEAA202 		asr	r2, r2, #2
+ 364 01b8 4FEAE373 		asr	r3, r3, #31
+ 365 01bc D31A     		subs	r3, r2, r3
+ 366 01be 9BB2     		uxth	r3, r3
+ 367 01c0 1BB2     		sxth	r3, r3
+ 368 01c2 1846     		mov	r0, r3
+ 369 01c4 FFF75CFF 		bl	serialize16
+ 107:../src/telemetry.c **** }
+ 370              		.loc 1 107 0
+ 371 01c8 80BD     		pop	{r7, pc}
+ 372              	.L18:
+ 373 01ca 00BF     		.align	2
+ 374              	.L17:
+ 375 01cc 00000000 		.word	telemTemperature1
+ 376 01d0 67666666 		.word	1717986919
+ 377              		.cfi_endproc
+ 378              	.LFE35:
+ 380              		.align	2
+ 381              		.thumb
+ 382              		.thumb_func
+ 384              	sendTime:
+ 385              	.LFB36:
+ 108:../src/telemetry.c **** 
+ 109:../src/telemetry.c **** static void sendTime(void)
+ 110:../src/telemetry.c **** {
+ 386              		.loc 1 110 0
+ 387              		.cfi_startproc
+ 388              		@ args = 0, pretend = 0, frame = 8
+ 389              		@ frame_needed = 1, uses_anonymous_args = 0
+ 390 01d4 80B5     		push	{r7, lr}
+ 391              	.LCFI18:
+ 392              		.cfi_def_cfa_offset 8
+ 393              		.cfi_offset 7, -8
+ 394              		.cfi_offset 14, -4
+ 395 01d6 82B0     		sub	sp, sp, #8
+ 396              	.LCFI19:
+ 397              		.cfi_def_cfa_offset 16
+ 398 01d8 00AF     		add	r7, sp, #0
+ 399              	.LCFI20:
+ 400              		.cfi_def_cfa_register 7
+ 111:../src/telemetry.c ****     uint32_t seconds = millis() / 1000;
+ 401              		.loc 1 111 0
+ 402 01da FFF7FEFF 		bl	millis
+ 403 01de 0246     		mov	r2, r0
+ 404 01e0 1F4B     		ldr	r3, .L20
+ 405 01e2 A3FB0213 		umull	r1, r3, r3, r2
+ 406 01e6 4FEA9313 		lsr	r3, r3, #6
+ 407 01ea 7B60     		str	r3, [r7, #4]
+ 112:../src/telemetry.c ****     uint8_t minutes = (seconds / 60) % 60;
+ 408              		.loc 1 112 0
+ 409 01ec 7A68     		ldr	r2, [r7, #4]
+ 410 01ee 1D4B     		ldr	r3, .L20+4
+ 411 01f0 A3FB0213 		umull	r1, r3, r3, r2
+ 412 01f4 4FEA5311 		lsr	r1, r3, #5
+ 413 01f8 1A4B     		ldr	r3, .L20+4
+ 414 01fa A3FB0123 		umull	r2, r3, r3, r1
+ 415 01fe 4FEA5312 		lsr	r2, r3, #5
+ 416 0202 1346     		mov	r3, r2
+ 417 0204 4FEA0313 		lsl	r3, r3, #4
+ 418 0208 9B1A     		subs	r3, r3, r2
+ 419 020a 4FEA8303 		lsl	r3, r3, #2
+ 420 020e CA1A     		subs	r2, r1, r3
+ 421 0210 1346     		mov	r3, r2
+ 422 0212 FB70     		strb	r3, [r7, #3]
+ 113:../src/telemetry.c **** 
+ 114:../src/telemetry.c ****     // if we fly for more than an hour, something's wrong anyway
+ 115:../src/telemetry.c ****     sendDataHead(ID_HOUR_MINUTE);
+ 423              		.loc 1 115 0
+ 424 0214 4FF01700 		mov	r0, #23
+ 425 0218 FFF7F2FE 		bl	sendDataHead
+ 116:../src/telemetry.c ****     serialize16(minutes << 8);
+ 426              		.loc 1 116 0
+ 427 021c FB78     		ldrb	r3, [r7, #3]	@ zero_extendqisi2
+ 428 021e 4FEA0323 		lsl	r3, r3, #8
+ 429 0222 9BB2     		uxth	r3, r3
+ 430 0224 1BB2     		sxth	r3, r3
+ 431 0226 1846     		mov	r0, r3
+ 432 0228 FFF72AFF 		bl	serialize16
+ 117:../src/telemetry.c ****     sendDataHead(ID_SECOND);
+ 433              		.loc 1 117 0
+ 434 022c 4FF01800 		mov	r0, #24
+ 435 0230 FFF7E6FE 		bl	sendDataHead
+ 118:../src/telemetry.c ****     serialize16(seconds % 60);
+ 436              		.loc 1 118 0
+ 437 0234 7968     		ldr	r1, [r7, #4]
+ 438 0236 0B4B     		ldr	r3, .L20+4
+ 439 0238 A3FB0123 		umull	r2, r3, r3, r1
+ 440 023c 4FEA5312 		lsr	r2, r3, #5
+ 441 0240 1346     		mov	r3, r2
+ 442 0242 4FEA0313 		lsl	r3, r3, #4
+ 443 0246 9B1A     		subs	r3, r3, r2
+ 444 0248 4FEA8303 		lsl	r3, r3, #2
+ 445 024c CA1A     		subs	r2, r1, r3
+ 446 024e 93B2     		uxth	r3, r2
+ 447 0250 1BB2     		sxth	r3, r3
+ 448 0252 1846     		mov	r0, r3
+ 449 0254 FFF714FF 		bl	serialize16
+ 119:../src/telemetry.c **** }
+ 450              		.loc 1 119 0
+ 451 0258 07F10807 		add	r7, r7, #8
+ 452 025c BD46     		mov	sp, r7
+ 453 025e 80BD     		pop	{r7, pc}
+ 454              	.L21:
+ 455              		.align	2
+ 456              	.L20:
+ 457 0260 D34D6210 		.word	274877907
+ 458 0264 89888888 		.word	-2004318071
+ 459              		.cfi_endproc
+ 460              	.LFE36:
+ 462              		.align	2
+ 463              		.thumb
+ 464              		.thumb_func
+ 466              	sendGPS:
+ 467              	.LFB37:
+ 120:../src/telemetry.c **** 
+ 121:../src/telemetry.c **** static void sendGPS(void)
+ 122:../src/telemetry.c **** {
+ 468              		.loc 1 122 0
+ 469              		.cfi_startproc
+ 470              		@ args = 0, pretend = 0, frame = 0
+ 471              		@ frame_needed = 1, uses_anonymous_args = 0
+ 472 0268 80B5     		push	{r7, lr}
+ 473              	.LCFI21:
+ 474              		.cfi_def_cfa_offset 8
+ 475              		.cfi_offset 7, -8
+ 476              		.cfi_offset 14, -4
+ 477 026a 00AF     		add	r7, sp, #0
+ 478              	.LCFI22:
+ 479              		.cfi_def_cfa_register 7
+ 123:../src/telemetry.c ****     sendDataHead(ID_LATITUDE_BP);
+ 480              		.loc 1 123 0
+ 481 026c 4FF01300 		mov	r0, #19
+ 482 0270 FFF7C6FE 		bl	sendDataHead
+ 124:../src/telemetry.c ****     serialize16(abs(GPS_coord[LAT]) / 100000);
+ 483              		.loc 1 124 0
+ 484 0274 484B     		ldr	r3, .L27
+ 485 0276 1B68     		ldr	r3, [r3, #0]
+ 486 0278 002B     		cmp	r3, #0
+ 487 027a B8BF     		it	lt
+ 488 027c 5B42     		rsblt	r3, r3, #0
+ 489 027e 474A     		ldr	r2, .L27+4
+ 490 0280 82FB0312 		smull	r1, r2, r2, r3
+ 491 0284 4FEA6232 		asr	r2, r2, #13
+ 492 0288 4FEAE373 		asr	r3, r3, #31
+ 493 028c D31A     		subs	r3, r2, r3
+ 494 028e 9BB2     		uxth	r3, r3
+ 495 0290 1BB2     		sxth	r3, r3
+ 496 0292 1846     		mov	r0, r3
+ 497 0294 FFF7F4FE 		bl	serialize16
+ 125:../src/telemetry.c ****     sendDataHead(ID_LATITUDE_AP);
+ 498              		.loc 1 125 0
+ 499 0298 4FF01B00 		mov	r0, #27
+ 500 029c FFF7B0FE 		bl	sendDataHead
+ 126:../src/telemetry.c ****     serialize16((abs(GPS_coord[LAT]) / 10) % 10000);
+ 501              		.loc 1 126 0
+ 502 02a0 3D4B     		ldr	r3, .L27
+ 503 02a2 1B68     		ldr	r3, [r3, #0]
+ 504 02a4 002B     		cmp	r3, #0
+ 505 02a6 B8BF     		it	lt
+ 506 02a8 5B42     		rsblt	r3, r3, #0
+ 507 02aa 3D4A     		ldr	r2, .L27+8
+ 508 02ac 82FB0312 		smull	r1, r2, r2, r3
+ 509 02b0 4FEAA202 		asr	r2, r2, #2
+ 510 02b4 4FEAE373 		asr	r3, r3, #31
+ 511 02b8 D21A     		subs	r2, r2, r3
+ 512 02ba 3A4B     		ldr	r3, .L27+12
+ 513 02bc 83FB0213 		smull	r1, r3, r3, r2
+ 514 02c0 4FEA2331 		asr	r1, r3, #12
+ 515 02c4 4FEAE273 		asr	r3, r2, #31
+ 516 02c8 CB1A     		subs	r3, r1, r3
+ 517 02ca 42F21071 		movw	r1, #10000
+ 518 02ce 01FB03F3 		mul	r3, r1, r3
+ 519 02d2 D31A     		subs	r3, r2, r3
+ 520 02d4 9BB2     		uxth	r3, r3
+ 521 02d6 1BB2     		sxth	r3, r3
+ 522 02d8 1846     		mov	r0, r3
+ 523 02da FFF7D1FE 		bl	serialize16
+ 127:../src/telemetry.c **** 
+ 128:../src/telemetry.c ****     sendDataHead(ID_N_S);
+ 524              		.loc 1 128 0
+ 525 02de 4FF02300 		mov	r0, #35
+ 526 02e2 FFF78DFE 		bl	sendDataHead
+ 129:../src/telemetry.c ****     serialize16(GPS_coord[LAT] < 0 ? 'S' : 'N');
+ 527              		.loc 1 129 0
+ 528 02e6 2C4B     		ldr	r3, .L27
+ 529 02e8 1B68     		ldr	r3, [r3, #0]
+ 530 02ea 002B     		cmp	r3, #0
+ 531 02ec 02DA     		bge	.L23
+ 532              		.loc 1 129 0 is_stmt 0 discriminator 1
+ 533 02ee 4FF05303 		mov	r3, #83
+ 534 02f2 01E0     		b	.L24
+ 535              	.L23:
+ 536              		.loc 1 129 0 discriminator 2
+ 537 02f4 4FF04E03 		mov	r3, #78
+ 538              	.L24:
+ 539              		.loc 1 129 0 discriminator 3
+ 540 02f8 1BB2     		sxth	r3, r3
+ 541 02fa 1846     		mov	r0, r3
+ 542 02fc FFF7C0FE 		bl	serialize16
+ 130:../src/telemetry.c **** 
+ 131:../src/telemetry.c ****     sendDataHead(ID_LONGITUDE_BP);
+ 543              		.loc 1 131 0 is_stmt 1 discriminator 3
+ 544 0300 4FF01200 		mov	r0, #18
+ 545 0304 FFF77CFE 		bl	sendDataHead
+ 132:../src/telemetry.c ****     serialize16(abs(GPS_coord[LON]) / 100000);
+ 546              		.loc 1 132 0 discriminator 3
+ 547 0308 234B     		ldr	r3, .L27
+ 548 030a 5B68     		ldr	r3, [r3, #4]
+ 549 030c 002B     		cmp	r3, #0
+ 550 030e B8BF     		it	lt
+ 551 0310 5B42     		rsblt	r3, r3, #0
+ 552 0312 224A     		ldr	r2, .L27+4
+ 553 0314 82FB0312 		smull	r1, r2, r2, r3
+ 554 0318 4FEA6232 		asr	r2, r2, #13
+ 555 031c 4FEAE373 		asr	r3, r3, #31
+ 556 0320 D31A     		subs	r3, r2, r3
+ 557 0322 9BB2     		uxth	r3, r3
+ 558 0324 1BB2     		sxth	r3, r3
+ 559 0326 1846     		mov	r0, r3
+ 560 0328 FFF7AAFE 		bl	serialize16
+ 133:../src/telemetry.c ****     sendDataHead(ID_LONGITUDE_AP);
+ 561              		.loc 1 133 0 discriminator 3
+ 562 032c 4FF01A00 		mov	r0, #26
+ 563 0330 FFF766FE 		bl	sendDataHead
+ 134:../src/telemetry.c ****     serialize16((abs(GPS_coord[LON]) / 10) % 10000);
+ 564              		.loc 1 134 0 discriminator 3
+ 565 0334 184B     		ldr	r3, .L27
+ 566 0336 5B68     		ldr	r3, [r3, #4]
+ 567 0338 002B     		cmp	r3, #0
+ 568 033a B8BF     		it	lt
+ 569 033c 5B42     		rsblt	r3, r3, #0
+ 570 033e 184A     		ldr	r2, .L27+8
+ 571 0340 82FB0312 		smull	r1, r2, r2, r3
+ 572 0344 4FEAA202 		asr	r2, r2, #2
+ 573 0348 4FEAE373 		asr	r3, r3, #31
+ 574 034c D21A     		subs	r2, r2, r3
+ 575 034e 154B     		ldr	r3, .L27+12
+ 576 0350 83FB0213 		smull	r1, r3, r3, r2
+ 577 0354 4FEA2331 		asr	r1, r3, #12
+ 578 0358 4FEAE273 		asr	r3, r2, #31
+ 579 035c CB1A     		subs	r3, r1, r3
+ 580 035e 42F21071 		movw	r1, #10000
+ 581 0362 01FB03F3 		mul	r3, r1, r3
+ 582 0366 D31A     		subs	r3, r2, r3
+ 583 0368 9BB2     		uxth	r3, r3
+ 584 036a 1BB2     		sxth	r3, r3
+ 585 036c 1846     		mov	r0, r3
+ 586 036e FFF787FE 		bl	serialize16
+ 135:../src/telemetry.c ****     sendDataHead(ID_E_W);
+ 587              		.loc 1 135 0 discriminator 3
+ 588 0372 4FF02200 		mov	r0, #34
+ 589 0376 FFF743FE 		bl	sendDataHead
+ 136:../src/telemetry.c ****     serialize16(GPS_coord[LON] < 0 ? 'W' : 'E');
+ 590              		.loc 1 136 0 discriminator 3
+ 591 037a 074B     		ldr	r3, .L27
+ 592 037c 5B68     		ldr	r3, [r3, #4]
+ 593 037e 002B     		cmp	r3, #0
+ 594 0380 02DA     		bge	.L25
+ 595              		.loc 1 136 0 is_stmt 0 discriminator 1
+ 596 0382 4FF05703 		mov	r3, #87
+ 597 0386 01E0     		b	.L26
+ 598              	.L25:
+ 599              		.loc 1 136 0 discriminator 2
+ 600 0388 4FF04503 		mov	r3, #69
+ 601              	.L26:
+ 602              		.loc 1 136 0 discriminator 3
+ 603 038c 1BB2     		sxth	r3, r3
+ 604 038e 1846     		mov	r0, r3
+ 605 0390 FFF776FE 		bl	serialize16
+ 137:../src/telemetry.c **** }
+ 606              		.loc 1 137 0 is_stmt 1 discriminator 3
+ 607 0394 80BD     		pop	{r7, pc}
+ 608              	.L28:
+ 609 0396 00BF     		.align	2
+ 610              	.L27:
+ 611 0398 00000000 		.word	GPS_coord
+ 612 039c 89B5F814 		.word	351843721
+ 613 03a0 67666666 		.word	1717986919
+ 614 03a4 AD8BDB68 		.word	1759218605
+ 615              		.cfi_endproc
+ 616              	.LFE37:
+ 618              		.align	2
+ 619              		.thumb
+ 620              		.thumb_func
+ 622              	sendVoltage:
+ 623              	.LFB38:
+ 138:../src/telemetry.c **** 
+ 139:../src/telemetry.c **** /*
+ 140:../src/telemetry.c ****  * Send voltage via ID_VOLT
+ 141:../src/telemetry.c ****  *
+ 142:../src/telemetry.c ****  * NOTE: This sends voltage divided by batteryCellCount. To get the real
+ 143:../src/telemetry.c ****  * battery voltage, you need to multiply the value by batteryCellCount.
+ 144:../src/telemetry.c ****  */
+ 145:../src/telemetry.c **** static void sendVoltage(void)
+ 146:../src/telemetry.c **** {
+ 624              		.loc 1 146 0
+ 625              		.cfi_startproc
+ 626              		@ args = 0, pretend = 0, frame = 8
+ 627              		@ frame_needed = 1, uses_anonymous_args = 0
+ 628 03a8 80B5     		push	{r7, lr}
+ 629              	.LCFI23:
+ 630              		.cfi_def_cfa_offset 8
+ 631              		.cfi_offset 7, -8
+ 632              		.cfi_offset 14, -4
+ 633 03aa 82B0     		sub	sp, sp, #8
+ 634              	.LCFI24:
+ 635              		.cfi_def_cfa_offset 16
+ 636 03ac 00AF     		add	r7, sp, #0
+ 637              	.LCFI25:
+ 638              		.cfi_def_cfa_register 7
+ 147:../src/telemetry.c ****     static uint16_t currentCell = 0;
+ 148:../src/telemetry.c ****     uint16_t cellNumber;
+ 149:../src/telemetry.c ****     uint32_t cellVoltage;
+ 150:../src/telemetry.c ****     uint16_t payload;
+ 151:../src/telemetry.c **** 
+ 152:../src/telemetry.c ****     /*
+ 153:../src/telemetry.c ****      * Note: Fuck the pdf. Format for Voltage Data for single cells is like this:
+ 154:../src/telemetry.c ****      *
+ 155:../src/telemetry.c ****      *  llll llll cccc hhhh
+ 156:../src/telemetry.c ****      *  l: Low voltage bits
+ 157:../src/telemetry.c ****      *  h: High voltage bits
+ 158:../src/telemetry.c ****      *  c: Cell number (starting at 0)
+ 159:../src/telemetry.c ****      */
+ 160:../src/telemetry.c ****     cellVoltage = vbat / batteryCellCount;
+ 639              		.loc 1 160 0
+ 640 03ae 2A4B     		ldr	r3, .L30
+ 641 03b0 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 642 03b2 2A4B     		ldr	r3, .L30+4
+ 643 03b4 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 644 03b6 B2FBF3F3 		udiv	r3, r2, r3
+ 645 03ba DBB2     		uxtb	r3, r3
+ 646 03bc 7B60     		str	r3, [r7, #4]
+ 161:../src/telemetry.c **** 
+ 162:../src/telemetry.c ****     // Map to 12 bit range
+ 163:../src/telemetry.c ****     cellVoltage = (cellVoltage * 2100) / 42;
+ 647              		.loc 1 163 0
+ 648 03be 7B68     		ldr	r3, [r7, #4]
+ 649 03c0 40F63402 		movw	r2, #2100
+ 650 03c4 02FB03F3 		mul	r3, r2, r3
+ 651 03c8 4FEA5302 		lsr	r2, r3, #1
+ 652 03cc 244B     		ldr	r3, .L30+8
+ 653 03ce A3FB0213 		umull	r1, r3, r3, r2
+ 654 03d2 4FEA9303 		lsr	r3, r3, #2
+ 655 03d6 7B60     		str	r3, [r7, #4]
+ 164:../src/telemetry.c **** 
+ 165:../src/telemetry.c ****     cellNumber = currentCell % batteryCellCount;
+ 656              		.loc 1 165 0
+ 657 03d8 224B     		ldr	r3, .L30+12
+ 658 03da 1B88     		ldrh	r3, [r3, #0]
+ 659 03dc 1F4A     		ldr	r2, .L30+4
+ 660 03de 1278     		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 661 03e0 93FBF2F1 		sdiv	r1, r3, r2
+ 662 03e4 02FB01F2 		mul	r2, r2, r1
+ 663 03e8 9B1A     		subs	r3, r3, r2
+ 664 03ea 7B80     		strh	r3, [r7, #2]	@ movhi
+ 166:../src/telemetry.c **** 
+ 167:../src/telemetry.c ****     // Cell number is at bit 9-12
+ 168:../src/telemetry.c ****     payload = (cellNumber << 4);
+ 665              		.loc 1 168 0
+ 666 03ec 7B88     		ldrh	r3, [r7, #2]	@ movhi
+ 667 03ee 4FEA0313 		lsl	r3, r3, #4
+ 668 03f2 3B80     		strh	r3, [r7, #0]	@ movhi
+ 169:../src/telemetry.c **** 
+ 170:../src/telemetry.c ****     // Lower voltage bits are at bit 0-8
+ 171:../src/telemetry.c ****     payload |= ((cellVoltage & 0x0ff) << 8);
+ 669              		.loc 1 171 0
+ 670 03f4 7B68     		ldr	r3, [r7, #4]
+ 671 03f6 9BB2     		uxth	r3, r3
+ 672 03f8 4FEA0323 		lsl	r3, r3, #8
+ 673 03fc 9AB2     		uxth	r2, r3
+ 674 03fe 3B88     		ldrh	r3, [r7, #0]	@ movhi
+ 675 0400 1343     		orrs	r3, r3, r2
+ 676 0402 3B80     		strh	r3, [r7, #0]	@ movhi
+ 172:../src/telemetry.c **** 
+ 173:../src/telemetry.c ****     // Higher voltage bits are at bits 13-15
+ 174:../src/telemetry.c ****     payload |= ((cellVoltage & 0xf00) >> 8);
+ 677              		.loc 1 174 0
+ 678 0404 7B68     		ldr	r3, [r7, #4]
+ 679 0406 03F47063 		and	r3, r3, #3840
+ 680 040a 4FEA1323 		lsr	r3, r3, #8
+ 681 040e 9AB2     		uxth	r2, r3
+ 682 0410 3B88     		ldrh	r3, [r7, #0]	@ movhi
+ 683 0412 1343     		orrs	r3, r3, r2
+ 684 0414 3B80     		strh	r3, [r7, #0]	@ movhi
+ 175:../src/telemetry.c **** 
+ 176:../src/telemetry.c ****     sendDataHead(ID_VOLT);
+ 685              		.loc 1 176 0
+ 686 0416 4FF00600 		mov	r0, #6
+ 687 041a FFF7F1FD 		bl	sendDataHead
+ 177:../src/telemetry.c ****     serialize16(payload);
+ 688              		.loc 1 177 0
+ 689 041e 3B88     		ldrh	r3, [r7, #0]
+ 690 0420 1BB2     		sxth	r3, r3
+ 691 0422 1846     		mov	r0, r3
+ 692 0424 FFF72CFE 		bl	serialize16
+ 178:../src/telemetry.c **** 
+ 179:../src/telemetry.c ****     currentCell++;
+ 693              		.loc 1 179 0
+ 694 0428 0E4B     		ldr	r3, .L30+12
+ 695 042a 1B88     		ldrh	r3, [r3, #0]
+ 696 042c 03F10103 		add	r3, r3, #1
+ 697 0430 9AB2     		uxth	r2, r3
+ 698 0432 0C4B     		ldr	r3, .L30+12
+ 699 0434 1A80     		strh	r2, [r3, #0]	@ movhi
+ 180:../src/telemetry.c ****     currentCell %= batteryCellCount;
+ 700              		.loc 1 180 0
+ 701 0436 0B4B     		ldr	r3, .L30+12
+ 702 0438 1B88     		ldrh	r3, [r3, #0]
+ 703 043a 084A     		ldr	r2, .L30+4
+ 704 043c 1278     		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 705 043e 93FBF2F1 		sdiv	r1, r3, r2
+ 706 0442 02FB01F2 		mul	r2, r2, r1
+ 707 0446 9B1A     		subs	r3, r3, r2
+ 708 0448 9AB2     		uxth	r2, r3
+ 709 044a 064B     		ldr	r3, .L30+12
+ 710 044c 1A80     		strh	r2, [r3, #0]	@ movhi
+ 181:../src/telemetry.c **** }
+ 711              		.loc 1 181 0
+ 712 044e 07F10807 		add	r7, r7, #8
+ 713 0452 BD46     		mov	sp, r7
+ 714 0454 80BD     		pop	{r7, pc}
+ 715              	.L31:
+ 716 0456 00BF     		.align	2
+ 717              	.L30:
+ 718 0458 00000000 		.word	vbat
+ 719 045c 00000000 		.word	batteryCellCount
+ 720 0460 310CC330 		.word	818089009
+ 721 0464 0A000000 		.word	currentCell.9065
+ 722              		.cfi_endproc
+ 723              	.LFE38:
+ 725              		.align	2
+ 726              		.thumb
+ 727              		.thumb_func
+ 729              	sendVoltageAmp:
+ 730              	.LFB39:
+ 182:../src/telemetry.c **** 
+ 183:../src/telemetry.c **** /*
+ 184:../src/telemetry.c ****  * Send voltage with ID_VOLTAGE_AMP
+ 185:../src/telemetry.c ****  */
+ 186:../src/telemetry.c **** static void sendVoltageAmp()
+ 187:../src/telemetry.c **** {
+ 731              		.loc 1 187 0
+ 732              		.cfi_startproc
+ 733              		@ args = 0, pretend = 0, frame = 8
+ 734              		@ frame_needed = 1, uses_anonymous_args = 0
+ 735 0468 80B5     		push	{r7, lr}
+ 736              	.LCFI26:
+ 737              		.cfi_def_cfa_offset 8
+ 738              		.cfi_offset 7, -8
+ 739              		.cfi_offset 14, -4
+ 740 046a 82B0     		sub	sp, sp, #8
+ 741              	.LCFI27:
+ 742              		.cfi_def_cfa_offset 16
+ 743 046c 00AF     		add	r7, sp, #0
+ 744              	.LCFI28:
+ 745              		.cfi_def_cfa_register 7
+ 188:../src/telemetry.c ****     uint16_t voltage = (vbat * 110) / 21;
+ 746              		.loc 1 188 0
+ 747 046e 214B     		ldr	r3, .L33
+ 748 0470 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 749 0472 4FF06E02 		mov	r2, #110
+ 750 0476 02FB03F3 		mul	r3, r2, r3
+ 751 047a 1F4A     		ldr	r2, .L33+4
+ 752 047c 82FB0312 		smull	r1, r2, r2, r3
+ 753 0480 4FEAA202 		asr	r2, r2, #2
+ 754 0484 4FEAE373 		asr	r3, r3, #31
+ 755 0488 D31A     		subs	r3, r2, r3
+ 756 048a FB80     		strh	r3, [r7, #6]	@ movhi
+ 189:../src/telemetry.c **** 
+ 190:../src/telemetry.c ****     sendDataHead(ID_VOLTAGE_AMP_BP);
+ 757              		.loc 1 190 0
+ 758 048c 4FF03A00 		mov	r0, #58
+ 759 0490 FFF7B6FD 		bl	sendDataHead
+ 191:../src/telemetry.c ****     serialize16(voltage / 100);
+ 760              		.loc 1 191 0
+ 761 0494 FA88     		ldrh	r2, [r7, #6]
+ 762 0496 194B     		ldr	r3, .L33+8
+ 763 0498 A3FB0213 		umull	r1, r3, r3, r2
+ 764 049c 4FEA5313 		lsr	r3, r3, #5
+ 765 04a0 9BB2     		uxth	r3, r3
+ 766 04a2 9BB2     		uxth	r3, r3
+ 767 04a4 1BB2     		sxth	r3, r3
+ 768 04a6 1846     		mov	r0, r3
+ 769 04a8 FFF7EAFD 		bl	serialize16
+ 192:../src/telemetry.c ****     sendDataHead(ID_VOLTAGE_AMP_AP);
+ 770              		.loc 1 192 0
+ 771 04ac 4FF03B00 		mov	r0, #59
+ 772 04b0 FFF7A6FD 		bl	sendDataHead
+ 193:../src/telemetry.c ****     serialize16(((voltage % 100) + 5) / 10);
+ 773              		.loc 1 193 0
+ 774 04b4 FB88     		ldrh	r3, [r7, #6]
+ 775 04b6 114A     		ldr	r2, .L33+8
+ 776 04b8 A2FB0312 		umull	r1, r2, r2, r3
+ 777 04bc 4FEA5212 		lsr	r2, r2, #5
+ 778 04c0 4FF06401 		mov	r1, #100
+ 779 04c4 01FB02F2 		mul	r2, r1, r2
+ 780 04c8 9B1A     		subs	r3, r3, r2
+ 781 04ca 9BB2     		uxth	r3, r3
+ 782 04cc 03F10503 		add	r3, r3, #5
+ 783 04d0 0B4A     		ldr	r2, .L33+12
+ 784 04d2 82FB0312 		smull	r1, r2, r2, r3
+ 785 04d6 4FEAA202 		asr	r2, r2, #2
+ 786 04da 4FEAE373 		asr	r3, r3, #31
+ 787 04de D31A     		subs	r3, r2, r3
+ 788 04e0 9BB2     		uxth	r3, r3
+ 789 04e2 1BB2     		sxth	r3, r3
+ 790 04e4 1846     		mov	r0, r3
+ 791 04e6 FFF7CBFD 		bl	serialize16
+ 194:../src/telemetry.c **** }
+ 792              		.loc 1 194 0
+ 793 04ea 07F10807 		add	r7, r7, #8
+ 794 04ee BD46     		mov	sp, r7
+ 795 04f0 80BD     		pop	{r7, pc}
+ 796              	.L34:
+ 797 04f2 00BF     		.align	2
+ 798              	.L33:
+ 799 04f4 00000000 		.word	vbat
+ 800 04f8 310CC330 		.word	818089009
+ 801 04fc 1F85EB51 		.word	1374389535
+ 802 0500 67666666 		.word	1717986919
+ 803              		.cfi_endproc
+ 804              	.LFE39:
+ 806              		.align	2
+ 807              		.thumb
+ 808              		.thumb_func
+ 810              	sendHeading:
+ 811              	.LFB40:
+ 195:../src/telemetry.c **** 
+ 196:../src/telemetry.c **** static void sendHeading(void)
+ 197:../src/telemetry.c **** {
+ 812              		.loc 1 197 0
+ 813              		.cfi_startproc
+ 814              		@ args = 0, pretend = 0, frame = 0
+ 815              		@ frame_needed = 1, uses_anonymous_args = 0
+ 816 0504 80B5     		push	{r7, lr}
+ 817              	.LCFI29:
+ 818              		.cfi_def_cfa_offset 8
+ 819              		.cfi_offset 7, -8
+ 820              		.cfi_offset 14, -4
+ 821 0506 00AF     		add	r7, sp, #0
+ 822              	.LCFI30:
+ 823              		.cfi_def_cfa_register 7
+ 198:../src/telemetry.c ****     sendDataHead(ID_COURSE_BP);
+ 824              		.loc 1 198 0
+ 825 0508 4FF01400 		mov	r0, #20
+ 826 050c FFF778FD 		bl	sendDataHead
+ 199:../src/telemetry.c ****     serialize16(heading);
+ 827              		.loc 1 199 0
+ 828 0510 074B     		ldr	r3, .L36
+ 829 0512 1B88     		ldrh	r3, [r3, #0]
+ 830 0514 1BB2     		sxth	r3, r3
+ 831 0516 1846     		mov	r0, r3
+ 832 0518 FFF7B2FD 		bl	serialize16
+ 200:../src/telemetry.c ****     sendDataHead(ID_COURSE_AP);
+ 833              		.loc 1 200 0
+ 834 051c 4FF01C00 		mov	r0, #28
+ 835 0520 FFF76EFD 		bl	sendDataHead
+ 201:../src/telemetry.c ****     serialize16(0);
+ 836              		.loc 1 201 0
+ 837 0524 4FF00000 		mov	r0, #0
+ 838 0528 FFF7AAFD 		bl	serialize16
+ 202:../src/telemetry.c **** }
+ 839              		.loc 1 202 0
+ 840 052c 80BD     		pop	{r7, pc}
+ 841              	.L37:
+ 842 052e 00BF     		.align	2
+ 843              	.L36:
+ 844 0530 00000000 		.word	heading
+ 845              		.cfi_endproc
+ 846              	.LFE40:
+ 848              		.bss
+ 849              	telemetryEnabled:
+ 850 0000 00       		.space	1
+ 851              		.text
+ 852              		.align	2
+ 853              		.global	initTelemetry
+ 854              		.thumb
+ 855              		.thumb_func
+ 857              	initTelemetry:
+ 858              	.LFB41:
+ 203:../src/telemetry.c **** 
+ 204:../src/telemetry.c **** static bool telemetryEnabled = false;
+ 205:../src/telemetry.c **** 
+ 206:../src/telemetry.c **** void initTelemetry(bool State)
+ 207:../src/telemetry.c **** {
+ 859              		.loc 1 207 0
+ 860              		.cfi_startproc
+ 861              		@ args = 0, pretend = 0, frame = 8
+ 862              		@ frame_needed = 1, uses_anonymous_args = 0
+ 863 0534 80B5     		push	{r7, lr}
+ 864              	.LCFI31:
+ 865              		.cfi_def_cfa_offset 8
+ 866              		.cfi_offset 7, -8
+ 867              		.cfi_offset 14, -4
+ 868 0536 82B0     		sub	sp, sp, #8
+ 869              	.LCFI32:
+ 870              		.cfi_def_cfa_offset 16
+ 871 0538 00AF     		add	r7, sp, #0
+ 872              	.LCFI33:
+ 873              		.cfi_def_cfa_register 7
+ 874 053a 0346     		mov	r3, r0
+ 875 053c FB71     		strb	r3, [r7, #7]
+ 208:../src/telemetry.c ****     if (State != telemetryEnabled) {
+ 876              		.loc 1 208 0
+ 877 053e 0D4B     		ldr	r3, .L42
+ 878 0540 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 879 0542 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 880 0544 9A42     		cmp	r2, r3
+ 881 0546 10D0     		beq	.L38
+ 209:../src/telemetry.c ****         if (State)
+ 882              		.loc 1 209 0
+ 883 0548 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 884 054a 002B     		cmp	r3, #0
+ 885 054c 04D0     		beq	.L40
+ 210:../src/telemetry.c ****             serialInit(9600);
+ 886              		.loc 1 210 0
+ 887 054e 4FF41650 		mov	r0, #9600
+ 888 0552 FFF7FEFF 		bl	serialInit
+ 889 0556 05E0     		b	.L41
+ 890              	.L40:
+ 211:../src/telemetry.c ****         else
+ 212:../src/telemetry.c ****             serialInit(mcfg.serial_baudrate);
+ 891              		.loc 1 212 0
+ 892 0558 074B     		ldr	r3, .L42+4
+ 893 055a D3F81431 		ldr	r3, [r3, #276]
+ 894 055e 1846     		mov	r0, r3
+ 895 0560 FFF7FEFF 		bl	serialInit
+ 896              	.L41:
+ 213:../src/telemetry.c ****         telemetryEnabled = State;
+ 897              		.loc 1 213 0
+ 898 0564 034B     		ldr	r3, .L42
+ 899 0566 FA79     		ldrb	r2, [r7, #7]
+ 900 0568 1A70     		strb	r2, [r3, #0]
+ 901              	.L38:
+ 214:../src/telemetry.c ****     }
+ 215:../src/telemetry.c **** }
+ 902              		.loc 1 215 0
+ 903 056a 07F10807 		add	r7, r7, #8
+ 904 056e BD46     		mov	sp, r7
+ 905 0570 80BD     		pop	{r7, pc}
+ 906              	.L43:
+ 907 0572 00BF     		.align	2
+ 908              	.L42:
+ 909 0574 00000000 		.word	telemetryEnabled
+ 910 0578 00000000 		.word	mcfg
+ 911              		.cfi_endproc
+ 912              	.LFE41:
+ 914              		.bss
+ 915 0001 000000   		.align	2
+ 916              	lastCycleTime:
+ 917 0004 00000000 		.space	4
+ 918              	cycleNum:
+ 919 0008 00       		.space	1
+ 920              		.text
+ 921              		.align	2
+ 922              		.global	sendTelemetry
+ 923              		.thumb
+ 924              		.thumb_func
+ 926              	sendTelemetry:
+ 927              	.LFB42:
+ 216:../src/telemetry.c **** 
+ 217:../src/telemetry.c **** static uint32_t lastCycleTime = 0;
+ 218:../src/telemetry.c **** static uint8_t cycleNum = 0;
+ 219:../src/telemetry.c **** 
+ 220:../src/telemetry.c **** void sendTelemetry(void)
+ 221:../src/telemetry.c **** {
+ 928              		.loc 1 221 0
+ 929              		.cfi_startproc
+ 930              		@ args = 0, pretend = 0, frame = 0
+ 931              		@ frame_needed = 1, uses_anonymous_args = 0
+ 932 057c 80B5     		push	{r7, lr}
+ 933              	.LCFI34:
+ 934              		.cfi_def_cfa_offset 8
+ 935              		.cfi_offset 7, -8
+ 936              		.cfi_offset 14, -4
+ 937 057e 00AF     		add	r7, sp, #0
+ 938              	.LCFI35:
+ 939              		.cfi_def_cfa_register 7
+ 222:../src/telemetry.c ****     if (millis() - lastCycleTime >= CYCLETIME) {
+ 940              		.loc 1 222 0
+ 941 0580 FFF7FEFF 		bl	millis
+ 942 0584 0246     		mov	r2, r0
+ 943 0586 274B     		ldr	r3, .L50
+ 944 0588 1B68     		ldr	r3, [r3, #0]
+ 945 058a D31A     		subs	r3, r2, r3
+ 946 058c 7C2B     		cmp	r3, #124
+ 947 058e 47D9     		bls	.L44
+ 223:../src/telemetry.c ****         lastCycleTime = millis();
+ 948              		.loc 1 223 0
+ 949 0590 FFF7FEFF 		bl	millis
+ 950 0594 0246     		mov	r2, r0
+ 951 0596 234B     		ldr	r3, .L50
+ 952 0598 1A60     		str	r2, [r3, #0]
+ 224:../src/telemetry.c ****         cycleNum++;
+ 953              		.loc 1 224 0
+ 954 059a 234B     		ldr	r3, .L50+4
+ 955 059c 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 956 059e 03F10103 		add	r3, r3, #1
+ 957 05a2 DAB2     		uxtb	r2, r3
+ 958 05a4 204B     		ldr	r3, .L50+4
+ 959 05a6 1A70     		strb	r2, [r3, #0]
+ 225:../src/telemetry.c **** 
+ 226:../src/telemetry.c ****         // Sent every 125ms
+ 227:../src/telemetry.c ****         sendAccel();
+ 960              		.loc 1 227 0
+ 961 05a8 FFF784FD 		bl	sendAccel
+ 228:../src/telemetry.c ****         sendTelemetryTail();
+ 962              		.loc 1 228 0
+ 963 05ac FFF73AFD 		bl	sendTelemetryTail
+ 229:../src/telemetry.c **** 
+ 230:../src/telemetry.c ****         if ((cycleNum % 4) == 0) {      // Sent every 500ms
+ 964              		.loc 1 230 0
+ 965 05b0 1D4B     		ldr	r3, .L50+4
+ 966 05b2 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 967 05b4 03F00303 		and	r3, r3, #3
+ 968 05b8 DBB2     		uxtb	r3, r3
+ 969 05ba 002B     		cmp	r3, #0
+ 970 05bc 05D1     		bne	.L46
+ 231:../src/telemetry.c ****             sendBaro();
+ 971              		.loc 1 231 0
+ 972 05be FFF7BBFD 		bl	sendBaro
+ 232:../src/telemetry.c ****             sendHeading();
+ 973              		.loc 1 232 0
+ 974 05c2 FFF79FFF 		bl	sendHeading
+ 233:../src/telemetry.c ****             sendTelemetryTail();
+ 975              		.loc 1 233 0
+ 976 05c6 FFF72DFD 		bl	sendTelemetryTail
+ 977              	.L46:
+ 234:../src/telemetry.c ****         }
+ 235:../src/telemetry.c **** 
+ 236:../src/telemetry.c ****         if ((cycleNum % 8) == 0) {      // Sent every 1s
+ 978              		.loc 1 236 0
+ 979 05ca 174B     		ldr	r3, .L50+4
+ 980 05cc 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 981 05ce 03F00703 		and	r3, r3, #7
+ 982 05d2 DBB2     		uxtb	r3, r3
+ 983 05d4 002B     		cmp	r3, #0
+ 984 05d6 17D1     		bne	.L47
+ 237:../src/telemetry.c ****             sendTemperature1();
+ 985              		.loc 1 237 0
+ 986 05d8 FFF7E0FD 		bl	sendTemperature1
+ 238:../src/telemetry.c **** 
+ 239:../src/telemetry.c ****             if (feature(FEATURE_VBAT)) {
+ 987              		.loc 1 239 0
+ 988 05dc 4FF00200 		mov	r0, #2
+ 989 05e0 FFF7FEFF 		bl	feature
+ 990 05e4 0346     		mov	r3, r0
+ 991 05e6 002B     		cmp	r3, #0
+ 992 05e8 03D0     		beq	.L48
+ 240:../src/telemetry.c ****                 sendVoltage();
+ 993              		.loc 1 240 0
+ 994 05ea FFF7DDFE 		bl	sendVoltage
+ 241:../src/telemetry.c ****                 sendVoltageAmp();
+ 995              		.loc 1 241 0
+ 996 05ee FFF73BFF 		bl	sendVoltageAmp
+ 997              	.L48:
+ 242:../src/telemetry.c ****             }
+ 243:../src/telemetry.c **** 
+ 244:../src/telemetry.c ****             if (sensors(SENSOR_GPS))
+ 998              		.loc 1 244 0
+ 999 05f2 4FF01000 		mov	r0, #16
+ 1000 05f6 FFF7FEFF 		bl	sensors
+ 1001 05fa 0346     		mov	r3, r0
+ 1002 05fc 002B     		cmp	r3, #0
+ 1003 05fe 01D0     		beq	.L49
+ 245:../src/telemetry.c ****                 sendGPS();
+ 1004              		.loc 1 245 0
+ 1005 0600 FFF732FE 		bl	sendGPS
+ 1006              	.L49:
+ 246:../src/telemetry.c **** 
+ 247:../src/telemetry.c ****             sendTelemetryTail();
+ 1007              		.loc 1 247 0
+ 1008 0604 FFF70EFD 		bl	sendTelemetryTail
+ 1009              	.L47:
+ 248:../src/telemetry.c ****         }
+ 249:../src/telemetry.c **** 
+ 250:../src/telemetry.c ****         if (cycleNum == 40) {     //Frame 3: Sent every 5s
+ 1010              		.loc 1 250 0
+ 1011 0608 074B     		ldr	r3, .L50+4
+ 1012 060a 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1013 060c 282B     		cmp	r3, #40
+ 1014 060e 07D1     		bne	.L44
+ 251:../src/telemetry.c ****             cycleNum = 0;
+ 1015              		.loc 1 251 0
+ 1016 0610 054B     		ldr	r3, .L50+4
+ 1017 0612 4FF00002 		mov	r2, #0
+ 1018 0616 1A70     		strb	r2, [r3, #0]
+ 252:../src/telemetry.c ****             sendTime();
+ 1019              		.loc 1 252 0
+ 1020 0618 FFF7DCFD 		bl	sendTime
+ 253:../src/telemetry.c ****             sendTelemetryTail();
+ 1021              		.loc 1 253 0
+ 1022 061c FFF702FD 		bl	sendTelemetryTail
+ 1023              	.L44:
+ 254:../src/telemetry.c ****         }
+ 255:../src/telemetry.c ****     }
+ 256:../src/telemetry.c **** }
+ 1024              		.loc 1 256 0
+ 1025 0620 80BD     		pop	{r7, pc}
+ 1026              	.L51:
+ 1027 0622 00BF     		.align	2
+ 1028              	.L50:
+ 1029 0624 04000000 		.word	lastCycleTime
+ 1030 0628 08000000 		.word	cycleNum
+ 1031              		.cfi_endproc
+ 1032              	.LFE42:
+ 1034              		.bss
+ 1035 0009 00       		.align	1
+ 1036              	currentCell.9065:
+ 1037 000a 0000     		.space	2
+ 1038              		.text
+ 1039              	.Letext0:
+ 1040              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 1041              		.file 3 "../src/board.h"
+ 1042              		.file 4 "../src/mw.h"
+ 1043              		.file 5 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 telemetry.c
+     /tmp/ccrHuIp9.s:18     .text:00000000 $t
+     /tmp/ccrHuIp9.s:22     .text:00000000 sendDataHead
+     /tmp/ccrHuIp9.s:60     .text:00000024 sendTelemetryTail
+     /tmp/ccrHuIp9.s:86     .text:00000034 serializeFrsky
+     /tmp/ccrHuIp9.s:145    .text:00000080 serialize16
+     /tmp/ccrHuIp9.s:195    .text:000000b4 sendAccel
+     /tmp/ccrHuIp9.s:269    .text:0000012c $d
+     /tmp/ccrHuIp9.s:275    .text:00000138 $t
+     /tmp/ccrHuIp9.s:279    .text:00000138 sendBaro
+     /tmp/ccrHuIp9.s:331    .text:00000194 $d
+     /tmp/ccrHuIp9.s:336    .text:0000019c $t
+     /tmp/ccrHuIp9.s:340    .text:0000019c sendTemperature1
+     /tmp/ccrHuIp9.s:375    .text:000001cc $d
+     /tmp/ccrHuIp9.s:380    .text:000001d4 $t
+     /tmp/ccrHuIp9.s:384    .text:000001d4 sendTime
+     /tmp/ccrHuIp9.s:457    .text:00000260 $d
+     /tmp/ccrHuIp9.s:462    .text:00000268 $t
+     /tmp/ccrHuIp9.s:466    .text:00000268 sendGPS
+     /tmp/ccrHuIp9.s:611    .text:00000398 $d
+     /tmp/ccrHuIp9.s:618    .text:000003a8 $t
+     /tmp/ccrHuIp9.s:622    .text:000003a8 sendVoltage
+     /tmp/ccrHuIp9.s:718    .text:00000458 $d
+     /tmp/ccrHuIp9.s:1036   .bss:0000000a currentCell.9065
+     /tmp/ccrHuIp9.s:725    .text:00000468 $t
+     /tmp/ccrHuIp9.s:729    .text:00000468 sendVoltageAmp
+     /tmp/ccrHuIp9.s:799    .text:000004f4 $d
+     /tmp/ccrHuIp9.s:806    .text:00000504 $t
+     /tmp/ccrHuIp9.s:810    .text:00000504 sendHeading
+     /tmp/ccrHuIp9.s:844    .text:00000530 $d
+     /tmp/ccrHuIp9.s:849    .bss:00000000 telemetryEnabled
+     /tmp/ccrHuIp9.s:850    .bss:00000000 $d
+     /tmp/ccrHuIp9.s:852    .text:00000534 $t
+     /tmp/ccrHuIp9.s:857    .text:00000534 initTelemetry
+     /tmp/ccrHuIp9.s:909    .text:00000574 $d
+     /tmp/ccrHuIp9.s:916    .bss:00000004 lastCycleTime
+     /tmp/ccrHuIp9.s:918    .bss:00000008 cycleNum
+     /tmp/ccrHuIp9.s:921    .text:0000057c $t
+     /tmp/ccrHuIp9.s:926    .text:0000057c sendTelemetry
+     /tmp/ccrHuIp9.s:1029   .text:00000624 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+                           .group:00000000 wm4.mw.h.4.b0e233e0e6ae9c4c07b142ad41413d4c
+
+UNDEFINED SYMBOLS
+uartWrite
+__aeabi_i2f
+__aeabi_fdiv
+__aeabi_fmul
+__aeabi_f2iz
+accSmooth
+acc_1G
+BaroAlt
+telemTemperature1
+millis
+GPS_coord
+vbat
+batteryCellCount
+heading
+serialInit
+mcfg
+feature
+sensors

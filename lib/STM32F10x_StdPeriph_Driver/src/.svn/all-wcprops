@@ -1,0 +1,143 @@
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src
+END
+stm32f10x_spi.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_spi.c
+END
+misc.c
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/misc.c
+END
+stm32f10x_flash.c
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_flash.c
+END
+stm32f10x_can.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_can.c
+END
+stm32f10x_gpio.c
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_gpio.c
+END
+stm32f10x_rcc.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rcc.c
+END
+stm32f10x_iwdg.c
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_iwdg.c
+END
+stm32f10x_crc.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_crc.c
+END
+stm32f10x_tim.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_tim.c
+END
+stm32f10x_dma.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_dma.c
+END
+stm32f10x_dbgmcu.c
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_dbgmcu.c
+END
+stm32f10x_sdio.c
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_sdio.c
+END
+stm32f10x_i2c.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_i2c.c
+END
+stm32f10x_adc.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_adc.c
+END
+stm32f10x_rtc.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c
+END
+stm32f10x_cec.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_cec.c
+END
+stm32f10x_wwdg.c
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_wwdg.c
+END
+stm32f10x_fsmc.c
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_fsmc.c
+END
+stm32f10x_usart.c
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_usart.c
+END
+stm32f10x_dac.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_dac.c
+END
+stm32f10x_bkp.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_bkp.c
+END
+stm32f10x_exti.c
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_exti.c
+END
+stm32f10x_pwr.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/86/trunk/baseflight/lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_pwr.c
+END

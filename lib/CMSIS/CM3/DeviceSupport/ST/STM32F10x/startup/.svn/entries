@@ -1,0 +1,40 @@
+10
+
+dir
+303
+http://afrodevices.googlecode.com/svn/trunk/baseflight/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/startup
+http://afrodevices.googlecode.com/svn
+
+
+
+2012-02-16T09:39:58.601346Z
+86
+timecop
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+7c89a4a9-59b9-e629-4cfe-3a2d53b20e61
+
+TrueSTUDIO
+dir
+
+arm
+dir
+
+gcc_ride7
+dir
+
+iar
+dir
+

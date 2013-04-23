@@ -1,0 +1,1102 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"stm32f10x_rtc.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.align	2
+  19              		.global	RTC_ITConfig
+  20              		.thumb
+  21              		.thumb_func
+  23              	RTC_ITConfig:
+  24              	.LFB29:
+  25              		.file 1 "../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c"
+   1:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+   2:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   ******************************************************************************
+   3:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @file    stm32f10x_rtc.c
+   4:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @author  MCD Application Team
+   5:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @version V3.5.0
+   6:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @date    11-March-2011
+   7:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief   This file provides all the RTC firmware functions.
+   8:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   ******************************************************************************
+   9:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @attention
+  10:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *
+  11:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
+  12:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
+  13:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
+  14:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
+  15:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
+  16:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
+  17:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *
+  18:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
+  19:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   ******************************************************************************
+  20:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  21:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  22:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /* Includes ------------------------------------------------------------------*/
+  23:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** #include "stm32f10x_rtc.h"
+  24:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  25:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /** @addtogroup STM32F10x_StdPeriph_Driver
+  26:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @{
+  27:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  28:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  29:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /** @defgroup RTC 
+  30:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief RTC driver modules
+  31:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @{
+  32:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  33:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  34:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /** @defgroup RTC_Private_TypesDefinitions
+  35:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @{
+  36:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */ 
+  37:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+  38:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @}
+  39:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  40:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  41:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /** @defgroup RTC_Private_Defines
+  42:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @{
+  43:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  44:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** #define RTC_LSB_MASK     ((uint32_t)0x0000FFFF)  /*!< RTC LSB Mask */
+  45:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** #define PRLH_MSB_MASK    ((uint32_t)0x000F0000)  /*!< RTC Prescaler MSB Mask */
+  46:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  47:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+  48:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @}
+  49:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  50:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  51:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /** @defgroup RTC_Private_Macros
+  52:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @{
+  53:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  54:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  55:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+  56:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @}
+  57:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  58:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  59:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /** @defgroup RTC_Private_Variables
+  60:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @{
+  61:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  62:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  63:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+  64:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @}
+  65:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  66:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  67:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /** @defgroup RTC_Private_FunctionPrototypes
+  68:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @{
+  69:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  70:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  71:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+  72:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @}
+  73:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  74:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  75:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /** @defgroup RTC_Private_Functions
+  76:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @{
+  77:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  78:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+  79:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+  80:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Enables or disables the specified RTC interrupts.
+  81:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  RTC_IT: specifies the RTC interrupts sources to be enabled or disabled.
+  82:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *   This parameter can be any combination of the following values:
+  83:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_IT_OW: Overflow interrupt
+  84:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_IT_ALR: Alarm interrupt
+  85:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_IT_SEC: Second interrupt
+  86:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  NewState: new state of the specified RTC interrupts.
+  87:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *   This parameter can be: ENABLE or DISABLE.
+  88:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval None
+  89:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+  90:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** void RTC_ITConfig(uint16_t RTC_IT, FunctionalState NewState)
+  91:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {
+  26              		.loc 1 91 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 8
+  29              		@ frame_needed = 1, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  31 0000 80B4     		push	{r7}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 4
+  34              		.cfi_offset 7, -4
+  35 0002 83B0     		sub	sp, sp, #12
+  36              	.LCFI1:
+  37              		.cfi_def_cfa_offset 16
+  38 0004 00AF     		add	r7, sp, #0
+  39              	.LCFI2:
+  40              		.cfi_def_cfa_register 7
+  41 0006 0246     		mov	r2, r0
+  42 0008 0B46     		mov	r3, r1
+  43 000a FA80     		strh	r2, [r7, #6]	@ movhi
+  44 000c 7B71     		strb	r3, [r7, #5]
+  92:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Check the parameters */
+  93:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   assert_param(IS_RTC_IT(RTC_IT));  
+  94:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   assert_param(IS_FUNCTIONAL_STATE(NewState));
+  95:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   
+  96:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   if (NewState != DISABLE)
+  45              		.loc 1 96 0
+  46 000e 7B79     		ldrb	r3, [r7, #5]	@ zero_extendqisi2
+  47 0010 002B     		cmp	r3, #0
+  48 0012 08D0     		beq	.L2
+  97:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   {
+  98:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****     RTC->CRH |= RTC_IT;
+  49              		.loc 1 98 0
+  50 0014 0C4B     		ldr	r3, .L4
+  51 0016 0C4A     		ldr	r2, .L4
+  52 0018 1288     		ldrh	r2, [r2, #0]	@ movhi
+  53 001a 91B2     		uxth	r1, r2
+  54 001c FA88     		ldrh	r2, [r7, #6]	@ movhi
+  55 001e 0A43     		orrs	r2, r2, r1
+  56 0020 92B2     		uxth	r2, r2
+  57 0022 1A80     		strh	r2, [r3, #0]	@ movhi
+  58 0024 0AE0     		b	.L1
+  59              	.L2:
+  99:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   }
+ 100:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   else
+ 101:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   {
+ 102:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****     RTC->CRH &= (uint16_t)~RTC_IT;
+  60              		.loc 1 102 0
+  61 0026 084B     		ldr	r3, .L4
+  62 0028 074A     		ldr	r2, .L4
+  63 002a 1288     		ldrh	r2, [r2, #0]	@ movhi
+  64 002c 91B2     		uxth	r1, r2
+  65 002e FA88     		ldrh	r2, [r7, #6]	@ movhi
+  66 0030 6FEA0202 		mvn	r2, r2
+  67 0034 92B2     		uxth	r2, r2
+  68 0036 0A40     		ands	r2, r2, r1
+  69 0038 92B2     		uxth	r2, r2
+  70 003a 1A80     		strh	r2, [r3, #0]	@ movhi
+  71              	.L1:
+ 103:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   }
+ 104:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+  72              		.loc 1 104 0
+  73 003c 07F10C07 		add	r7, r7, #12
+  74 0040 BD46     		mov	sp, r7
+  75 0042 80BC     		pop	{r7}
+  76 0044 7047     		bx	lr
+  77              	.L5:
+  78 0046 00BF     		.align	2
+  79              	.L4:
+  80 0048 00280040 		.word	1073752064
+  81              		.cfi_endproc
+  82              	.LFE29:
+  84              		.align	2
+  85              		.global	RTC_EnterConfigMode
+  86              		.thumb
+  87              		.thumb_func
+  89              	RTC_EnterConfigMode:
+  90              	.LFB30:
+ 105:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 106:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 107:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Enters the RTC configuration mode.
+ 108:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  None
+ 109:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval None
+ 110:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 111:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** void RTC_EnterConfigMode(void)
+ 112:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {
+  91              		.loc 1 112 0
+  92              		.cfi_startproc
+  93              		@ args = 0, pretend = 0, frame = 0
+  94              		@ frame_needed = 1, uses_anonymous_args = 0
+  95              		@ link register save eliminated.
+  96 004c 80B4     		push	{r7}
+  97              	.LCFI3:
+  98              		.cfi_def_cfa_offset 4
+  99              		.cfi_offset 7, -4
+ 100 004e 00AF     		add	r7, sp, #0
+ 101              	.LCFI4:
+ 102              		.cfi_def_cfa_register 7
+ 113:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Set the CNF flag to enter in the Configuration Mode */
+ 114:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC->CRL |= RTC_CRL_CNF;
+ 103              		.loc 1 114 0
+ 104 0050 054B     		ldr	r3, .L7
+ 105 0052 054A     		ldr	r2, .L7
+ 106 0054 9288     		ldrh	r2, [r2, #4]	@ movhi
+ 107 0056 92B2     		uxth	r2, r2
+ 108 0058 42F01002 		orr	r2, r2, #16
+ 109 005c 92B2     		uxth	r2, r2
+ 110 005e 9A80     		strh	r2, [r3, #4]	@ movhi
+ 115:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 111              		.loc 1 115 0
+ 112 0060 BD46     		mov	sp, r7
+ 113 0062 80BC     		pop	{r7}
+ 114 0064 7047     		bx	lr
+ 115              	.L8:
+ 116 0066 00BF     		.align	2
+ 117              	.L7:
+ 118 0068 00280040 		.word	1073752064
+ 119              		.cfi_endproc
+ 120              	.LFE30:
+ 122              		.align	2
+ 123              		.global	RTC_ExitConfigMode
+ 124              		.thumb
+ 125              		.thumb_func
+ 127              	RTC_ExitConfigMode:
+ 128              	.LFB31:
+ 116:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 117:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 118:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Exits from the RTC configuration mode.
+ 119:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  None
+ 120:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval None
+ 121:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 122:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** void RTC_ExitConfigMode(void)
+ 123:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {
+ 129              		.loc 1 123 0
+ 130              		.cfi_startproc
+ 131              		@ args = 0, pretend = 0, frame = 0
+ 132              		@ frame_needed = 1, uses_anonymous_args = 0
+ 133              		@ link register save eliminated.
+ 134 006c 80B4     		push	{r7}
+ 135              	.LCFI5:
+ 136              		.cfi_def_cfa_offset 4
+ 137              		.cfi_offset 7, -4
+ 138 006e 00AF     		add	r7, sp, #0
+ 139              	.LCFI6:
+ 140              		.cfi_def_cfa_register 7
+ 124:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Reset the CNF flag to exit from the Configuration Mode */
+ 125:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC->CRL &= (uint16_t)~((uint16_t)RTC_CRL_CNF); 
+ 141              		.loc 1 125 0
+ 142 0070 054B     		ldr	r3, .L10
+ 143 0072 054A     		ldr	r2, .L10
+ 144 0074 9288     		ldrh	r2, [r2, #4]	@ movhi
+ 145 0076 92B2     		uxth	r2, r2
+ 146 0078 22F01002 		bic	r2, r2, #16
+ 147 007c 92B2     		uxth	r2, r2
+ 148 007e 9A80     		strh	r2, [r3, #4]	@ movhi
+ 126:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 149              		.loc 1 126 0
+ 150 0080 BD46     		mov	sp, r7
+ 151 0082 80BC     		pop	{r7}
+ 152 0084 7047     		bx	lr
+ 153              	.L11:
+ 154 0086 00BF     		.align	2
+ 155              	.L10:
+ 156 0088 00280040 		.word	1073752064
+ 157              		.cfi_endproc
+ 158              	.LFE31:
+ 160              		.align	2
+ 161              		.global	RTC_GetCounter
+ 162              		.thumb
+ 163              		.thumb_func
+ 165              	RTC_GetCounter:
+ 166              	.LFB32:
+ 127:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 128:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 129:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Gets the RTC counter value.
+ 130:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  None
+ 131:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval RTC counter value.
+ 132:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 133:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** uint32_t RTC_GetCounter(void)
+ 134:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {
+ 167              		.loc 1 134 0
+ 168              		.cfi_startproc
+ 169              		@ args = 0, pretend = 0, frame = 8
+ 170              		@ frame_needed = 1, uses_anonymous_args = 0
+ 171              		@ link register save eliminated.
+ 172 008c 80B4     		push	{r7}
+ 173              	.LCFI7:
+ 174              		.cfi_def_cfa_offset 4
+ 175              		.cfi_offset 7, -4
+ 176 008e 83B0     		sub	sp, sp, #12
+ 177              	.LCFI8:
+ 178              		.cfi_def_cfa_offset 16
+ 179 0090 00AF     		add	r7, sp, #0
+ 180              	.LCFI9:
+ 181              		.cfi_def_cfa_register 7
+ 135:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   uint16_t tmp = 0;
+ 182              		.loc 1 135 0
+ 183 0092 4FF00003 		mov	r3, #0
+ 184 0096 FB80     		strh	r3, [r7, #6]	@ movhi
+ 136:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   tmp = RTC->CNTL;
+ 185              		.loc 1 136 0
+ 186 0098 074B     		ldr	r3, .L14
+ 187 009a 9B8B     		ldrh	r3, [r3, #28]	@ movhi
+ 188 009c FB80     		strh	r3, [r7, #6]	@ movhi
+ 137:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   return (((uint32_t)RTC->CNTH << 16 ) | tmp) ;
+ 189              		.loc 1 137 0
+ 190 009e 064B     		ldr	r3, .L14
+ 191 00a0 1B8B     		ldrh	r3, [r3, #24]	@ movhi
+ 192 00a2 9BB2     		uxth	r3, r3
+ 193 00a4 4FEA0342 		lsl	r2, r3, #16
+ 194 00a8 FB88     		ldrh	r3, [r7, #6]
+ 195 00aa 1343     		orrs	r3, r3, r2
+ 138:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 196              		.loc 1 138 0
+ 197 00ac 1846     		mov	r0, r3
+ 198 00ae 07F10C07 		add	r7, r7, #12
+ 199 00b2 BD46     		mov	sp, r7
+ 200 00b4 80BC     		pop	{r7}
+ 201 00b6 7047     		bx	lr
+ 202              	.L15:
+ 203              		.align	2
+ 204              	.L14:
+ 205 00b8 00280040 		.word	1073752064
+ 206              		.cfi_endproc
+ 207              	.LFE32:
+ 209              		.align	2
+ 210              		.global	RTC_SetCounter
+ 211              		.thumb
+ 212              		.thumb_func
+ 214              	RTC_SetCounter:
+ 215              	.LFB33:
+ 139:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 140:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 141:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Sets the RTC counter value.
+ 142:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  CounterValue: RTC counter new value.
+ 143:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval None
+ 144:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 145:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** void RTC_SetCounter(uint32_t CounterValue)
+ 146:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** { 
+ 216              		.loc 1 146 0
+ 217              		.cfi_startproc
+ 218              		@ args = 0, pretend = 0, frame = 8
+ 219              		@ frame_needed = 1, uses_anonymous_args = 0
+ 220 00bc 80B5     		push	{r7, lr}
+ 221              	.LCFI10:
+ 222              		.cfi_def_cfa_offset 8
+ 223              		.cfi_offset 7, -8
+ 224              		.cfi_offset 14, -4
+ 225 00be 82B0     		sub	sp, sp, #8
+ 226              	.LCFI11:
+ 227              		.cfi_def_cfa_offset 16
+ 228 00c0 00AF     		add	r7, sp, #0
+ 229              	.LCFI12:
+ 230              		.cfi_def_cfa_register 7
+ 231 00c2 7860     		str	r0, [r7, #4]
+ 147:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC_EnterConfigMode();
+ 232              		.loc 1 147 0
+ 233 00c4 FFF7FEFF 		bl	RTC_EnterConfigMode
+ 148:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Set RTC COUNTER MSB word */
+ 149:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC->CNTH = CounterValue >> 16;
+ 234              		.loc 1 149 0
+ 235 00c8 074B     		ldr	r3, .L17
+ 236 00ca 7A68     		ldr	r2, [r7, #4]
+ 237 00cc 4FEA1242 		lsr	r2, r2, #16
+ 238 00d0 92B2     		uxth	r2, r2
+ 239 00d2 1A83     		strh	r2, [r3, #24]	@ movhi
+ 150:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Set RTC COUNTER LSB word */
+ 151:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC->CNTL = (CounterValue & RTC_LSB_MASK);
+ 240              		.loc 1 151 0
+ 241 00d4 044B     		ldr	r3, .L17
+ 242 00d6 7A68     		ldr	r2, [r7, #4]
+ 243 00d8 92B2     		uxth	r2, r2
+ 244 00da 9A83     		strh	r2, [r3, #28]	@ movhi
+ 152:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC_ExitConfigMode();
+ 245              		.loc 1 152 0
+ 246 00dc FFF7FEFF 		bl	RTC_ExitConfigMode
+ 153:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 247              		.loc 1 153 0
+ 248 00e0 07F10807 		add	r7, r7, #8
+ 249 00e4 BD46     		mov	sp, r7
+ 250 00e6 80BD     		pop	{r7, pc}
+ 251              	.L18:
+ 252              		.align	2
+ 253              	.L17:
+ 254 00e8 00280040 		.word	1073752064
+ 255              		.cfi_endproc
+ 256              	.LFE33:
+ 258              		.align	2
+ 259              		.global	RTC_SetPrescaler
+ 260              		.thumb
+ 261              		.thumb_func
+ 263              	RTC_SetPrescaler:
+ 264              	.LFB34:
+ 154:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 155:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 156:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Sets the RTC prescaler value.
+ 157:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  PrescalerValue: RTC prescaler new value.
+ 158:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval None
+ 159:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 160:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** void RTC_SetPrescaler(uint32_t PrescalerValue)
+ 161:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {
+ 265              		.loc 1 161 0
+ 266              		.cfi_startproc
+ 267              		@ args = 0, pretend = 0, frame = 8
+ 268              		@ frame_needed = 1, uses_anonymous_args = 0
+ 269 00ec 80B5     		push	{r7, lr}
+ 270              	.LCFI13:
+ 271              		.cfi_def_cfa_offset 8
+ 272              		.cfi_offset 7, -8
+ 273              		.cfi_offset 14, -4
+ 274 00ee 82B0     		sub	sp, sp, #8
+ 275              	.LCFI14:
+ 276              		.cfi_def_cfa_offset 16
+ 277 00f0 00AF     		add	r7, sp, #0
+ 278              	.LCFI15:
+ 279              		.cfi_def_cfa_register 7
+ 280 00f2 7860     		str	r0, [r7, #4]
+ 162:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Check the parameters */
+ 163:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   assert_param(IS_RTC_PRESCALER(PrescalerValue));
+ 164:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   
+ 165:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC_EnterConfigMode();
+ 281              		.loc 1 165 0
+ 282 00f4 FFF7FEFF 		bl	RTC_EnterConfigMode
+ 166:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Set RTC PRESCALER MSB word */
+ 167:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC->PRLH = (PrescalerValue & PRLH_MSB_MASK) >> 16;
+ 283              		.loc 1 167 0
+ 284 00f8 084B     		ldr	r3, .L20
+ 285 00fa 7A68     		ldr	r2, [r7, #4]
+ 286 00fc 02F47022 		and	r2, r2, #983040
+ 287 0100 4FEA1242 		lsr	r2, r2, #16
+ 288 0104 92B2     		uxth	r2, r2
+ 289 0106 1A81     		strh	r2, [r3, #8]	@ movhi
+ 168:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Set RTC PRESCALER LSB word */
+ 169:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC->PRLL = (PrescalerValue & RTC_LSB_MASK);
+ 290              		.loc 1 169 0
+ 291 0108 044B     		ldr	r3, .L20
+ 292 010a 7A68     		ldr	r2, [r7, #4]
+ 293 010c 92B2     		uxth	r2, r2
+ 294 010e 9A81     		strh	r2, [r3, #12]	@ movhi
+ 170:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC_ExitConfigMode();
+ 295              		.loc 1 170 0
+ 296 0110 FFF7FEFF 		bl	RTC_ExitConfigMode
+ 171:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 297              		.loc 1 171 0
+ 298 0114 07F10807 		add	r7, r7, #8
+ 299 0118 BD46     		mov	sp, r7
+ 300 011a 80BD     		pop	{r7, pc}
+ 301              	.L21:
+ 302              		.align	2
+ 303              	.L20:
+ 304 011c 00280040 		.word	1073752064
+ 305              		.cfi_endproc
+ 306              	.LFE34:
+ 308              		.align	2
+ 309              		.global	RTC_SetAlarm
+ 310              		.thumb
+ 311              		.thumb_func
+ 313              	RTC_SetAlarm:
+ 314              	.LFB35:
+ 172:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 173:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 174:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Sets the RTC alarm value.
+ 175:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  AlarmValue: RTC alarm new value.
+ 176:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval None
+ 177:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 178:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** void RTC_SetAlarm(uint32_t AlarmValue)
+ 179:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {  
+ 315              		.loc 1 179 0
+ 316              		.cfi_startproc
+ 317              		@ args = 0, pretend = 0, frame = 8
+ 318              		@ frame_needed = 1, uses_anonymous_args = 0
+ 319 0120 80B5     		push	{r7, lr}
+ 320              	.LCFI16:
+ 321              		.cfi_def_cfa_offset 8
+ 322              		.cfi_offset 7, -8
+ 323              		.cfi_offset 14, -4
+ 324 0122 82B0     		sub	sp, sp, #8
+ 325              	.LCFI17:
+ 326              		.cfi_def_cfa_offset 16
+ 327 0124 00AF     		add	r7, sp, #0
+ 328              	.LCFI18:
+ 329              		.cfi_def_cfa_register 7
+ 330 0126 7860     		str	r0, [r7, #4]
+ 180:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC_EnterConfigMode();
+ 331              		.loc 1 180 0
+ 332 0128 FFF7FEFF 		bl	RTC_EnterConfigMode
+ 181:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Set the ALARM MSB word */
+ 182:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC->ALRH = AlarmValue >> 16;
+ 333              		.loc 1 182 0
+ 334 012c 074B     		ldr	r3, .L23
+ 335 012e 7A68     		ldr	r2, [r7, #4]
+ 336 0130 4FEA1242 		lsr	r2, r2, #16
+ 337 0134 92B2     		uxth	r2, r2
+ 338 0136 1A84     		strh	r2, [r3, #32]	@ movhi
+ 183:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Set the ALARM LSB word */
+ 184:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC->ALRL = (AlarmValue & RTC_LSB_MASK);
+ 339              		.loc 1 184 0
+ 340 0138 044B     		ldr	r3, .L23
+ 341 013a 7A68     		ldr	r2, [r7, #4]
+ 342 013c 92B2     		uxth	r2, r2
+ 343 013e 9A84     		strh	r2, [r3, #36]	@ movhi
+ 185:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC_ExitConfigMode();
+ 344              		.loc 1 185 0
+ 345 0140 FFF7FEFF 		bl	RTC_ExitConfigMode
+ 186:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 346              		.loc 1 186 0
+ 347 0144 07F10807 		add	r7, r7, #8
+ 348 0148 BD46     		mov	sp, r7
+ 349 014a 80BD     		pop	{r7, pc}
+ 350              	.L24:
+ 351              		.align	2
+ 352              	.L23:
+ 353 014c 00280040 		.word	1073752064
+ 354              		.cfi_endproc
+ 355              	.LFE35:
+ 357              		.align	2
+ 358              		.global	RTC_GetDivider
+ 359              		.thumb
+ 360              		.thumb_func
+ 362              	RTC_GetDivider:
+ 363              	.LFB36:
+ 187:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 188:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 189:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Gets the RTC divider value.
+ 190:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  None
+ 191:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval RTC Divider value.
+ 192:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 193:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** uint32_t RTC_GetDivider(void)
+ 194:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {
+ 364              		.loc 1 194 0
+ 365              		.cfi_startproc
+ 366              		@ args = 0, pretend = 0, frame = 8
+ 367              		@ frame_needed = 1, uses_anonymous_args = 0
+ 368              		@ link register save eliminated.
+ 369 0150 80B4     		push	{r7}
+ 370              	.LCFI19:
+ 371              		.cfi_def_cfa_offset 4
+ 372              		.cfi_offset 7, -4
+ 373 0152 83B0     		sub	sp, sp, #12
+ 374              	.LCFI20:
+ 375              		.cfi_def_cfa_offset 16
+ 376 0154 00AF     		add	r7, sp, #0
+ 377              	.LCFI21:
+ 378              		.cfi_def_cfa_register 7
+ 195:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   uint32_t tmp = 0x00;
+ 379              		.loc 1 195 0
+ 380 0156 4FF00003 		mov	r3, #0
+ 381 015a 7B60     		str	r3, [r7, #4]
+ 196:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   tmp = ((uint32_t)RTC->DIVH & (uint32_t)0x000F) << 16;
+ 382              		.loc 1 196 0
+ 383 015c 0A4B     		ldr	r3, .L27
+ 384 015e 1B8A     		ldrh	r3, [r3, #16]	@ movhi
+ 385 0160 9BB2     		uxth	r3, r3
+ 386 0162 03F00F03 		and	r3, r3, #15
+ 387 0166 4FEA0343 		lsl	r3, r3, #16
+ 388 016a 7B60     		str	r3, [r7, #4]
+ 197:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   tmp |= RTC->DIVL;
+ 389              		.loc 1 197 0
+ 390 016c 064B     		ldr	r3, .L27
+ 391 016e 9B8A     		ldrh	r3, [r3, #20]	@ movhi
+ 392 0170 9BB2     		uxth	r3, r3
+ 393 0172 7A68     		ldr	r2, [r7, #4]
+ 394 0174 1343     		orrs	r3, r3, r2
+ 395 0176 7B60     		str	r3, [r7, #4]
+ 198:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   return tmp;
+ 396              		.loc 1 198 0
+ 397 0178 7B68     		ldr	r3, [r7, #4]
+ 199:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 398              		.loc 1 199 0
+ 399 017a 1846     		mov	r0, r3
+ 400 017c 07F10C07 		add	r7, r7, #12
+ 401 0180 BD46     		mov	sp, r7
+ 402 0182 80BC     		pop	{r7}
+ 403 0184 7047     		bx	lr
+ 404              	.L28:
+ 405 0186 00BF     		.align	2
+ 406              	.L27:
+ 407 0188 00280040 		.word	1073752064
+ 408              		.cfi_endproc
+ 409              	.LFE36:
+ 411              		.align	2
+ 412              		.global	RTC_WaitForLastTask
+ 413              		.thumb
+ 414              		.thumb_func
+ 416              	RTC_WaitForLastTask:
+ 417              	.LFB37:
+ 200:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 201:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 202:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Waits until last write operation on RTC registers has finished.
+ 203:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @note   This function must be called before any write to RTC registers.
+ 204:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  None
+ 205:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval None
+ 206:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 207:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** void RTC_WaitForLastTask(void)
+ 208:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {
+ 418              		.loc 1 208 0
+ 419              		.cfi_startproc
+ 420              		@ args = 0, pretend = 0, frame = 0
+ 421              		@ frame_needed = 1, uses_anonymous_args = 0
+ 422              		@ link register save eliminated.
+ 423 018c 80B4     		push	{r7}
+ 424              	.LCFI22:
+ 425              		.cfi_def_cfa_offset 4
+ 426              		.cfi_offset 7, -4
+ 427 018e 00AF     		add	r7, sp, #0
+ 428              	.LCFI23:
+ 429              		.cfi_def_cfa_register 7
+ 209:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Loop until RTOFF flag is set */
+ 210:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   while ((RTC->CRL & RTC_FLAG_RTOFF) == (uint16_t)RESET)
+ 430              		.loc 1 210 0
+ 431 0190 00BF     		nop
+ 432              	.L30:
+ 433              		.loc 1 210 0 is_stmt 0 discriminator 1
+ 434 0192 054B     		ldr	r3, .L31
+ 435 0194 9B88     		ldrh	r3, [r3, #4]	@ movhi
+ 436 0196 9BB2     		uxth	r3, r3
+ 437 0198 03F02003 		and	r3, r3, #32
+ 438 019c 002B     		cmp	r3, #0
+ 439 019e F8D0     		beq	.L30
+ 211:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   {
+ 212:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   }
+ 213:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 440              		.loc 1 213 0 is_stmt 1
+ 441 01a0 BD46     		mov	sp, r7
+ 442 01a2 80BC     		pop	{r7}
+ 443 01a4 7047     		bx	lr
+ 444              	.L32:
+ 445 01a6 00BF     		.align	2
+ 446              	.L31:
+ 447 01a8 00280040 		.word	1073752064
+ 448              		.cfi_endproc
+ 449              	.LFE37:
+ 451              		.align	2
+ 452              		.global	RTC_WaitForSynchro
+ 453              		.thumb
+ 454              		.thumb_func
+ 456              	RTC_WaitForSynchro:
+ 457              	.LFB38:
+ 214:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 215:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 216:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Waits until the RTC registers (RTC_CNT, RTC_ALR and RTC_PRL)
+ 217:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *   are synchronized with RTC APB clock.
+ 218:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @note   This function must be called before any read operation after an APB reset
+ 219:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *   or an APB clock stop.
+ 220:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  None
+ 221:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval None
+ 222:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 223:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** void RTC_WaitForSynchro(void)
+ 224:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {
+ 458              		.loc 1 224 0
+ 459              		.cfi_startproc
+ 460              		@ args = 0, pretend = 0, frame = 0
+ 461              		@ frame_needed = 1, uses_anonymous_args = 0
+ 462              		@ link register save eliminated.
+ 463 01ac 80B4     		push	{r7}
+ 464              	.LCFI24:
+ 465              		.cfi_def_cfa_offset 4
+ 466              		.cfi_offset 7, -4
+ 467 01ae 00AF     		add	r7, sp, #0
+ 468              	.LCFI25:
+ 469              		.cfi_def_cfa_register 7
+ 225:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Clear RSF flag */
+ 226:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC->CRL &= (uint16_t)~RTC_FLAG_RSF;
+ 470              		.loc 1 226 0
+ 471 01b0 094B     		ldr	r3, .L35
+ 472 01b2 094A     		ldr	r2, .L35
+ 473 01b4 9288     		ldrh	r2, [r2, #4]	@ movhi
+ 474 01b6 92B2     		uxth	r2, r2
+ 475 01b8 22F00802 		bic	r2, r2, #8
+ 476 01bc 92B2     		uxth	r2, r2
+ 477 01be 9A80     		strh	r2, [r3, #4]	@ movhi
+ 227:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Loop until RSF flag is set */
+ 228:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   while ((RTC->CRL & RTC_FLAG_RSF) == (uint16_t)RESET)
+ 478              		.loc 1 228 0
+ 479 01c0 00BF     		nop
+ 480              	.L34:
+ 481              		.loc 1 228 0 is_stmt 0 discriminator 1
+ 482 01c2 054B     		ldr	r3, .L35
+ 483 01c4 9B88     		ldrh	r3, [r3, #4]	@ movhi
+ 484 01c6 9BB2     		uxth	r3, r3
+ 485 01c8 03F00803 		and	r3, r3, #8
+ 486 01cc 002B     		cmp	r3, #0
+ 487 01ce F8D0     		beq	.L34
+ 229:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   {
+ 230:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   }
+ 231:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 488              		.loc 1 231 0 is_stmt 1
+ 489 01d0 BD46     		mov	sp, r7
+ 490 01d2 80BC     		pop	{r7}
+ 491 01d4 7047     		bx	lr
+ 492              	.L36:
+ 493 01d6 00BF     		.align	2
+ 494              	.L35:
+ 495 01d8 00280040 		.word	1073752064
+ 496              		.cfi_endproc
+ 497              	.LFE38:
+ 499              		.align	2
+ 500              		.global	RTC_GetFlagStatus
+ 501              		.thumb
+ 502              		.thumb_func
+ 504              	RTC_GetFlagStatus:
+ 505              	.LFB39:
+ 232:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 233:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 234:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Checks whether the specified RTC flag is set or not.
+ 235:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  RTC_FLAG: specifies the flag to check.
+ 236:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *   This parameter can be one the following values:
+ 237:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_FLAG_RTOFF: RTC Operation OFF flag
+ 238:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_FLAG_RSF: Registers Synchronized flag
+ 239:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_FLAG_OW: Overflow flag
+ 240:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_FLAG_ALR: Alarm flag
+ 241:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_FLAG_SEC: Second flag
+ 242:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval The new state of RTC_FLAG (SET or RESET).
+ 243:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 244:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** FlagStatus RTC_GetFlagStatus(uint16_t RTC_FLAG)
+ 245:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {
+ 506              		.loc 1 245 0
+ 507              		.cfi_startproc
+ 508              		@ args = 0, pretend = 0, frame = 16
+ 509              		@ frame_needed = 1, uses_anonymous_args = 0
+ 510              		@ link register save eliminated.
+ 511 01dc 80B4     		push	{r7}
+ 512              	.LCFI26:
+ 513              		.cfi_def_cfa_offset 4
+ 514              		.cfi_offset 7, -4
+ 515 01de 85B0     		sub	sp, sp, #20
+ 516              	.LCFI27:
+ 517              		.cfi_def_cfa_offset 24
+ 518 01e0 00AF     		add	r7, sp, #0
+ 519              	.LCFI28:
+ 520              		.cfi_def_cfa_register 7
+ 521 01e2 0346     		mov	r3, r0
+ 522 01e4 FB80     		strh	r3, [r7, #6]	@ movhi
+ 246:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   FlagStatus bitstatus = RESET;
+ 523              		.loc 1 246 0
+ 524 01e6 4FF00003 		mov	r3, #0
+ 525 01ea FB73     		strb	r3, [r7, #15]
+ 247:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   
+ 248:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Check the parameters */
+ 249:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   assert_param(IS_RTC_GET_FLAG(RTC_FLAG)); 
+ 250:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   
+ 251:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   if ((RTC->CRL & RTC_FLAG) != (uint16_t)RESET)
+ 526              		.loc 1 251 0
+ 527 01ec 0A4B     		ldr	r3, .L41
+ 528 01ee 9B88     		ldrh	r3, [r3, #4]	@ movhi
+ 529 01f0 9AB2     		uxth	r2, r3
+ 530 01f2 FB88     		ldrh	r3, [r7, #6]	@ movhi
+ 531 01f4 1340     		ands	r3, r3, r2
+ 532 01f6 9BB2     		uxth	r3, r3
+ 533 01f8 002B     		cmp	r3, #0
+ 534 01fa 03D0     		beq	.L38
+ 252:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   {
+ 253:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****     bitstatus = SET;
+ 535              		.loc 1 253 0
+ 536 01fc 4FF00103 		mov	r3, #1
+ 537 0200 FB73     		strb	r3, [r7, #15]
+ 538 0202 02E0     		b	.L39
+ 539              	.L38:
+ 254:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   }
+ 255:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   else
+ 256:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   {
+ 257:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****     bitstatus = RESET;
+ 540              		.loc 1 257 0
+ 541 0204 4FF00003 		mov	r3, #0
+ 542 0208 FB73     		strb	r3, [r7, #15]
+ 543              	.L39:
+ 258:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   }
+ 259:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   return bitstatus;
+ 544              		.loc 1 259 0
+ 545 020a FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 260:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 546              		.loc 1 260 0
+ 547 020c 1846     		mov	r0, r3
+ 548 020e 07F11407 		add	r7, r7, #20
+ 549 0212 BD46     		mov	sp, r7
+ 550 0214 80BC     		pop	{r7}
+ 551 0216 7047     		bx	lr
+ 552              	.L42:
+ 553              		.align	2
+ 554              	.L41:
+ 555 0218 00280040 		.word	1073752064
+ 556              		.cfi_endproc
+ 557              	.LFE39:
+ 559              		.align	2
+ 560              		.global	RTC_ClearFlag
+ 561              		.thumb
+ 562              		.thumb_func
+ 564              	RTC_ClearFlag:
+ 565              	.LFB40:
+ 261:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 262:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 263:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Clears the RTC's pending flags.
+ 264:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  RTC_FLAG: specifies the flag to clear.
+ 265:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *   This parameter can be any combination of the following values:
+ 266:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_FLAG_RSF: Registers Synchronized flag. This flag is cleared only after
+ 267:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *                        an APB reset or an APB Clock stop.
+ 268:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_FLAG_OW: Overflow flag
+ 269:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_FLAG_ALR: Alarm flag
+ 270:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_FLAG_SEC: Second flag
+ 271:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval None
+ 272:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 273:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** void RTC_ClearFlag(uint16_t RTC_FLAG)
+ 274:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {
+ 566              		.loc 1 274 0
+ 567              		.cfi_startproc
+ 568              		@ args = 0, pretend = 0, frame = 8
+ 569              		@ frame_needed = 1, uses_anonymous_args = 0
+ 570              		@ link register save eliminated.
+ 571 021c 80B4     		push	{r7}
+ 572              	.LCFI29:
+ 573              		.cfi_def_cfa_offset 4
+ 574              		.cfi_offset 7, -4
+ 575 021e 83B0     		sub	sp, sp, #12
+ 576              	.LCFI30:
+ 577              		.cfi_def_cfa_offset 16
+ 578 0220 00AF     		add	r7, sp, #0
+ 579              	.LCFI31:
+ 580              		.cfi_def_cfa_register 7
+ 581 0222 0346     		mov	r3, r0
+ 582 0224 FB80     		strh	r3, [r7, #6]	@ movhi
+ 275:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Check the parameters */
+ 276:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   assert_param(IS_RTC_CLEAR_FLAG(RTC_FLAG)); 
+ 277:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****     
+ 278:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Clear the corresponding RTC flag */
+ 279:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC->CRL &= (uint16_t)~RTC_FLAG;
+ 583              		.loc 1 279 0
+ 584 0226 084B     		ldr	r3, .L44
+ 585 0228 074A     		ldr	r2, .L44
+ 586 022a 9288     		ldrh	r2, [r2, #4]	@ movhi
+ 587 022c 91B2     		uxth	r1, r2
+ 588 022e FA88     		ldrh	r2, [r7, #6]	@ movhi
+ 589 0230 6FEA0202 		mvn	r2, r2
+ 590 0234 92B2     		uxth	r2, r2
+ 591 0236 0A40     		ands	r2, r2, r1
+ 592 0238 92B2     		uxth	r2, r2
+ 593 023a 9A80     		strh	r2, [r3, #4]	@ movhi
+ 280:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 594              		.loc 1 280 0
+ 595 023c 07F10C07 		add	r7, r7, #12
+ 596 0240 BD46     		mov	sp, r7
+ 597 0242 80BC     		pop	{r7}
+ 598 0244 7047     		bx	lr
+ 599              	.L45:
+ 600 0246 00BF     		.align	2
+ 601              	.L44:
+ 602 0248 00280040 		.word	1073752064
+ 603              		.cfi_endproc
+ 604              	.LFE40:
+ 606              		.align	2
+ 607              		.global	RTC_GetITStatus
+ 608              		.thumb
+ 609              		.thumb_func
+ 611              	RTC_GetITStatus:
+ 612              	.LFB41:
+ 281:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 282:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 283:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Checks whether the specified RTC interrupt has occurred or not.
+ 284:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  RTC_IT: specifies the RTC interrupts sources to check.
+ 285:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *   This parameter can be one of the following values:
+ 286:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_IT_OW: Overflow interrupt
+ 287:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_IT_ALR: Alarm interrupt
+ 288:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_IT_SEC: Second interrupt
+ 289:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval The new state of the RTC_IT (SET or RESET).
+ 290:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 291:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** ITStatus RTC_GetITStatus(uint16_t RTC_IT)
+ 292:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {
+ 613              		.loc 1 292 0
+ 614              		.cfi_startproc
+ 615              		@ args = 0, pretend = 0, frame = 16
+ 616              		@ frame_needed = 1, uses_anonymous_args = 0
+ 617              		@ link register save eliminated.
+ 618 024c 80B4     		push	{r7}
+ 619              	.LCFI32:
+ 620              		.cfi_def_cfa_offset 4
+ 621              		.cfi_offset 7, -4
+ 622 024e 85B0     		sub	sp, sp, #20
+ 623              	.LCFI33:
+ 624              		.cfi_def_cfa_offset 24
+ 625 0250 00AF     		add	r7, sp, #0
+ 626              	.LCFI34:
+ 627              		.cfi_def_cfa_register 7
+ 628 0252 0346     		mov	r3, r0
+ 629 0254 FB80     		strh	r3, [r7, #6]	@ movhi
+ 293:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   ITStatus bitstatus = RESET;
+ 630              		.loc 1 293 0
+ 631 0256 4FF00003 		mov	r3, #0
+ 632 025a FB73     		strb	r3, [r7, #15]
+ 294:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Check the parameters */
+ 295:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   assert_param(IS_RTC_GET_IT(RTC_IT)); 
+ 296:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   
+ 297:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   bitstatus = (ITStatus)(RTC->CRL & RTC_IT);
+ 633              		.loc 1 297 0
+ 634 025c 104B     		ldr	r3, .L50
+ 635 025e 9B88     		ldrh	r3, [r3, #4]	@ movhi
+ 636 0260 9BB2     		uxth	r3, r3
+ 637 0262 DAB2     		uxtb	r2, r3
+ 638 0264 FB88     		ldrh	r3, [r7, #6]	@ movhi
+ 639 0266 DBB2     		uxtb	r3, r3
+ 640 0268 1340     		ands	r3, r3, r2
+ 641 026a FB73     		strb	r3, [r7, #15]
+ 298:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   if (((RTC->CRH & RTC_IT) != (uint16_t)RESET) && (bitstatus != (uint16_t)RESET))
+ 642              		.loc 1 298 0
+ 643 026c 0C4B     		ldr	r3, .L50
+ 644 026e 1B88     		ldrh	r3, [r3, #0]	@ movhi
+ 645 0270 9AB2     		uxth	r2, r3
+ 646 0272 FB88     		ldrh	r3, [r7, #6]	@ movhi
+ 647 0274 1340     		ands	r3, r3, r2
+ 648 0276 9BB2     		uxth	r3, r3
+ 649 0278 002B     		cmp	r3, #0
+ 650 027a 06D0     		beq	.L47
+ 651              		.loc 1 298 0 is_stmt 0 discriminator 1
+ 652 027c FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 653 027e 002B     		cmp	r3, #0
+ 654 0280 03D0     		beq	.L47
+ 299:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   {
+ 300:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****     bitstatus = SET;
+ 655              		.loc 1 300 0 is_stmt 1
+ 656 0282 4FF00103 		mov	r3, #1
+ 657 0286 FB73     		strb	r3, [r7, #15]
+ 658 0288 02E0     		b	.L48
+ 659              	.L47:
+ 301:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   }
+ 302:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   else
+ 303:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   {
+ 304:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****     bitstatus = RESET;
+ 660              		.loc 1 304 0
+ 661 028a 4FF00003 		mov	r3, #0
+ 662 028e FB73     		strb	r3, [r7, #15]
+ 663              	.L48:
+ 305:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   }
+ 306:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   return bitstatus;
+ 664              		.loc 1 306 0
+ 665 0290 FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 307:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 666              		.loc 1 307 0
+ 667 0292 1846     		mov	r0, r3
+ 668 0294 07F11407 		add	r7, r7, #20
+ 669 0298 BD46     		mov	sp, r7
+ 670 029a 80BC     		pop	{r7}
+ 671 029c 7047     		bx	lr
+ 672              	.L51:
+ 673 029e 00BF     		.align	2
+ 674              	.L50:
+ 675 02a0 00280040 		.word	1073752064
+ 676              		.cfi_endproc
+ 677              	.LFE41:
+ 679              		.align	2
+ 680              		.global	RTC_ClearITPendingBit
+ 681              		.thumb
+ 682              		.thumb_func
+ 684              	RTC_ClearITPendingBit:
+ 685              	.LFB42:
+ 308:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** 
+ 309:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** /**
+ 310:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @brief  Clears the RTC's interrupt pending bits.
+ 311:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @param  RTC_IT: specifies the interrupt pending bit to clear.
+ 312:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *   This parameter can be any combination of the following values:
+ 313:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_IT_OW: Overflow interrupt
+ 314:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_IT_ALR: Alarm interrupt
+ 315:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   *     @arg RTC_IT_SEC: Second interrupt
+ 316:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   * @retval None
+ 317:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   */
+ 318:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** void RTC_ClearITPendingBit(uint16_t RTC_IT)
+ 319:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** {
+ 686              		.loc 1 319 0
+ 687              		.cfi_startproc
+ 688              		@ args = 0, pretend = 0, frame = 8
+ 689              		@ frame_needed = 1, uses_anonymous_args = 0
+ 690              		@ link register save eliminated.
+ 691 02a4 80B4     		push	{r7}
+ 692              	.LCFI35:
+ 693              		.cfi_def_cfa_offset 4
+ 694              		.cfi_offset 7, -4
+ 695 02a6 83B0     		sub	sp, sp, #12
+ 696              	.LCFI36:
+ 697              		.cfi_def_cfa_offset 16
+ 698 02a8 00AF     		add	r7, sp, #0
+ 699              	.LCFI37:
+ 700              		.cfi_def_cfa_register 7
+ 701 02aa 0346     		mov	r3, r0
+ 702 02ac FB80     		strh	r3, [r7, #6]	@ movhi
+ 320:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Check the parameters */
+ 321:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   assert_param(IS_RTC_IT(RTC_IT));  
+ 322:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   
+ 323:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   /* Clear the corresponding RTC pending bit */
+ 324:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c ****   RTC->CRL &= (uint16_t)~RTC_IT;
+ 703              		.loc 1 324 0
+ 704 02ae 084B     		ldr	r3, .L53
+ 705 02b0 074A     		ldr	r2, .L53
+ 706 02b2 9288     		ldrh	r2, [r2, #4]	@ movhi
+ 707 02b4 91B2     		uxth	r1, r2
+ 708 02b6 FA88     		ldrh	r2, [r7, #6]	@ movhi
+ 709 02b8 6FEA0202 		mvn	r2, r2
+ 710 02bc 92B2     		uxth	r2, r2
+ 711 02be 0A40     		ands	r2, r2, r1
+ 712 02c0 92B2     		uxth	r2, r2
+ 713 02c2 9A80     		strh	r2, [r3, #4]	@ movhi
+ 325:../lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c **** }
+ 714              		.loc 1 325 0
+ 715 02c4 07F10C07 		add	r7, r7, #12
+ 716 02c8 BD46     		mov	sp, r7
+ 717 02ca 80BC     		pop	{r7}
+ 718 02cc 7047     		bx	lr
+ 719              	.L54:
+ 720 02ce 00BF     		.align	2
+ 721              	.L53:
+ 722 02d0 00280040 		.word	1073752064
+ 723              		.cfi_endproc
+ 724              	.LFE42:
+ 726              	.Letext0:
+ 727              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 728              		.file 3 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/stm32f10x.h"
+ 729              		.file 4 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 stm32f10x_rtc.c
+     /tmp/cc3fAfwk.s:18     .text:00000000 $t
+     /tmp/cc3fAfwk.s:23     .text:00000000 RTC_ITConfig
+     /tmp/cc3fAfwk.s:80     .text:00000048 $d
+     /tmp/cc3fAfwk.s:84     .text:0000004c $t
+     /tmp/cc3fAfwk.s:89     .text:0000004c RTC_EnterConfigMode
+     /tmp/cc3fAfwk.s:118    .text:00000068 $d
+     /tmp/cc3fAfwk.s:122    .text:0000006c $t
+     /tmp/cc3fAfwk.s:127    .text:0000006c RTC_ExitConfigMode
+     /tmp/cc3fAfwk.s:156    .text:00000088 $d
+     /tmp/cc3fAfwk.s:160    .text:0000008c $t
+     /tmp/cc3fAfwk.s:165    .text:0000008c RTC_GetCounter
+     /tmp/cc3fAfwk.s:205    .text:000000b8 $d
+     /tmp/cc3fAfwk.s:209    .text:000000bc $t
+     /tmp/cc3fAfwk.s:214    .text:000000bc RTC_SetCounter
+     /tmp/cc3fAfwk.s:254    .text:000000e8 $d
+     /tmp/cc3fAfwk.s:258    .text:000000ec $t
+     /tmp/cc3fAfwk.s:263    .text:000000ec RTC_SetPrescaler
+     /tmp/cc3fAfwk.s:304    .text:0000011c $d
+     /tmp/cc3fAfwk.s:308    .text:00000120 $t
+     /tmp/cc3fAfwk.s:313    .text:00000120 RTC_SetAlarm
+     /tmp/cc3fAfwk.s:353    .text:0000014c $d
+     /tmp/cc3fAfwk.s:357    .text:00000150 $t
+     /tmp/cc3fAfwk.s:362    .text:00000150 RTC_GetDivider
+     /tmp/cc3fAfwk.s:407    .text:00000188 $d
+     /tmp/cc3fAfwk.s:411    .text:0000018c $t
+     /tmp/cc3fAfwk.s:416    .text:0000018c RTC_WaitForLastTask
+     /tmp/cc3fAfwk.s:447    .text:000001a8 $d
+     /tmp/cc3fAfwk.s:451    .text:000001ac $t
+     /tmp/cc3fAfwk.s:456    .text:000001ac RTC_WaitForSynchro
+     /tmp/cc3fAfwk.s:495    .text:000001d8 $d
+     /tmp/cc3fAfwk.s:499    .text:000001dc $t
+     /tmp/cc3fAfwk.s:504    .text:000001dc RTC_GetFlagStatus
+     /tmp/cc3fAfwk.s:555    .text:00000218 $d
+     /tmp/cc3fAfwk.s:559    .text:0000021c $t
+     /tmp/cc3fAfwk.s:564    .text:0000021c RTC_ClearFlag
+     /tmp/cc3fAfwk.s:602    .text:00000248 $d
+     /tmp/cc3fAfwk.s:606    .text:0000024c $t
+     /tmp/cc3fAfwk.s:611    .text:0000024c RTC_GetITStatus
+     /tmp/cc3fAfwk.s:675    .text:000002a0 $d
+     /tmp/cc3fAfwk.s:679    .text:000002a4 $t
+     /tmp/cc3fAfwk.s:684    .text:000002a4 RTC_ClearITPendingBit
+     /tmp/cc3fAfwk.s:722    .text:000002d0 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.d35e9a9b04ec4aaebae9bf79fff061f9
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.core_cm3.h.113.b286929a54d33b4c8909a7132437b244
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_rtc.h.58.ffc5b528b22f5396ae5570583ef6ec55
+
+NO UNDEFINED SYMBOLS

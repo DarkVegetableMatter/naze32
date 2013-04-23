@@ -1,0 +1,2151 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"config.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.comm	mcfg,752,4
+  19              		.comm	cfg,156,4
+  20              		.global	rcChannelLetters
+  21              		.section	.rodata
+  22              		.align	2
+  25              	rcChannelLetters:
+  26 0000 54414552 		.ascii	"TAER1234\000"
+  26      31323334 
+  26      00
+  27              		.data
+  30              	EEPROM_CONF_VERSION:
+  31 0000 2F       		.byte	47
+  32              		.bss
+  33              		.align	2
+  34              	enabledSensors:
+  35 0000 00000000 		.space	4
+  36              		.text
+  37              		.align	2
+  38              		.global	parseRcChannels
+  39              		.thumb
+  40              		.thumb_func
+  42              	parseRcChannels:
+  43              	.LFB29:
+  44              		.file 1 "../src/config.c"
+   1:../src/config.c **** #include "board.h"
+   2:../src/config.c **** #include "mw.h"
+   3:../src/config.c **** #include <string.h>
+   4:../src/config.c **** 
+   5:../src/config.c **** #ifndef FLASH_PAGE_COUNT
+   6:../src/config.c **** #define FLASH_PAGE_COUNT 128
+   7:../src/config.c **** #endif
+   8:../src/config.c **** 
+   9:../src/config.c **** #define FLASH_PAGE_SIZE                 ((uint16_t)0x400)
+  10:../src/config.c **** #define FLASH_WRITE_ADDR                (0x08000000 + (uint32_t)FLASH_PAGE_SIZE * (FLASH_PAGE_COUNT
+  11:../src/config.c **** 
+  12:../src/config.c **** master_t mcfg;  // master config struct with data independent from profiles
+  13:../src/config.c **** config_t cfg;   // profile config struct
+  14:../src/config.c **** const char rcChannelLetters[] = "TAER1234";
+  15:../src/config.c **** 
+  16:../src/config.c **** static uint8_t EEPROM_CONF_VERSION = 47;
+  17:../src/config.c **** static uint32_t enabledSensors = 0;
+  18:../src/config.c **** static void resetConf(void);
+  19:../src/config.c **** 
+  20:../src/config.c **** void parseRcChannels(const char *input)
+  21:../src/config.c **** {
+  45              		.loc 1 21 0
+  46              		.cfi_startproc
+  47              		@ args = 0, pretend = 0, frame = 16
+  48              		@ frame_needed = 1, uses_anonymous_args = 0
+  49 0000 80B5     		push	{r7, lr}
+  50              	.LCFI0:
+  51              		.cfi_def_cfa_offset 8
+  52              		.cfi_offset 7, -8
+  53              		.cfi_offset 14, -4
+  54 0002 84B0     		sub	sp, sp, #16
+  55              	.LCFI1:
+  56              		.cfi_def_cfa_offset 24
+  57 0004 00AF     		add	r7, sp, #0
+  58              	.LCFI2:
+  59              		.cfi_def_cfa_register 7
+  60 0006 7860     		str	r0, [r7, #4]
+  22:../src/config.c ****     const char *c, *s;
+  23:../src/config.c **** 
+  24:../src/config.c ****     for (c = input; *c; c++) {
+  61              		.loc 1 24 0
+  62 0008 7B68     		ldr	r3, [r7, #4]
+  63 000a FB60     		str	r3, [r7, #12]
+  64 000c 18E0     		b	.L2
+  65              	.L4:
+  25:../src/config.c ****         s = strchr(rcChannelLetters, *c);
+  66              		.loc 1 25 0
+  67 000e FB68     		ldr	r3, [r7, #12]
+  68 0010 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+  69 0012 0F48     		ldr	r0, .L5
+  70 0014 1946     		mov	r1, r3
+  71 0016 FFF7FEFF 		bl	strchr
+  72 001a B860     		str	r0, [r7, #8]
+  26:../src/config.c ****         if (s)
+  73              		.loc 1 26 0
+  74 001c BB68     		ldr	r3, [r7, #8]
+  75 001e 002B     		cmp	r3, #0
+  76 0020 0AD0     		beq	.L3
+  27:../src/config.c ****             mcfg.rcmap[s - rcChannelLetters] = c - input;
+  77              		.loc 1 27 0
+  78 0022 BA68     		ldr	r2, [r7, #8]
+  79 0024 0A4B     		ldr	r3, .L5
+  80 0026 D31A     		subs	r3, r2, r3
+  81 0028 F968     		ldr	r1, [r7, #12]
+  82 002a 7A68     		ldr	r2, [r7, #4]
+  83 002c 8A1A     		subs	r2, r1, r2
+  84 002e D2B2     		uxtb	r2, r2
+  85 0030 0849     		ldr	r1, .L5+4
+  86 0032 CB18     		adds	r3, r1, r3
+  87 0034 83F8FE20 		strb	r2, [r3, #254]
+  88              	.L3:
+  24:../src/config.c ****     for (c = input; *c; c++) {
+  89              		.loc 1 24 0
+  90 0038 FB68     		ldr	r3, [r7, #12]
+  91 003a 03F10103 		add	r3, r3, #1
+  92 003e FB60     		str	r3, [r7, #12]
+  93              	.L2:
+  24:../src/config.c ****     for (c = input; *c; c++) {
+  94              		.loc 1 24 0 is_stmt 0 discriminator 1
+  95 0040 FB68     		ldr	r3, [r7, #12]
+  96 0042 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+  97 0044 002B     		cmp	r3, #0
+  98 0046 E2D1     		bne	.L4
+  28:../src/config.c ****     }
+  29:../src/config.c **** }
+  99              		.loc 1 29 0 is_stmt 1
+ 100 0048 07F11007 		add	r7, r7, #16
+ 101 004c BD46     		mov	sp, r7
+ 102 004e 80BD     		pop	{r7, pc}
+ 103              	.L6:
+ 104              		.align	2
+ 105              	.L5:
+ 106 0050 00000000 		.word	rcChannelLetters
+ 107 0054 00000000 		.word	mcfg
+ 108              		.cfi_endproc
+ 109              	.LFE29:
+ 111              		.align	2
+ 112              		.thumb
+ 113              		.thumb_func
+ 115              	validEEPROM:
+ 116              	.LFB30:
+  30:../src/config.c **** 
+  31:../src/config.c **** static uint8_t validEEPROM(void)
+  32:../src/config.c **** {
+ 117              		.loc 1 32 0
+ 118              		.cfi_startproc
+ 119              		@ args = 0, pretend = 0, frame = 16
+ 120              		@ frame_needed = 1, uses_anonymous_args = 0
+ 121              		@ link register save eliminated.
+ 122 0058 80B4     		push	{r7}
+ 123              	.LCFI3:
+ 124              		.cfi_def_cfa_offset 4
+ 125              		.cfi_offset 7, -4
+ 126 005a 85B0     		sub	sp, sp, #20
+ 127              	.LCFI4:
+ 128              		.cfi_def_cfa_offset 24
+ 129 005c 00AF     		add	r7, sp, #0
+ 130              	.LCFI5:
+ 131              		.cfi_def_cfa_register 7
+  33:../src/config.c ****     const master_t *temp = (const master_t *)FLASH_WRITE_ADDR;
+ 132              		.loc 1 33 0
+ 133 005e 1F4B     		ldr	r3, .L15
+ 134 0060 7B60     		str	r3, [r7, #4]
+  34:../src/config.c ****     const uint8_t *p;
+  35:../src/config.c ****     uint8_t chk = 0;
+ 135              		.loc 1 35 0
+ 136 0062 4FF00003 		mov	r3, #0
+ 137 0066 FB72     		strb	r3, [r7, #11]
+  36:../src/config.c **** 
+  37:../src/config.c ****     // check version number
+  38:../src/config.c ****     if (EEPROM_CONF_VERSION != temp->version)
+ 138              		.loc 1 38 0
+ 139 0068 7B68     		ldr	r3, [r7, #4]
+ 140 006a 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 141 006c 1C4B     		ldr	r3, .L15+4
+ 142 006e 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 143 0070 9A42     		cmp	r2, r3
+ 144 0072 02D0     		beq	.L8
+  39:../src/config.c ****         return 0;
+ 145              		.loc 1 39 0
+ 146 0074 4FF00003 		mov	r3, #0
+ 147 0078 2AE0     		b	.L9
+ 148              	.L8:
+  40:../src/config.c **** 
+  41:../src/config.c ****     // check size and magic numbers
+  42:../src/config.c ****     if (temp->size != sizeof(master_t) || temp->magic_be != 0xBE || temp->magic_ef != 0xEF)
+ 149              		.loc 1 42 0
+ 150 007a 7B68     		ldr	r3, [r7, #4]
+ 151 007c 5B88     		ldrh	r3, [r3, #2]
+ 152 007e B3F53C7F 		cmp	r3, #752
+ 153 0082 08D1     		bne	.L10
+ 154              		.loc 1 42 0 is_stmt 0 discriminator 1
+ 155 0084 7B68     		ldr	r3, [r7, #4]
+ 156 0086 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 157 0088 BE2B     		cmp	r3, #190
+ 158 008a 04D1     		bne	.L10
+ 159 008c 7B68     		ldr	r3, [r7, #4]
+ 160 008e 93F8ED32 		ldrb	r3, [r3, #749]	@ zero_extendqisi2
+ 161 0092 EF2B     		cmp	r3, #239
+ 162 0094 02D0     		beq	.L11
+ 163              	.L10:
+  43:../src/config.c ****         return 0;
+ 164              		.loc 1 43 0 is_stmt 1
+ 165 0096 4FF00003 		mov	r3, #0
+ 166 009a 19E0     		b	.L9
+ 167              	.L11:
+  44:../src/config.c **** 
+  45:../src/config.c ****     // verify integrity of temporary copy
+  46:../src/config.c ****     for (p = (const uint8_t *)temp; p < ((const uint8_t *)temp + sizeof(master_t)); p++)
+ 168              		.loc 1 46 0
+ 169 009c 7B68     		ldr	r3, [r7, #4]
+ 170 009e FB60     		str	r3, [r7, #12]
+ 171 00a0 08E0     		b	.L12
+ 172              	.L13:
+  47:../src/config.c ****         chk ^= *p;
+ 173              		.loc 1 47 0 discriminator 2
+ 174 00a2 FB68     		ldr	r3, [r7, #12]
+ 175 00a4 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 176 00a6 FB7A     		ldrb	r3, [r7, #11]
+ 177 00a8 5340     		eors	r3, r3, r2
+ 178 00aa FB72     		strb	r3, [r7, #11]
+  46:../src/config.c ****     for (p = (const uint8_t *)temp; p < ((const uint8_t *)temp + sizeof(master_t)); p++)
+ 179              		.loc 1 46 0 discriminator 2
+ 180 00ac FB68     		ldr	r3, [r7, #12]
+ 181 00ae 03F10103 		add	r3, r3, #1
+ 182 00b2 FB60     		str	r3, [r7, #12]
+ 183              	.L12:
+  46:../src/config.c ****     for (p = (const uint8_t *)temp; p < ((const uint8_t *)temp + sizeof(master_t)); p++)
+ 184              		.loc 1 46 0 is_stmt 0 discriminator 1
+ 185 00b4 7B68     		ldr	r3, [r7, #4]
+ 186 00b6 03F53C72 		add	r2, r3, #752
+ 187 00ba FB68     		ldr	r3, [r7, #12]
+ 188 00bc 9A42     		cmp	r2, r3
+ 189 00be F0D8     		bhi	.L13
+  48:../src/config.c **** 
+  49:../src/config.c ****     // checksum failed
+  50:../src/config.c ****     if (chk != 0)
+ 190              		.loc 1 50 0 is_stmt 1
+ 191 00c0 FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 192 00c2 002B     		cmp	r3, #0
+ 193 00c4 02D0     		beq	.L14
+  51:../src/config.c ****         return 0;
+ 194              		.loc 1 51 0
+ 195 00c6 4FF00003 		mov	r3, #0
+ 196 00ca 01E0     		b	.L9
+ 197              	.L14:
+  52:../src/config.c **** 
+  53:../src/config.c ****     // looks good, let's roll!
+  54:../src/config.c ****     return 1;
+ 198              		.loc 1 54 0
+ 199 00cc 4FF00103 		mov	r3, #1
+ 200              	.L9:
+  55:../src/config.c **** }
+ 201              		.loc 1 55 0
+ 202 00d0 1846     		mov	r0, r3
+ 203 00d2 07F11407 		add	r7, r7, #20
+ 204 00d6 BD46     		mov	sp, r7
+ 205 00d8 80BC     		pop	{r7}
+ 206 00da 7047     		bx	lr
+ 207              	.L16:
+ 208              		.align	2
+ 209              	.L15:
+ 210 00dc 00FC0108 		.word	134347776
+ 211 00e0 00000000 		.word	EEPROM_CONF_VERSION
+ 212              		.cfi_endproc
+ 213              	.LFE30:
+ 215              		.align	2
+ 216              		.global	readEEPROM
+ 217              		.thumb
+ 218              		.thumb_func
+ 220              	readEEPROM:
+ 221              	.LFB31:
+  56:../src/config.c **** 
+  57:../src/config.c **** void readEEPROM(void)
+  58:../src/config.c **** {
+ 222              		.loc 1 58 0
+ 223              		.cfi_startproc
+ 224              		@ args = 0, pretend = 0, frame = 8
+ 225              		@ frame_needed = 1, uses_anonymous_args = 0
+ 226 00e4 F0B5     		push	{r4, r5, r6, r7, lr}
+ 227              	.LCFI6:
+ 228              		.cfi_def_cfa_offset 20
+ 229              		.cfi_offset 4, -20
+ 230              		.cfi_offset 5, -16
+ 231              		.cfi_offset 6, -12
+ 232              		.cfi_offset 7, -8
+ 233              		.cfi_offset 14, -4
+ 234 00e6 83B0     		sub	sp, sp, #12
+ 235              	.LCFI7:
+ 236              		.cfi_def_cfa_offset 32
+ 237 00e8 00AF     		add	r7, sp, #0
+ 238              	.LCFI8:
+ 239              		.cfi_def_cfa_register 7
+  59:../src/config.c ****     uint8_t i;
+  60:../src/config.c **** 
+  61:../src/config.c ****     // Sanity check
+  62:../src/config.c ****     if (!validEEPROM())
+ 240              		.loc 1 62 0
+ 241 00ea FFF7B5FF 		bl	validEEPROM
+ 242 00ee 0346     		mov	r3, r0
+ 243 00f0 002B     		cmp	r3, #0
+ 244 00f2 03D1     		bne	.L18
+  63:../src/config.c ****         failureMode(10);
+ 245              		.loc 1 63 0
+ 246 00f4 4FF00A00 		mov	r0, #10
+ 247 00f8 FFF7FEFF 		bl	failureMode
+ 248              	.L18:
+  64:../src/config.c **** 
+  65:../src/config.c ****     // Read flash
+  66:../src/config.c ****     memcpy(&mcfg, (char *)FLASH_WRITE_ADDR, sizeof(master_t));
+ 249              		.loc 1 66 0
+ 250 00fc 7948     		ldr	r0, .L28
+ 251 00fe 7A49     		ldr	r1, .L28+4
+ 252 0100 4FF43C72 		mov	r2, #752
+ 253 0104 FFF7FEFF 		bl	memcpy
+  67:../src/config.c ****     // Copy current profile
+  68:../src/config.c ****     if (mcfg.current_profile > 2) // sanity check
+ 254              		.loc 1 68 0
+ 255 0108 764B     		ldr	r3, .L28
+ 256 010a 93F8EC32 		ldrb	r3, [r3, #748]	@ zero_extendqisi2
+ 257 010e 022B     		cmp	r3, #2
+ 258 0110 04D9     		bls	.L19
+  69:../src/config.c ****         mcfg.current_profile = 0;
+ 259              		.loc 1 69 0
+ 260 0112 744B     		ldr	r3, .L28
+ 261 0114 4FF00002 		mov	r2, #0
+ 262 0118 83F8EC22 		strb	r2, [r3, #748]
+ 263              	.L19:
+  70:../src/config.c ****     memcpy(&cfg, &mcfg.profile[mcfg.current_profile], sizeof(config_t));
+ 264              		.loc 1 70 0
+ 265 011c 714B     		ldr	r3, .L28
+ 266 011e 93F8EC32 		ldrb	r3, [r3, #748]	@ zero_extendqisi2
+ 267 0122 4FF09C02 		mov	r2, #156
+ 268 0126 02FB03F3 		mul	r3, r2, r3
+ 269 012a 03F58C72 		add	r2, r3, #280
+ 270 012e 6D4B     		ldr	r3, .L28
+ 271 0130 D318     		adds	r3, r2, r3
+ 272 0132 6E4A     		ldr	r2, .L28+8
+ 273 0134 1146     		mov	r1, r2
+ 274 0136 1A46     		mov	r2, r3
+ 275 0138 4FF09C03 		mov	r3, #156
+ 276 013c 0846     		mov	r0, r1
+ 277 013e 1146     		mov	r1, r2
+ 278 0140 1A46     		mov	r2, r3
+ 279 0142 FFF7FEFF 		bl	memcpy
+  71:../src/config.c **** 
+  72:../src/config.c ****     for (i = 0; i < 6; i++)
+ 280              		.loc 1 72 0
+ 281 0146 4FF00003 		mov	r3, #0
+ 282 014a FB71     		strb	r3, [r7, #7]
+ 283 014c 23E0     		b	.L20
+ 284              	.L21:
+  73:../src/config.c ****         lookupPitchRollRC[i] = (2500 + cfg.rcExpo8 * (i * i - 25)) * i * (int32_t) cfg.rcRate8 / 25
+ 285              		.loc 1 73 0 discriminator 2
+ 286 014e FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 287 0150 664B     		ldr	r3, .L28+8
+ 288 0152 DB7F     		ldrb	r3, [r3, #31]	@ zero_extendqisi2
+ 289 0154 F979     		ldrb	r1, [r7, #7]	@ zero_extendqisi2
+ 290 0156 F879     		ldrb	r0, [r7, #7]	@ zero_extendqisi2
+ 291 0158 00FB01F1 		mul	r1, r0, r1
+ 292 015c A1F11901 		sub	r1, r1, #25
+ 293 0160 01FB03F3 		mul	r3, r1, r3
+ 294 0164 03F6C413 		addw	r3, r3, #2500
+ 295 0168 F979     		ldrb	r1, [r7, #7]	@ zero_extendqisi2
+ 296 016a 01FB03F3 		mul	r3, r1, r3
+ 297 016e 5F49     		ldr	r1, .L28+8
+ 298 0170 897F     		ldrb	r1, [r1, #30]	@ zero_extendqisi2
+ 299 0172 01FB03F3 		mul	r3, r1, r3
+ 300 0176 5E49     		ldr	r1, .L28+12
+ 301 0178 81FB0301 		smull	r0, r1, r1, r3
+ 302 017c 4FEAA121 		asr	r1, r1, #10
+ 303 0180 4FEAE373 		asr	r3, r3, #31
+ 304 0184 CB1A     		subs	r3, r1, r3
+ 305 0186 99B2     		uxth	r1, r3
+ 306 0188 5A4B     		ldr	r3, .L28+16
+ 307 018a 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+  72:../src/config.c ****     for (i = 0; i < 6; i++)
+ 308              		.loc 1 72 0 discriminator 2
+ 309 018e FB79     		ldrb	r3, [r7, #7]
+ 310 0190 03F10103 		add	r3, r3, #1
+ 311 0194 FB71     		strb	r3, [r7, #7]
+ 312              	.L20:
+  72:../src/config.c ****     for (i = 0; i < 6; i++)
+ 313              		.loc 1 72 0 is_stmt 0 discriminator 1
+ 314 0196 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 315 0198 052B     		cmp	r3, #5
+ 316 019a D8D9     		bls	.L21
+  74:../src/config.c **** 
+  75:../src/config.c ****     for (i = 0; i < 11; i++) {
+ 317              		.loc 1 75 0 is_stmt 1
+ 318 019c 4FF00003 		mov	r3, #0
+ 319 01a0 FB71     		strb	r3, [r7, #7]
+ 320 01a2 7EE0     		b	.L22
+ 321              	.L25:
+ 322              	.LBB2:
+  76:../src/config.c ****         int16_t tmp = 10 * i - cfg.thrMid8;
+ 323              		.loc 1 76 0
+ 324 01a4 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 325 01a6 9BB2     		uxth	r3, r3
+ 326 01a8 1A46     		mov	r2, r3	@ movhi
+ 327 01aa 4FEA8202 		lsl	r2, r2, #2
+ 328 01ae D318     		adds	r3, r2, r3
+ 329 01b0 4FEA4303 		lsl	r3, r3, #1
+ 330 01b4 9AB2     		uxth	r2, r3
+ 331 01b6 4D4B     		ldr	r3, .L28+8
+ 332 01b8 93F82030 		ldrb	r3, [r3, #32]	@ zero_extendqisi2
+ 333 01bc D31A     		subs	r3, r2, r3
+ 334 01be 9BB2     		uxth	r3, r3
+ 335 01c0 BB80     		strh	r3, [r7, #4]	@ movhi
+  77:../src/config.c ****         uint8_t y = 1;
+ 336              		.loc 1 77 0
+ 337 01c2 4FF00103 		mov	r3, #1
+ 338 01c6 BB71     		strb	r3, [r7, #6]
+  78:../src/config.c ****         if (tmp > 0)
+ 339              		.loc 1 78 0
+ 340 01c8 B7F90430 		ldrsh	r3, [r7, #4]
+ 341 01cc 002B     		cmp	r3, #0
+ 342 01ce 05DD     		ble	.L23
+  79:../src/config.c ****             y = 100 - cfg.thrMid8;
+ 343              		.loc 1 79 0
+ 344 01d0 464B     		ldr	r3, .L28+8
+ 345 01d2 93F82030 		ldrb	r3, [r3, #32]	@ zero_extendqisi2
+ 346 01d6 C3F16403 		rsb	r3, r3, #100
+ 347 01da BB71     		strb	r3, [r7, #6]
+ 348              	.L23:
+  80:../src/config.c ****         if (tmp < 0)
+ 349              		.loc 1 80 0
+ 350 01dc B7F90430 		ldrsh	r3, [r7, #4]
+ 351 01e0 002B     		cmp	r3, #0
+ 352 01e2 03DA     		bge	.L24
+  81:../src/config.c ****             y = cfg.thrMid8;
+ 353              		.loc 1 81 0
+ 354 01e4 414B     		ldr	r3, .L28+8
+ 355 01e6 93F82030 		ldrb	r3, [r3, #32]
+ 356 01ea BB71     		strb	r3, [r7, #6]
+ 357              	.L24:
+  82:../src/config.c ****         lookupThrottleRC[i] = 10 * cfg.thrMid8 + tmp * (100 - cfg.thrExpo8 + (int32_t) cfg.thrExpo8
+ 358              		.loc 1 82 0
+ 359 01ec FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 360 01ee 3F4B     		ldr	r3, .L28+8
+ 361 01f0 93F82030 		ldrb	r3, [r3, #32]	@ zero_extendqisi2
+ 362 01f4 1946     		mov	r1, r3	@ movhi
+ 363 01f6 4FEA8101 		lsl	r1, r1, #2
+ 364 01fa CB18     		adds	r3, r1, r3
+ 365 01fc 4FEA4303 		lsl	r3, r3, #1
+ 366 0200 99B2     		uxth	r1, r3
+ 367 0202 B7F90430 		ldrsh	r3, [r7, #4]
+ 368 0206 3948     		ldr	r0, .L28+8
+ 369 0208 90F82100 		ldrb	r0, [r0, #33]	@ zero_extendqisi2
+ 370 020c C0F16404 		rsb	r4, r0, #100
+ 371 0210 3648     		ldr	r0, .L28+8
+ 372 0212 90F82100 		ldrb	r0, [r0, #33]	@ zero_extendqisi2
+ 373 0216 B7F90450 		ldrsh	r5, [r7, #4]
+ 374 021a B7F90460 		ldrsh	r6, [r7, #4]
+ 375 021e 06FB05F5 		mul	r5, r6, r5
+ 376 0222 05FB00F5 		mul	r5, r5, r0
+ 377 0226 B879     		ldrb	r0, [r7, #6]	@ zero_extendqisi2
+ 378 0228 BE79     		ldrb	r6, [r7, #6]	@ zero_extendqisi2
+ 379 022a 06FB00F0 		mul	r0, r6, r0
+ 380 022e 95FBF0F0 		sdiv	r0, r5, r0
+ 381 0232 2018     		adds	r0, r4, r0
+ 382 0234 00FB03F3 		mul	r3, r0, r3
+ 383 0238 2F48     		ldr	r0, .L28+20
+ 384 023a 80FB03C0 		smull	ip, r0, r0, r3
+ 385 023e 4FEAA000 		asr	r0, r0, #2
+ 386 0242 4FEAE373 		asr	r3, r3, #31
+ 387 0246 C31A     		subs	r3, r0, r3
+ 388 0248 9BB2     		uxth	r3, r3
+ 389 024a CB18     		adds	r3, r1, r3
+ 390 024c 9BB2     		uxth	r3, r3
+ 391 024e 99B2     		uxth	r1, r3
+ 392 0250 2A4B     		ldr	r3, .L28+24
+ 393 0252 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+  83:../src/config.c ****         lookupThrottleRC[i] = mcfg.minthrottle + (int32_t) (mcfg.maxthrottle - mcfg.minthrottle) * 
+ 394              		.loc 1 83 0
+ 395 0256 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 396 0258 224B     		ldr	r3, .L28
+ 397 025a B3F8D010 		ldrh	r1, [r3, #208]
+ 398 025e 214B     		ldr	r3, .L28
+ 399 0260 B3F8D230 		ldrh	r3, [r3, #210]
+ 400 0264 1846     		mov	r0, r3
+ 401 0266 1F4B     		ldr	r3, .L28
+ 402 0268 B3F8D030 		ldrh	r3, [r3, #208]
+ 403 026c C31A     		subs	r3, r0, r3
+ 404 026e FC79     		ldrb	r4, [r7, #7]	@ zero_extendqisi2
+ 405 0270 2248     		ldr	r0, .L28+24
+ 406 0272 30F81400 		ldrh	r0, [r0, r4, lsl #1]
+ 407 0276 00B2     		sxth	r0, r0
+ 408 0278 00FB03F3 		mul	r3, r0, r3
+ 409 027c 2048     		ldr	r0, .L28+28
+ 410 027e 80FB03C0 		smull	ip, r0, r0, r3
+ 411 0282 4FEAA010 		asr	r0, r0, #6
+ 412 0286 4FEAE373 		asr	r3, r3, #31
+ 413 028a C31A     		subs	r3, r0, r3
+ 414 028c 9BB2     		uxth	r3, r3
+ 415 028e CB18     		adds	r3, r1, r3
+ 416 0290 9BB2     		uxth	r3, r3
+ 417 0292 99B2     		uxth	r1, r3
+ 418 0294 194B     		ldr	r3, .L28+24
+ 419 0296 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 420              	.LBE2:
+  75:../src/config.c ****     for (i = 0; i < 11; i++) {
+ 421              		.loc 1 75 0
+ 422 029a FB79     		ldrb	r3, [r7, #7]
+ 423 029c 03F10103 		add	r3, r3, #1
+ 424 02a0 FB71     		strb	r3, [r7, #7]
+ 425              	.L22:
+  75:../src/config.c ****     for (i = 0; i < 11; i++) {
+ 426              		.loc 1 75 0 is_stmt 0 discriminator 1
+ 427 02a2 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 428 02a4 0A2B     		cmp	r3, #10
+ 429 02a6 7FF67DAF 		bls	.L25
+  84:../src/config.c ****     }
+  85:../src/config.c **** 
+  86:../src/config.c ****     cfg.tri_yaw_middle = constrain(cfg.tri_yaw_middle, cfg.tri_yaw_min, cfg.tri_yaw_max);       //R
+ 430              		.loc 1 86 0 is_stmt 1
+ 431 02aa 104B     		ldr	r3, .L28+8
+ 432 02ac B3F86A20 		ldrh	r2, [r3, #106]
+ 433 02b0 0E4B     		ldr	r3, .L28+8
+ 434 02b2 B3F86C30 		ldrh	r3, [r3, #108]
+ 435 02b6 9A42     		cmp	r2, r3
+ 436 02b8 03D2     		bcs	.L26
+ 437              		.loc 1 86 0 is_stmt 0 discriminator 1
+ 438 02ba 0C4B     		ldr	r3, .L28+8
+ 439 02bc B3F86C30 		ldrh	r3, [r3, #108]
+ 440 02c0 09E0     		b	.L27
+ 441              	.L26:
+ 442              		.loc 1 86 0 discriminator 2
+ 443 02c2 0A4B     		ldr	r3, .L28+8
+ 444 02c4 B3F86A20 		ldrh	r2, [r3, #106]
+ 445 02c8 084B     		ldr	r3, .L28+8
+ 446 02ca B3F86E30 		ldrh	r3, [r3, #110]
+ 447 02ce 9A42     		cmp	r2, r3
+ 448 02d0 38BF     		it	cc
+ 449 02d2 1346     		movcc	r3, r2
+ 450 02d4 9BB2     		uxth	r3, r3
+ 451              	.L27:
+ 452              		.loc 1 86 0 discriminator 3
+ 453 02d6 054A     		ldr	r2, .L28+8
+ 454 02d8 A2F86A30 		strh	r3, [r2, #106]	@ movhi
+  87:../src/config.c **** }
+ 455              		.loc 1 87 0 is_stmt 1 discriminator 3
+ 456 02dc 07F10C07 		add	r7, r7, #12
+ 457 02e0 BD46     		mov	sp, r7
+ 458 02e2 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 459              	.L29:
+ 460              		.align	2
+ 461              	.L28:
+ 462 02e4 00000000 		.word	mcfg
+ 463 02e8 00FC0108 		.word	134347776
+ 464 02ec 00000000 		.word	cfg
+ 465 02f0 AD8BDB68 		.word	1759218605
+ 466 02f4 00000000 		.word	lookupPitchRollRC
+ 467 02f8 67666666 		.word	1717986919
+ 468 02fc 00000000 		.word	lookupThrottleRC
+ 469 0300 D34D6210 		.word	274877907
+ 470              		.cfi_endproc
+ 471              	.LFE31:
+ 473              		.align	2
+ 474              		.global	writeEEPROM
+ 475              		.thumb
+ 476              		.thumb_func
+ 478              	writeEEPROM:
+ 479              	.LFB32:
+  88:../src/config.c **** 
+  89:../src/config.c **** void writeEEPROM(uint8_t b, uint8_t updateProfile)
+  90:../src/config.c **** {
+ 480              		.loc 1 90 0
+ 481              		.cfi_startproc
+ 482              		@ args = 0, pretend = 0, frame = 32
+ 483              		@ frame_needed = 1, uses_anonymous_args = 0
+ 484 0304 80B5     		push	{r7, lr}
+ 485              	.LCFI9:
+ 486              		.cfi_def_cfa_offset 8
+ 487              		.cfi_offset 7, -8
+ 488              		.cfi_offset 14, -4
+ 489 0306 88B0     		sub	sp, sp, #32
+ 490              	.LCFI10:
+ 491              		.cfi_def_cfa_offset 40
+ 492 0308 00AF     		add	r7, sp, #0
+ 493              	.LCFI11:
+ 494              		.cfi_def_cfa_register 7
+ 495 030a 0246     		mov	r2, r0
+ 496 030c 0B46     		mov	r3, r1
+ 497 030e FA71     		strb	r2, [r7, #7]
+ 498 0310 BB71     		strb	r3, [r7, #6]
+  91:../src/config.c ****     FLASH_Status status;
+  92:../src/config.c ****     uint32_t i;
+  93:../src/config.c ****     uint8_t chk = 0;
+ 499              		.loc 1 93 0
+ 500 0312 4FF00003 		mov	r3, #0
+ 501 0316 FB76     		strb	r3, [r7, #27]
+  94:../src/config.c ****     const uint8_t *p;
+  95:../src/config.c ****     int tries = 0;
+ 502              		.loc 1 95 0
+ 503 0318 4FF00003 		mov	r3, #0
+ 504 031c 3B61     		str	r3, [r7, #16]
+  96:../src/config.c **** 
+  97:../src/config.c ****     // prepare checksum/version constants
+  98:../src/config.c ****     mcfg.version = EEPROM_CONF_VERSION;
+ 505              		.loc 1 98 0
+ 506 031e 4C4B     		ldr	r3, .L44
+ 507 0320 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 508 0322 4C4B     		ldr	r3, .L44+4
+ 509 0324 1A70     		strb	r2, [r3, #0]
+  99:../src/config.c ****     mcfg.size = sizeof(master_t);
+ 510              		.loc 1 99 0
+ 511 0326 4B4B     		ldr	r3, .L44+4
+ 512 0328 4FF43C72 		mov	r2, #752
+ 513 032c 5A80     		strh	r2, [r3, #2]	@ movhi
+ 100:../src/config.c ****     mcfg.magic_be = 0xBE;
+ 514              		.loc 1 100 0
+ 515 032e 494B     		ldr	r3, .L44+4
+ 516 0330 4FF0BE02 		mov	r2, #190
+ 517 0334 1A71     		strb	r2, [r3, #4]
+ 101:../src/config.c ****     mcfg.magic_ef = 0xEF;
+ 518              		.loc 1 101 0
+ 519 0336 474B     		ldr	r3, .L44+4
+ 520 0338 4FF0EF02 		mov	r2, #239
+ 521 033c 83F8ED22 		strb	r2, [r3, #749]
+ 102:../src/config.c ****     mcfg.chk = 0;
+ 522              		.loc 1 102 0
+ 523 0340 444B     		ldr	r3, .L44+4
+ 524 0342 4FF00002 		mov	r2, #0
+ 525 0346 83F8EE22 		strb	r2, [r3, #750]
+ 103:../src/config.c **** 
+ 104:../src/config.c ****     // when updateProfile = true, we copy contents of cfg to global configuration. when false, only
+ 105:../src/config.c ****     if (updateProfile) {
+ 526              		.loc 1 105 0
+ 527 034a BB79     		ldrb	r3, [r7, #6]	@ zero_extendqisi2
+ 528 034c 002B     		cmp	r3, #0
+ 529 034e 14D0     		beq	.L31
+ 106:../src/config.c ****         // copy current in-memory profile to stored configuration
+ 107:../src/config.c ****         memcpy(&mcfg.profile[mcfg.current_profile], &cfg, sizeof(config_t));
+ 530              		.loc 1 107 0
+ 531 0350 404B     		ldr	r3, .L44+4
+ 532 0352 93F8EC32 		ldrb	r3, [r3, #748]	@ zero_extendqisi2
+ 533 0356 4FF09C02 		mov	r2, #156
+ 534 035a 02FB03F3 		mul	r3, r2, r3
+ 535 035e 03F58C72 		add	r2, r3, #280
+ 536 0362 3C4B     		ldr	r3, .L44+4
+ 537 0364 D218     		adds	r2, r2, r3
+ 538 0366 3C4B     		ldr	r3, .L44+8
+ 539 0368 1146     		mov	r1, r2
+ 540 036a 1A46     		mov	r2, r3
+ 541 036c 4FF09C03 		mov	r3, #156
+ 542 0370 0846     		mov	r0, r1
+ 543 0372 1146     		mov	r1, r2
+ 544 0374 1A46     		mov	r2, r3
+ 545 0376 FFF7FEFF 		bl	memcpy
+ 546              	.L31:
+ 108:../src/config.c ****     }
+ 109:../src/config.c **** 
+ 110:../src/config.c ****     // recalculate checksum before writing
+ 111:../src/config.c ****     for (p = (const uint8_t *)&mcfg; p < ((const uint8_t *)&mcfg + sizeof(master_t)); p++)
+ 547              		.loc 1 111 0
+ 548 037a 364B     		ldr	r3, .L44+4
+ 549 037c 7B61     		str	r3, [r7, #20]
+ 550 037e 08E0     		b	.L32
+ 551              	.L33:
+ 112:../src/config.c ****         chk ^= *p;
+ 552              		.loc 1 112 0 discriminator 2
+ 553 0380 7B69     		ldr	r3, [r7, #20]
+ 554 0382 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 555 0384 FB7E     		ldrb	r3, [r7, #27]
+ 556 0386 5340     		eors	r3, r3, r2
+ 557 0388 FB76     		strb	r3, [r7, #27]
+ 111:../src/config.c ****     for (p = (const uint8_t *)&mcfg; p < ((const uint8_t *)&mcfg + sizeof(master_t)); p++)
+ 558              		.loc 1 111 0 discriminator 2
+ 559 038a 7B69     		ldr	r3, [r7, #20]
+ 560 038c 03F10103 		add	r3, r3, #1
+ 561 0390 7B61     		str	r3, [r7, #20]
+ 562              	.L32:
+ 111:../src/config.c ****     for (p = (const uint8_t *)&mcfg; p < ((const uint8_t *)&mcfg + sizeof(master_t)); p++)
+ 563              		.loc 1 111 0 is_stmt 0 discriminator 1
+ 564 0392 7A69     		ldr	r2, [r7, #20]
+ 565 0394 314B     		ldr	r3, .L44+12
+ 566 0396 9A42     		cmp	r2, r3
+ 567 0398 F2D3     		bcc	.L33
+ 113:../src/config.c ****     mcfg.chk = chk;
+ 568              		.loc 1 113 0 is_stmt 1
+ 569 039a 2E4B     		ldr	r3, .L44+4
+ 570 039c FA7E     		ldrb	r2, [r7, #27]
+ 571 039e 83F8EE22 		strb	r2, [r3, #750]
+ 572              	.L34:
+ 114:../src/config.c **** 
+ 115:../src/config.c ****     // write it
+ 116:../src/config.c **** retry:
+ 117:../src/config.c ****     FLASH_Unlock();
+ 573              		.loc 1 117 0
+ 574 03a2 FFF7FEFF 		bl	FLASH_Unlock
+ 118:../src/config.c ****     FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR);
+ 575              		.loc 1 118 0
+ 576 03a6 4FF03400 		mov	r0, #52
+ 577 03aa FFF7FEFF 		bl	FLASH_ClearFlag
+ 119:../src/config.c **** 
+ 120:../src/config.c ****     if (FLASH_ErasePage(FLASH_WRITE_ADDR) == FLASH_COMPLETE) {
+ 578              		.loc 1 120 0
+ 579 03ae 2C48     		ldr	r0, .L44+16
+ 580 03b0 FFF7FEFF 		bl	FLASH_ErasePage
+ 581 03b4 0346     		mov	r3, r0
+ 582 03b6 042B     		cmp	r3, #4
+ 583 03b8 2AD1     		bne	.L35
+ 121:../src/config.c ****         for (i = 0; i < sizeof(master_t); i += 4) {
+ 584              		.loc 1 121 0
+ 585 03ba 4FF00003 		mov	r3, #0
+ 586 03be FB61     		str	r3, [r7, #28]
+ 587 03c0 1FE0     		b	.L36
+ 588              	.L39:
+ 122:../src/config.c ****             status = FLASH_ProgramWord(FLASH_WRITE_ADDR + i, *(uint32_t *) ((char *)&mcfg + i));
+ 589              		.loc 1 122 0
+ 590 03c2 FB69     		ldr	r3, [r7, #28]
+ 591 03c4 03F10063 		add	r3, r3, #134217728
+ 592 03c8 03F5FE33 		add	r3, r3, #130048
+ 593 03cc F969     		ldr	r1, [r7, #28]
+ 594 03ce 214A     		ldr	r2, .L44+4
+ 595 03d0 8A18     		adds	r2, r1, r2
+ 596 03d2 1268     		ldr	r2, [r2, #0]
+ 597 03d4 1846     		mov	r0, r3
+ 598 03d6 1146     		mov	r1, r2
+ 599 03d8 FFF7FEFF 		bl	FLASH_ProgramWord
+ 600 03dc 0346     		mov	r3, r0
+ 601 03de FB73     		strb	r3, [r7, #15]
+ 123:../src/config.c ****             if (status != FLASH_COMPLETE) {
+ 602              		.loc 1 123 0
+ 603 03e0 FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 604 03e2 042B     		cmp	r3, #4
+ 605 03e4 09D0     		beq	.L37
+ 124:../src/config.c ****                 FLASH_Lock();
+ 606              		.loc 1 124 0
+ 607 03e6 FFF7FEFF 		bl	FLASH_Lock
+ 125:../src/config.c ****                 tries++;
+ 608              		.loc 1 125 0
+ 609 03ea 3B69     		ldr	r3, [r7, #16]
+ 610 03ec 03F10103 		add	r3, r3, #1
+ 611 03f0 3B61     		str	r3, [r7, #16]
+ 126:../src/config.c ****                 if (tries < 3)
+ 612              		.loc 1 126 0
+ 613 03f2 3B69     		ldr	r3, [r7, #16]
+ 614 03f4 022B     		cmp	r3, #2
+ 615 03f6 0ADC     		bgt	.L43
+ 127:../src/config.c ****                     goto retry;
+ 616              		.loc 1 127 0
+ 617 03f8 D3E7     		b	.L34
+ 618              	.L37:
+ 121:../src/config.c ****         for (i = 0; i < sizeof(master_t); i += 4) {
+ 619              		.loc 1 121 0
+ 620 03fa FB69     		ldr	r3, [r7, #28]
+ 621 03fc 03F10403 		add	r3, r3, #4
+ 622 0400 FB61     		str	r3, [r7, #28]
+ 623              	.L36:
+ 121:../src/config.c ****         for (i = 0; i < sizeof(master_t); i += 4) {
+ 624              		.loc 1 121 0 is_stmt 0 discriminator 1
+ 625 0402 FA69     		ldr	r2, [r7, #28]
+ 626 0404 40F2EF23 		movw	r3, #751
+ 627 0408 9A42     		cmp	r2, r3
+ 628 040a DAD9     		bls	.L39
+ 629 040c 00E0     		b	.L35
+ 630              	.L43:
+ 128:../src/config.c ****                 else
+ 129:../src/config.c ****                     break;
+ 631              		.loc 1 129 0 is_stmt 1
+ 632 040e 00BF     		nop
+ 633              	.L35:
+ 130:../src/config.c ****             }
+ 131:../src/config.c ****         }
+ 132:../src/config.c ****     }
+ 133:../src/config.c ****     FLASH_Lock();
+ 634              		.loc 1 133 0
+ 635 0410 FFF7FEFF 		bl	FLASH_Lock
+ 134:../src/config.c **** 
+ 135:../src/config.c ****     // Flash write failed - just die now
+ 136:../src/config.c ****     if (tries == 3 || !validEEPROM()) {
+ 636              		.loc 1 136 0
+ 637 0414 3B69     		ldr	r3, [r7, #16]
+ 638 0416 032B     		cmp	r3, #3
+ 639 0418 04D0     		beq	.L40
+ 640              		.loc 1 136 0 is_stmt 0 discriminator 1
+ 641 041a FFF71DFE 		bl	validEEPROM
+ 642 041e 0346     		mov	r3, r0
+ 643 0420 002B     		cmp	r3, #0
+ 644 0422 03D1     		bne	.L41
+ 645              	.L40:
+ 137:../src/config.c ****         failureMode(10);
+ 646              		.loc 1 137 0 is_stmt 1
+ 647 0424 4FF00A00 		mov	r0, #10
+ 648 0428 FFF7FEFF 		bl	failureMode
+ 649              	.L41:
+ 138:../src/config.c ****     }
+ 139:../src/config.c **** 
+ 140:../src/config.c ****     // re-read written data
+ 141:../src/config.c ****     readEEPROM();
+ 650              		.loc 1 141 0
+ 651 042c FFF7FEFF 		bl	readEEPROM
+ 142:../src/config.c ****     if (b)
+ 652              		.loc 1 142 0
+ 653 0430 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 654 0432 002B     		cmp	r3, #0
+ 655 0434 07D0     		beq	.L30
+ 143:../src/config.c ****         blinkLED(15, 20, 1);
+ 656              		.loc 1 143 0
+ 657 0436 4FF00F00 		mov	r0, #15
+ 658 043a 4FF01401 		mov	r1, #20
+ 659 043e 4FF00102 		mov	r2, #1
+ 660 0442 FFF7FEFF 		bl	blinkLED
+ 661              	.L30:
+ 144:../src/config.c **** }
+ 662              		.loc 1 144 0
+ 663 0446 07F12007 		add	r7, r7, #32
+ 664 044a BD46     		mov	sp, r7
+ 665 044c 80BD     		pop	{r7, pc}
+ 666              	.L45:
+ 667 044e 00BF     		.align	2
+ 668              	.L44:
+ 669 0450 00000000 		.word	EEPROM_CONF_VERSION
+ 670 0454 00000000 		.word	mcfg
+ 671 0458 00000000 		.word	cfg
+ 672 045c F0020000 		.word	mcfg+752
+ 673 0460 00FC0108 		.word	134347776
+ 674              		.cfi_endproc
+ 675              	.LFE32:
+ 677              		.align	2
+ 678              		.global	checkFirstTime
+ 679              		.thumb
+ 680              		.thumb_func
+ 682              	checkFirstTime:
+ 683              	.LFB33:
+ 145:../src/config.c **** 
+ 146:../src/config.c **** void checkFirstTime(bool reset)
+ 147:../src/config.c **** {
+ 684              		.loc 1 147 0
+ 685              		.cfi_startproc
+ 686              		@ args = 0, pretend = 0, frame = 8
+ 687              		@ frame_needed = 1, uses_anonymous_args = 0
+ 688 0464 80B5     		push	{r7, lr}
+ 689              	.LCFI12:
+ 690              		.cfi_def_cfa_offset 8
+ 691              		.cfi_offset 7, -8
+ 692              		.cfi_offset 14, -4
+ 693 0466 82B0     		sub	sp, sp, #8
+ 694              	.LCFI13:
+ 695              		.cfi_def_cfa_offset 16
+ 696 0468 00AF     		add	r7, sp, #0
+ 697              	.LCFI14:
+ 698              		.cfi_def_cfa_register 7
+ 699 046a 0346     		mov	r3, r0
+ 700 046c FB71     		strb	r3, [r7, #7]
+ 148:../src/config.c ****     // check the EEPROM integrity before resetting values
+ 149:../src/config.c ****     if (!validEEPROM() || reset) {
+ 701              		.loc 1 149 0
+ 702 046e FFF7F3FD 		bl	validEEPROM
+ 703 0472 0346     		mov	r3, r0
+ 704 0474 002B     		cmp	r3, #0
+ 705 0476 02D0     		beq	.L47
+ 706              		.loc 1 149 0 is_stmt 0 discriminator 1
+ 707 0478 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 708 047a 002B     		cmp	r3, #0
+ 709 047c 07D0     		beq	.L46
+ 710              	.L47:
+ 150:../src/config.c ****         resetConf();
+ 711              		.loc 1 150 0 is_stmt 1
+ 712 047e 00F00BF8 		bl	resetConf
+ 151:../src/config.c ****         // no need to memcpy profile again, we just did it in resetConf() above
+ 152:../src/config.c ****         writeEEPROM(0, false);
+ 713              		.loc 1 152 0
+ 714 0482 4FF00000 		mov	r0, #0
+ 715 0486 4FF00001 		mov	r1, #0
+ 716 048a FFF7FEFF 		bl	writeEEPROM
+ 717              	.L46:
+ 153:../src/config.c ****     }
+ 154:../src/config.c **** }
+ 718              		.loc 1 154 0
+ 719 048e 07F10807 		add	r7, r7, #8
+ 720 0492 BD46     		mov	sp, r7
+ 721 0494 80BD     		pop	{r7, pc}
+ 722              		.cfi_endproc
+ 723              	.LFE33:
+ 725              		.section	.rodata
+ 726 0009 000000   		.align	2
+ 727              	.LC1:
+ 728 000c 41455452 		.ascii	"AETR1234\000"
+ 728      31323334 
+ 728      00
+ 729 0015 000000   		.align	2
+ 730              	.LC0:
+ 731 0018 00       		.byte	0
+ 732 0019 00       		.byte	0
+ 733 001a 00       		.byte	0
+ 734 001b 00       		.byte	0
+ 735 001c 00       		.byte	0
+ 736 001d 00       		.byte	0
+ 737 001e FE       		.byte	-2
+ 738 001f FD       		.byte	-3
+ 739 0020 01       		.byte	1
+ 740 0021 000000   		.text
+ 741 0496 00BF     		.align	2
+ 742              		.thumb
+ 743              		.thumb_func
+ 745              	resetConf:
+ 746              	.LFB34:
+ 155:../src/config.c **** 
+ 156:../src/config.c **** // Default settings
+ 157:../src/config.c **** static void resetConf(void)
+ 158:../src/config.c **** {
+ 747              		.loc 1 158 0
+ 748              		.cfi_startproc
+ 749              		@ args = 0, pretend = 0, frame = 16
+ 750              		@ frame_needed = 1, uses_anonymous_args = 0
+ 751 0498 80B5     		push	{r7, lr}
+ 752              	.LCFI15:
+ 753              		.cfi_def_cfa_offset 8
+ 754              		.cfi_offset 7, -8
+ 755              		.cfi_offset 14, -4
+ 756 049a 84B0     		sub	sp, sp, #16
+ 757              	.LCFI16:
+ 758              		.cfi_def_cfa_offset 24
+ 759 049c 00AF     		add	r7, sp, #0
+ 760              	.LCFI17:
+ 761              		.cfi_def_cfa_register 7
+ 159:../src/config.c ****     int i;
+ 160:../src/config.c ****     const int8_t default_align[3][3] = { /* GYRO */ { 0, 0, 0 }, /* ACC */ { 0, 0, 0 }, /* MAG */ {
+ 762              		.loc 1 160 0
+ 763 049e 9C4A     		ldr	r2, .L54
+ 764 04a0 3B46     		mov	r3, r7
+ 765 04a2 1068     		ldr	r0, [r2, #0]	@ unaligned
+ 766 04a4 5168     		ldr	r1, [r2, #4]	@ unaligned
+ 767 04a6 03C3     		stmia	r3!, {r0, r1}
+ 768 04a8 127A     		ldrb	r2, [r2, #8]
+ 769 04aa 1A70     		strb	r2, [r3, #0]
+ 161:../src/config.c **** 
+ 162:../src/config.c ****     // Clear all configuration
+ 163:../src/config.c ****     memset(&mcfg, 0, sizeof(master_t));
+ 770              		.loc 1 163 0
+ 771 04ac 9948     		ldr	r0, .L54+4
+ 772 04ae 4FF00001 		mov	r1, #0
+ 773 04b2 4FF43C72 		mov	r2, #752
+ 774 04b6 FFF7FEFF 		bl	memset
+ 164:../src/config.c ****     memset(&cfg, 0, sizeof(config_t));
+ 775              		.loc 1 164 0
+ 776 04ba 9748     		ldr	r0, .L54+8
+ 777 04bc 4FF00001 		mov	r1, #0
+ 778 04c0 4FF09C02 		mov	r2, #156
+ 779 04c4 FFF7FEFF 		bl	memset
+ 165:../src/config.c **** 
+ 166:../src/config.c ****     mcfg.version = EEPROM_CONF_VERSION;
+ 780              		.loc 1 166 0
+ 781 04c8 944B     		ldr	r3, .L54+12
+ 782 04ca 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 783 04cc 914B     		ldr	r3, .L54+4
+ 784 04ce 1A70     		strb	r2, [r3, #0]
+ 167:../src/config.c ****     mcfg.mixerConfiguration = MULTITYPE_QUADX;
+ 785              		.loc 1 167 0
+ 786 04d0 904B     		ldr	r3, .L54+4
+ 787 04d2 4FF00302 		mov	r2, #3
+ 788 04d6 5A71     		strb	r2, [r3, #5]
+ 168:../src/config.c ****     featureClearAll();
+ 789              		.loc 1 168 0
+ 790 04d8 FFF7FEFF 		bl	featureClearAll
+ 169:../src/config.c ****     featureSet(FEATURE_VBAT|FEATURE_SPEKTRUM);
+ 791              		.loc 1 169 0
+ 792 04dc 4FF00A00 		mov	r0, #10
+ 793 04e0 FFF7FEFF 		bl	featureSet
+ 170:../src/config.c **** 
+ 171:../src/config.c ****     // global settings
+ 172:../src/config.c ****     mcfg.current_profile = 0;       // default profile
+ 794              		.loc 1 172 0
+ 795 04e4 8B4B     		ldr	r3, .L54+4
+ 796 04e6 4FF00002 		mov	r2, #0
+ 797 04ea 83F8EC22 		strb	r2, [r3, #748]
+ 173:../src/config.c ****     mcfg.gyro_cmpf_factor = 400;    // default MWC
+ 798              		.loc 1 173 0
+ 799 04ee 894B     		ldr	r3, .L54+4
+ 800 04f0 4FF4C872 		mov	r2, #400
+ 801 04f4 A3F8E620 		strh	r2, [r3, #230]	@ movhi
+ 174:../src/config.c ****     mcfg.gyro_lpf = 42;             // supported by all gyro drivers now. In case of ST gyro, will 
+ 802              		.loc 1 174 0
+ 803 04f8 864B     		ldr	r3, .L54+4
+ 804 04fa 4FF02A02 		mov	r2, #42
+ 805 04fe A3F8E420 		strh	r2, [r3, #228]	@ movhi
+ 175:../src/config.c ****     mcfg.accZero[0] = 0;
+ 806              		.loc 1 175 0
+ 807 0502 844B     		ldr	r3, .L54+4
+ 808 0504 4FF00002 		mov	r2, #0
+ 809 0508 A3F8EE20 		strh	r2, [r3, #238]	@ movhi
+ 176:../src/config.c ****     mcfg.accZero[1] = 0;
+ 810              		.loc 1 176 0
+ 811 050c 814B     		ldr	r3, .L54+4
+ 812 050e 4FF00002 		mov	r2, #0
+ 813 0512 A3F8F020 		strh	r2, [r3, #240]	@ movhi
+ 177:../src/config.c ****     mcfg.accZero[2] = 0;
+ 814              		.loc 1 177 0
+ 815 0516 7F4B     		ldr	r3, .L54+4
+ 816 0518 4FF00002 		mov	r2, #0
+ 817 051c A3F8F220 		strh	r2, [r3, #242]	@ movhi
+ 178:../src/config.c ****     memcpy(&mcfg.align, default_align, sizeof(mcfg.align));
+ 818              		.loc 1 178 0
+ 819 0520 7C4B     		ldr	r3, .L54+4
+ 820 0522 03F1DA02 		add	r2, r3, #218
+ 821 0526 3B46     		mov	r3, r7
+ 822 0528 03CB     		ldmia	r3!, {r0, r1}
+ 823 052a 1060     		str	r0, [r2, #0]	@ unaligned
+ 824 052c 5160     		str	r1, [r2, #4]	@ unaligned
+ 825 052e 1B78     		ldrb	r3, [r3, #0]
+ 826 0530 1372     		strb	r3, [r2, #8]
+ 179:../src/config.c ****     mcfg.acc_hardware = ACC_DEFAULT;     // default/autodetect
+ 827              		.loc 1 179 0
+ 828 0532 784B     		ldr	r3, .L54+4
+ 829 0534 4FF00002 		mov	r2, #0
+ 830 0538 83F8E320 		strb	r2, [r3, #227]
+ 180:../src/config.c ****     mcfg.moron_threshold = 32;
+ 831              		.loc 1 180 0
+ 832 053c 754B     		ldr	r3, .L54+4
+ 833 053e 4FF02002 		mov	r2, #32
+ 834 0542 83F8EC20 		strb	r2, [r3, #236]
+ 181:../src/config.c ****     mcfg.gyro_smoothing_factor = 0x00141403;     // default factors of 20, 20, 3 for R/P/Y
+ 835              		.loc 1 181 0
+ 836 0546 734B     		ldr	r3, .L54+4
+ 837 0548 754A     		ldr	r2, .L54+16
+ 838 054a C3F8E820 		str	r2, [r3, #232]
+ 182:../src/config.c ****     mcfg.vbatscale = 110;
+ 839              		.loc 1 182 0
+ 840 054e 714B     		ldr	r3, .L54+4
+ 841 0550 4FF06E02 		mov	r2, #110
+ 842 0554 83F8FA20 		strb	r2, [r3, #250]
+ 183:../src/config.c ****     mcfg.vbatmaxcellvoltage = 43;
+ 843              		.loc 1 183 0
+ 844 0558 6E4B     		ldr	r3, .L54+4
+ 845 055a 4FF02B02 		mov	r2, #43
+ 846 055e 83F8FB20 		strb	r2, [r3, #251]
+ 184:../src/config.c ****     mcfg.vbatmincellvoltage = 33;
+ 847              		.loc 1 184 0
+ 848 0562 6C4B     		ldr	r3, .L54+4
+ 849 0564 4FF02102 		mov	r2, #33
+ 850 0568 83F8FC20 		strb	r2, [r3, #252]
+ 185:../src/config.c ****     mcfg.power_adc_channel = 0;
+ 851              		.loc 1 185 0
+ 852 056c 694B     		ldr	r3, .L54+4
+ 853 056e 4FF00002 		mov	r2, #0
+ 854 0572 83F8FD20 		strb	r2, [r3, #253]
+ 186:../src/config.c ****     mcfg.spektrum_hires = 1;
+ 855              		.loc 1 186 0
+ 856 0576 674B     		ldr	r3, .L54+4
+ 857 0578 4FF00102 		mov	r2, #1
+ 858 057c 83F80621 		strb	r2, [r3, #262]
+ 187:../src/config.c ****     mcfg.midrc = 1500;
+ 859              		.loc 1 187 0
+ 860 0580 644B     		ldr	r3, .L54+4
+ 861 0582 40F2DC52 		movw	r2, #1500
+ 862 0586 A3F80821 		strh	r2, [r3, #264]	@ movhi
+ 188:../src/config.c ****     mcfg.mincheck = 1100;
+ 863              		.loc 1 188 0
+ 864 058a 624B     		ldr	r3, .L54+4
+ 865 058c 40F24C42 		movw	r2, #1100
+ 866 0590 A3F80A21 		strh	r2, [r3, #266]	@ movhi
+ 189:../src/config.c ****     mcfg.maxcheck = 1900;
+ 867              		.loc 1 189 0
+ 868 0594 5F4B     		ldr	r3, .L54+4
+ 869 0596 40F26C72 		movw	r2, #1900
+ 870 059a A3F80C21 		strh	r2, [r3, #268]	@ movhi
+ 190:../src/config.c ****     mcfg.retarded_arm = 0;       // disable arm/disarm on roll left/right
+ 871              		.loc 1 190 0
+ 872 059e 5D4B     		ldr	r3, .L54+4
+ 873 05a0 4FF00002 		mov	r2, #0
+ 874 05a4 83F80E21 		strb	r2, [r3, #270]
+ 191:../src/config.c ****     // Motor/ESC/Servo
+ 192:../src/config.c ****     mcfg.minthrottle = 1150;
+ 875              		.loc 1 192 0
+ 876 05a8 5A4B     		ldr	r3, .L54+4
+ 877 05aa 40F27E42 		movw	r2, #1150
+ 878 05ae A3F8D020 		strh	r2, [r3, #208]	@ movhi
+ 193:../src/config.c ****     mcfg.maxthrottle = 1850;
+ 879              		.loc 1 193 0
+ 880 05b2 584B     		ldr	r3, .L54+4
+ 881 05b4 40F23A72 		movw	r2, #1850
+ 882 05b8 A3F8D220 		strh	r2, [r3, #210]	@ movhi
+ 194:../src/config.c ****     mcfg.mincommand = 1000;
+ 883              		.loc 1 194 0
+ 884 05bc 554B     		ldr	r3, .L54+4
+ 885 05be 4FF47A72 		mov	r2, #1000
+ 886 05c2 A3F8D420 		strh	r2, [r3, #212]	@ movhi
+ 195:../src/config.c ****     mcfg.motor_pwm_rate = 400;
+ 887              		.loc 1 195 0
+ 888 05c6 534B     		ldr	r3, .L54+4
+ 889 05c8 4FF4C872 		mov	r2, #400
+ 890 05cc A3F8D620 		strh	r2, [r3, #214]	@ movhi
+ 196:../src/config.c ****     mcfg.servo_pwm_rate = 50;
+ 891              		.loc 1 196 0
+ 892 05d0 504B     		ldr	r3, .L54+4
+ 893 05d2 4FF03202 		mov	r2, #50
+ 894 05d6 A3F8D820 		strh	r2, [r3, #216]	@ movhi
+ 197:../src/config.c ****     // gps/nav stuff
+ 198:../src/config.c ****     mcfg.gps_type = GPS_I2C;
+ 895              		.loc 1 198 0
+ 896 05da 4E4B     		ldr	r3, .L54+4
+ 897 05dc 4FF00302 		mov	r2, #3
+ 898 05e0 83F80F21 		strb	r2, [r3, #271]
+ 199:../src/config.c ****     mcfg.gps_baudrate = 115200;
+ 899              		.loc 1 199 0
+ 900 05e4 4B4B     		ldr	r3, .L54+4
+ 901 05e6 4FF4E132 		mov	r2, #115200
+ 902 05ea C3F81021 		str	r2, [r3, #272]
+ 200:../src/config.c ****     // serial (USART1) baudrate
+ 201:../src/config.c ****     mcfg.serial_baudrate = 115200;
+ 903              		.loc 1 201 0
+ 904 05ee 494B     		ldr	r3, .L54+4
+ 905 05f0 4FF4E132 		mov	r2, #115200
+ 906 05f4 C3F81421 		str	r2, [r3, #276]
+ 202:../src/config.c ****     mcfg.looptime = 3500;
+ 907              		.loc 1 202 0
+ 908 05f8 464B     		ldr	r3, .L54+4
+ 909 05fa 40F6AC52 		movw	r2, #3500
+ 910 05fe 9A81     		strh	r2, [r3, #12]	@ movhi
+ 203:../src/config.c **** 
+ 204:../src/config.c ****     cfg.P8[ROLL] = 40;
+ 911              		.loc 1 204 0
+ 912 0600 454B     		ldr	r3, .L54+8
+ 913 0602 4FF02802 		mov	r2, #40
+ 914 0606 1A70     		strb	r2, [r3, #0]
+ 205:../src/config.c ****     cfg.I8[ROLL] = 30;
+ 915              		.loc 1 205 0
+ 916 0608 434B     		ldr	r3, .L54+8
+ 917 060a 4FF01E02 		mov	r2, #30
+ 918 060e 9A72     		strb	r2, [r3, #10]
+ 206:../src/config.c ****     cfg.D8[ROLL] = 23;
+ 919              		.loc 1 206 0
+ 920 0610 414B     		ldr	r3, .L54+8
+ 921 0612 4FF01702 		mov	r2, #23
+ 922 0616 1A75     		strb	r2, [r3, #20]
+ 207:../src/config.c ****     cfg.P8[PITCH] = 40;
+ 923              		.loc 1 207 0
+ 924 0618 3F4B     		ldr	r3, .L54+8
+ 925 061a 4FF02802 		mov	r2, #40
+ 926 061e 5A70     		strb	r2, [r3, #1]
+ 208:../src/config.c ****     cfg.I8[PITCH] = 30;
+ 927              		.loc 1 208 0
+ 928 0620 3D4B     		ldr	r3, .L54+8
+ 929 0622 4FF01E02 		mov	r2, #30
+ 930 0626 DA72     		strb	r2, [r3, #11]
+ 209:../src/config.c ****     cfg.D8[PITCH] = 23;
+ 931              		.loc 1 209 0
+ 932 0628 3B4B     		ldr	r3, .L54+8
+ 933 062a 4FF01702 		mov	r2, #23
+ 934 062e 5A75     		strb	r2, [r3, #21]
+ 210:../src/config.c ****     cfg.P8[YAW] = 85;
+ 935              		.loc 1 210 0
+ 936 0630 394B     		ldr	r3, .L54+8
+ 937 0632 4FF05502 		mov	r2, #85
+ 938 0636 9A70     		strb	r2, [r3, #2]
+ 211:../src/config.c ****     cfg.I8[YAW] = 45;
+ 939              		.loc 1 211 0
+ 940 0638 374B     		ldr	r3, .L54+8
+ 941 063a 4FF02D02 		mov	r2, #45
+ 942 063e 1A73     		strb	r2, [r3, #12]
+ 212:../src/config.c ****     cfg.D8[YAW] = 0;
+ 943              		.loc 1 212 0
+ 944 0640 354B     		ldr	r3, .L54+8
+ 945 0642 4FF00002 		mov	r2, #0
+ 946 0646 9A75     		strb	r2, [r3, #22]
+ 213:../src/config.c ****     cfg.P8[PIDALT] = 64;
+ 947              		.loc 1 213 0
+ 948 0648 334B     		ldr	r3, .L54+8
+ 949 064a 4FF04002 		mov	r2, #64
+ 950 064e DA70     		strb	r2, [r3, #3]
+ 214:../src/config.c ****     cfg.I8[PIDALT] = 25;
+ 951              		.loc 1 214 0
+ 952 0650 314B     		ldr	r3, .L54+8
+ 953 0652 4FF01902 		mov	r2, #25
+ 954 0656 5A73     		strb	r2, [r3, #13]
+ 215:../src/config.c ****     cfg.D8[PIDALT] = 24;
+ 955              		.loc 1 215 0
+ 956 0658 2F4B     		ldr	r3, .L54+8
+ 957 065a 4FF01802 		mov	r2, #24
+ 958 065e DA75     		strb	r2, [r3, #23]
+ 216:../src/config.c ****     cfg.P8[PIDPOS] = 11; // POSHOLD_P * 100;
+ 959              		.loc 1 216 0
+ 960 0660 2D4B     		ldr	r3, .L54+8
+ 961 0662 4FF00B02 		mov	r2, #11
+ 962 0666 1A71     		strb	r2, [r3, #4]
+ 217:../src/config.c ****     cfg.I8[PIDPOS] = 0; // POSHOLD_I * 100;
+ 963              		.loc 1 217 0
+ 964 0668 2B4B     		ldr	r3, .L54+8
+ 965 066a 4FF00002 		mov	r2, #0
+ 966 066e 9A73     		strb	r2, [r3, #14]
+ 218:../src/config.c ****     cfg.D8[PIDPOS] = 0;
+ 967              		.loc 1 218 0
+ 968 0670 294B     		ldr	r3, .L54+8
+ 969 0672 4FF00002 		mov	r2, #0
+ 970 0676 1A76     		strb	r2, [r3, #24]
+ 219:../src/config.c ****     cfg.P8[PIDPOSR] = 20; // POSHOLD_RATE_P * 10;
+ 971              		.loc 1 219 0
+ 972 0678 274B     		ldr	r3, .L54+8
+ 973 067a 4FF01402 		mov	r2, #20
+ 974 067e 5A71     		strb	r2, [r3, #5]
+ 220:../src/config.c ****     cfg.I8[PIDPOSR] = 8; // POSHOLD_RATE_I * 100;
+ 975              		.loc 1 220 0
+ 976 0680 254B     		ldr	r3, .L54+8
+ 977 0682 4FF00802 		mov	r2, #8
+ 978 0686 DA73     		strb	r2, [r3, #15]
+ 221:../src/config.c ****     cfg.D8[PIDPOSR] = 45; // POSHOLD_RATE_D * 1000;
+ 979              		.loc 1 221 0
+ 980 0688 234B     		ldr	r3, .L54+8
+ 981 068a 4FF02D02 		mov	r2, #45
+ 982 068e 5A76     		strb	r2, [r3, #25]
+ 222:../src/config.c ****     cfg.P8[PIDNAVR] = 14; // NAV_P * 10;
+ 983              		.loc 1 222 0
+ 984 0690 214B     		ldr	r3, .L54+8
+ 985 0692 4FF00E02 		mov	r2, #14
+ 986 0696 9A71     		strb	r2, [r3, #6]
+ 223:../src/config.c ****     cfg.I8[PIDNAVR] = 20; // NAV_I * 100;
+ 987              		.loc 1 223 0
+ 988 0698 1F4B     		ldr	r3, .L54+8
+ 989 069a 4FF01402 		mov	r2, #20
+ 990 069e 1A74     		strb	r2, [r3, #16]
+ 224:../src/config.c ****     cfg.D8[PIDNAVR] = 80; // NAV_D * 1000;
+ 991              		.loc 1 224 0
+ 992 06a0 1D4B     		ldr	r3, .L54+8
+ 993 06a2 4FF05002 		mov	r2, #80
+ 994 06a6 9A76     		strb	r2, [r3, #26]
+ 225:../src/config.c ****     cfg.P8[PIDLEVEL] = 90;
+ 995              		.loc 1 225 0
+ 996 06a8 1B4B     		ldr	r3, .L54+8
+ 997 06aa 4FF05A02 		mov	r2, #90
+ 998 06ae DA71     		strb	r2, [r3, #7]
+ 226:../src/config.c ****     cfg.I8[PIDLEVEL] = 10;
+ 999              		.loc 1 226 0
+ 1000 06b0 194B     		ldr	r3, .L54+8
+ 1001 06b2 4FF00A02 		mov	r2, #10
+ 1002 06b6 5A74     		strb	r2, [r3, #17]
+ 227:../src/config.c ****     cfg.D8[PIDLEVEL] = 100;
+ 1003              		.loc 1 227 0
+ 1004 06b8 174B     		ldr	r3, .L54+8
+ 1005 06ba 4FF06402 		mov	r2, #100
+ 1006 06be DA76     		strb	r2, [r3, #27]
+ 228:../src/config.c ****     cfg.P8[PIDMAG] = 40;
+ 1007              		.loc 1 228 0
+ 1008 06c0 154B     		ldr	r3, .L54+8
+ 1009 06c2 4FF02802 		mov	r2, #40
+ 1010 06c6 1A72     		strb	r2, [r3, #8]
+ 229:../src/config.c ****     cfg.P8[PIDVEL] = 0;
+ 1011              		.loc 1 229 0
+ 1012 06c8 134B     		ldr	r3, .L54+8
+ 1013 06ca 4FF00002 		mov	r2, #0
+ 1014 06ce 5A72     		strb	r2, [r3, #9]
+ 230:../src/config.c ****     cfg.I8[PIDVEL] = 0;
+ 1015              		.loc 1 230 0
+ 1016 06d0 114B     		ldr	r3, .L54+8
+ 1017 06d2 4FF00002 		mov	r2, #0
+ 1018 06d6 DA74     		strb	r2, [r3, #19]
+ 231:../src/config.c ****     cfg.D8[PIDVEL] = 0;
+ 1019              		.loc 1 231 0
+ 1020 06d8 0F4B     		ldr	r3, .L54+8
+ 1021 06da 4FF00002 		mov	r2, #0
+ 1022 06de 5A77     		strb	r2, [r3, #29]
+ 232:../src/config.c ****     cfg.rcRate8 = 90;
+ 1023              		.loc 1 232 0
+ 1024 06e0 0D4B     		ldr	r3, .L54+8
+ 1025 06e2 4FF05A02 		mov	r2, #90
+ 1026 06e6 9A77     		strb	r2, [r3, #30]
+ 233:../src/config.c ****     cfg.rcExpo8 = 65;
+ 1027              		.loc 1 233 0
+ 1028 06e8 0B4B     		ldr	r3, .L54+8
+ 1029 06ea 4FF04102 		mov	r2, #65
+ 1030 06ee DA77     		strb	r2, [r3, #31]
+ 234:../src/config.c ****     cfg.rollPitchRate = 0;
+ 1031              		.loc 1 234 0
+ 1032 06f0 094B     		ldr	r3, .L54+8
+ 1033 06f2 4FF00002 		mov	r2, #0
+ 1034 06f6 83F82220 		strb	r2, [r3, #34]
+ 235:../src/config.c ****     cfg.yawRate = 0;
+ 1035              		.loc 1 235 0
+ 1036 06fa 074B     		ldr	r3, .L54+8
+ 1037 06fc 4FF00002 		mov	r2, #0
+ 1038 0700 83F82320 		strb	r2, [r3, #35]
+ 236:../src/config.c ****     cfg.dynThrPID = 0;
+ 1039              		.loc 1 236 0
+ 1040 0704 044B     		ldr	r3, .L54+8
+ 1041 0706 4FF00002 		mov	r2, #0
+ 1042 070a 83F82420 		strb	r2, [r3, #36]
+ 1043 070e 09E0     		b	.L55
+ 1044              	.L56:
+ 1045              		.align	2
+ 1046              	.L54:
+ 1047 0710 18000000 		.word	.LC0
+ 1048 0714 00000000 		.word	mcfg
+ 1049 0718 00000000 		.word	cfg
+ 1050 071c 00000000 		.word	EEPROM_CONF_VERSION
+ 1051 0720 03141400 		.word	1315843
+ 1052              	.L55:
+ 237:../src/config.c ****     cfg.thrMid8 = 50;
+ 1053              		.loc 1 237 0
+ 1054 0724 904B     		ldr	r3, .L57
+ 1055 0726 4FF03202 		mov	r2, #50
+ 1056 072a 83F82020 		strb	r2, [r3, #32]
+ 238:../src/config.c ****     cfg.thrExpo8 = 0;
+ 1057              		.loc 1 238 0
+ 1058 072e 8E4B     		ldr	r3, .L57
+ 1059 0730 4FF00002 		mov	r2, #0
+ 1060 0734 83F82120 		strb	r2, [r3, #33]
+ 239:../src/config.c ****     // for (i = 0; i < CHECKBOXITEMS; i++)
+ 240:../src/config.c ****     //     cfg.activate[i] = 0;
+ 241:../src/config.c ****     cfg.angleTrim[0] = 0;
+ 1061              		.loc 1 241 0
+ 1062 0738 8B4B     		ldr	r3, .L57
+ 1063 073a 4FF00002 		mov	r2, #0
+ 1064 073e 1A85     		strh	r2, [r3, #40]	@ movhi
+ 242:../src/config.c ****     cfg.angleTrim[1] = 0;
+ 1065              		.loc 1 242 0
+ 1066 0740 894B     		ldr	r3, .L57
+ 1067 0742 4FF00002 		mov	r2, #0
+ 1068 0746 5A85     		strh	r2, [r3, #42]	@ movhi
+ 243:../src/config.c ****     cfg.mag_declination = 0;    // For example, -6deg 37min, = -637 Japan, format is [sign]dddmm (d
+ 1069              		.loc 1 243 0
+ 1070 0748 874B     		ldr	r3, .L57
+ 1071 074a 4FF00002 		mov	r2, #0
+ 1072 074e DA84     		strh	r2, [r3, #38]	@ movhi
+ 244:../src/config.c ****     cfg.acc_lpf_factor = 4;
+ 1073              		.loc 1 244 0
+ 1074 0750 854B     		ldr	r3, .L57
+ 1075 0752 4FF00402 		mov	r2, #4
+ 1076 0756 83F82C20 		strb	r2, [r3, #44]
+ 245:../src/config.c ****     cfg.acc_lpf_for_velocity = 10;
+ 1077              		.loc 1 245 0
+ 1078 075a 834B     		ldr	r3, .L57
+ 1079 075c 4FF00A02 		mov	r2, #10
+ 1080 0760 83F82D20 		strb	r2, [r3, #45]
+ 246:../src/config.c ****     cfg.accz_deadband = 50;
+ 1081              		.loc 1 246 0
+ 1082 0764 804B     		ldr	r3, .L57
+ 1083 0766 4FF03202 		mov	r2, #50
+ 1084 076a 83F82E20 		strb	r2, [r3, #46]
+ 247:../src/config.c ****     cfg.baro_tab_size = 21;
+ 1085              		.loc 1 247 0
+ 1086 076e 7E4B     		ldr	r3, .L57
+ 1087 0770 4FF01502 		mov	r2, #21
+ 1088 0774 83F82F20 		strb	r2, [r3, #47]
+ 248:../src/config.c ****     cfg.baro_noise_lpf = 0.6f;
+ 1089              		.loc 1 248 0
+ 1090 0778 7B4B     		ldr	r3, .L57
+ 1091 077a 7E4A     		ldr	r2, .L57+12	@ float
+ 1092 077c 1A63     		str	r2, [r3, #48]	@ float
+ 249:../src/config.c ****     cfg.baro_cf = 0.985f;
+ 1093              		.loc 1 249 0
+ 1094 077e 7A4B     		ldr	r3, .L57
+ 1095 0780 7D4A     		ldr	r2, .L57+16	@ float
+ 1096 0782 5A63     		str	r2, [r3, #52]	@ float
+ 250:../src/config.c **** 
+ 251:../src/config.c ****     // Radio
+ 252:../src/config.c ****     parseRcChannels("AETR1234");
+ 1097              		.loc 1 252 0
+ 1098 0784 7948     		ldr	r0, .L57+4
+ 1099 0786 FFF7FEFF 		bl	parseRcChannels
+ 253:../src/config.c ****     cfg.deadband = 0;
+ 1100              		.loc 1 253 0
+ 1101 078a 774B     		ldr	r3, .L57
+ 1102 078c 4FF00002 		mov	r2, #0
+ 1103 0790 83F86020 		strb	r2, [r3, #96]
+ 254:../src/config.c ****     cfg.yawdeadband = 0;
+ 1104              		.loc 1 254 0
+ 1105 0794 744B     		ldr	r3, .L57
+ 1106 0796 4FF00002 		mov	r2, #0
+ 1107 079a 83F86120 		strb	r2, [r3, #97]
+ 255:../src/config.c ****     cfg.alt_hold_throttle_neutral = 40;
+ 1108              		.loc 1 255 0
+ 1109 079e 724B     		ldr	r3, .L57
+ 1110 07a0 4FF02802 		mov	r2, #40
+ 1111 07a4 83F86220 		strb	r2, [r3, #98]
+ 256:../src/config.c ****     cfg.alt_hold_fast_change = 1;
+ 1112              		.loc 1 256 0
+ 1113 07a8 6F4B     		ldr	r3, .L57
+ 1114 07aa 4FF00102 		mov	r2, #1
+ 1115 07ae 83F86320 		strb	r2, [r3, #99]
+ 257:../src/config.c **** 
+ 258:../src/config.c ****     // Failsafe Variables
+ 259:../src/config.c ****     cfg.failsafe_delay = 10;            // 1sec
+ 1116              		.loc 1 259 0
+ 1117 07b2 6D4B     		ldr	r3, .L57
+ 1118 07b4 4FF00A02 		mov	r2, #10
+ 1119 07b8 83F86420 		strb	r2, [r3, #100]
+ 260:../src/config.c ****     cfg.failsafe_off_delay = 200;       // 20sec
+ 1120              		.loc 1 260 0
+ 1121 07bc 6A4B     		ldr	r3, .L57
+ 1122 07be 4FF0C802 		mov	r2, #200
+ 1123 07c2 83F86520 		strb	r2, [r3, #101]
+ 261:../src/config.c ****     cfg.failsafe_throttle = 1200;       // decent default which should always be below hover thrott
+ 1124              		.loc 1 261 0
+ 1125 07c6 684B     		ldr	r3, .L57
+ 1126 07c8 4FF49662 		mov	r2, #1200
+ 1127 07cc A3F86620 		strh	r2, [r3, #102]	@ movhi
+ 262:../src/config.c **** 
+ 263:../src/config.c ****     // servos
+ 264:../src/config.c ****     cfg.yaw_direction = 1;
+ 1128              		.loc 1 264 0
+ 1129 07d0 654B     		ldr	r3, .L57
+ 1130 07d2 4FF00102 		mov	r2, #1
+ 1131 07d6 83F86820 		strb	r2, [r3, #104]
+ 265:../src/config.c ****     cfg.tri_yaw_middle = 1500;
+ 1132              		.loc 1 265 0
+ 1133 07da 634B     		ldr	r3, .L57
+ 1134 07dc 40F2DC52 		movw	r2, #1500
+ 1135 07e0 A3F86A20 		strh	r2, [r3, #106]	@ movhi
+ 266:../src/config.c ****     cfg.tri_yaw_min = 1020;
+ 1136              		.loc 1 266 0
+ 1137 07e4 604B     		ldr	r3, .L57
+ 1138 07e6 4FF47F72 		mov	r2, #1020
+ 1139 07ea A3F86C20 		strh	r2, [r3, #108]	@ movhi
+ 267:../src/config.c ****     cfg.tri_yaw_max = 2000;
+ 1140              		.loc 1 267 0
+ 1141 07ee 5E4B     		ldr	r3, .L57
+ 1142 07f0 4FF4FA62 		mov	r2, #2000
+ 1143 07f4 A3F86E20 		strh	r2, [r3, #110]	@ movhi
+ 268:../src/config.c **** 
+ 269:../src/config.c ****     // flying wing
+ 270:../src/config.c ****     cfg.wing_left_min = 1020;
+ 1144              		.loc 1 270 0
+ 1145 07f8 5B4B     		ldr	r3, .L57
+ 1146 07fa 4FF47F72 		mov	r2, #1020
+ 1147 07fe A3F87020 		strh	r2, [r3, #112]	@ movhi
+ 271:../src/config.c ****     cfg.wing_left_mid = 1500;
+ 1148              		.loc 1 271 0
+ 1149 0802 594B     		ldr	r3, .L57
+ 1150 0804 40F2DC52 		movw	r2, #1500
+ 1151 0808 A3F87220 		strh	r2, [r3, #114]	@ movhi
+ 272:../src/config.c ****     cfg.wing_left_max = 2000;
+ 1152              		.loc 1 272 0
+ 1153 080c 564B     		ldr	r3, .L57
+ 1154 080e 4FF4FA62 		mov	r2, #2000
+ 1155 0812 A3F87420 		strh	r2, [r3, #116]	@ movhi
+ 273:../src/config.c ****     cfg.wing_right_min = 1020;
+ 1156              		.loc 1 273 0
+ 1157 0816 544B     		ldr	r3, .L57
+ 1158 0818 4FF47F72 		mov	r2, #1020
+ 1159 081c A3F87620 		strh	r2, [r3, #118]	@ movhi
+ 274:../src/config.c ****     cfg.wing_right_mid = 1500;
+ 1160              		.loc 1 274 0
+ 1161 0820 514B     		ldr	r3, .L57
+ 1162 0822 40F2DC52 		movw	r2, #1500
+ 1163 0826 A3F87820 		strh	r2, [r3, #120]	@ movhi
+ 275:../src/config.c ****     cfg.wing_right_max = 2000;
+ 1164              		.loc 1 275 0
+ 1165 082a 4F4B     		ldr	r3, .L57
+ 1166 082c 4FF4FA62 		mov	r2, #2000
+ 1167 0830 A3F87A20 		strh	r2, [r3, #122]	@ movhi
+ 276:../src/config.c ****     cfg.pitch_direction_l = 1;
+ 1168              		.loc 1 276 0
+ 1169 0834 4C4B     		ldr	r3, .L57
+ 1170 0836 4FF00102 		mov	r2, #1
+ 1171 083a 83F87C20 		strb	r2, [r3, #124]
+ 277:../src/config.c ****     cfg.pitch_direction_r = -1;
+ 1172              		.loc 1 277 0
+ 1173 083e 4A4B     		ldr	r3, .L57
+ 1174 0840 4FF0FF02 		mov	r2, #255
+ 1175 0844 83F87D20 		strb	r2, [r3, #125]
+ 278:../src/config.c ****     cfg.roll_direction_l = 1;
+ 1176              		.loc 1 278 0
+ 1177 0848 474B     		ldr	r3, .L57
+ 1178 084a 4FF00102 		mov	r2, #1
+ 1179 084e 83F87E20 		strb	r2, [r3, #126]
+ 279:../src/config.c ****     cfg.roll_direction_r = 1;
+ 1180              		.loc 1 279 0
+ 1181 0852 454B     		ldr	r3, .L57
+ 1182 0854 4FF00102 		mov	r2, #1
+ 1183 0858 83F87F20 		strb	r2, [r3, #127]
+ 280:../src/config.c **** 
+ 281:../src/config.c ****     // gimbal
+ 282:../src/config.c ****     cfg.gimbal_pitch_gain = 10;
+ 1184              		.loc 1 282 0
+ 1185 085c 424B     		ldr	r3, .L57
+ 1186 085e 4FF00A02 		mov	r2, #10
+ 1187 0862 83F88020 		strb	r2, [r3, #128]
+ 283:../src/config.c ****     cfg.gimbal_roll_gain = 10;
+ 1188              		.loc 1 283 0
+ 1189 0866 404B     		ldr	r3, .L57
+ 1190 0868 4FF00A02 		mov	r2, #10
+ 1191 086c 83F88120 		strb	r2, [r3, #129]
+ 284:../src/config.c ****     cfg.gimbal_flags = GIMBAL_NORMAL;
+ 1192              		.loc 1 284 0
+ 1193 0870 3D4B     		ldr	r3, .L57
+ 1194 0872 4FF00102 		mov	r2, #1
+ 1195 0876 83F88220 		strb	r2, [r3, #130]
+ 285:../src/config.c ****     cfg.gimbal_pitch_min = 1020;
+ 1196              		.loc 1 285 0
+ 1197 087a 3B4B     		ldr	r3, .L57
+ 1198 087c 4FF47F72 		mov	r2, #1020
+ 1199 0880 A3F88420 		strh	r2, [r3, #132]	@ movhi
+ 286:../src/config.c ****     cfg.gimbal_pitch_max = 2000;
+ 1200              		.loc 1 286 0
+ 1201 0884 384B     		ldr	r3, .L57
+ 1202 0886 4FF4FA62 		mov	r2, #2000
+ 1203 088a A3F88620 		strh	r2, [r3, #134]	@ movhi
+ 287:../src/config.c ****     cfg.gimbal_pitch_mid = 1500;
+ 1204              		.loc 1 287 0
+ 1205 088e 364B     		ldr	r3, .L57
+ 1206 0890 40F2DC52 		movw	r2, #1500
+ 1207 0894 A3F88820 		strh	r2, [r3, #136]	@ movhi
+ 288:../src/config.c ****     cfg.gimbal_roll_min = 1020;
+ 1208              		.loc 1 288 0
+ 1209 0898 334B     		ldr	r3, .L57
+ 1210 089a 4FF47F72 		mov	r2, #1020
+ 1211 089e A3F88A20 		strh	r2, [r3, #138]	@ movhi
+ 289:../src/config.c ****     cfg.gimbal_roll_max = 2000;
+ 1212              		.loc 1 289 0
+ 1213 08a2 314B     		ldr	r3, .L57
+ 1214 08a4 4FF4FA62 		mov	r2, #2000
+ 1215 08a8 A3F88C20 		strh	r2, [r3, #140]	@ movhi
+ 290:../src/config.c ****     cfg.gimbal_roll_mid = 1500;
+ 1216              		.loc 1 290 0
+ 1217 08ac 2E4B     		ldr	r3, .L57
+ 1218 08ae 40F2DC52 		movw	r2, #1500
+ 1219 08b2 A3F88E20 		strh	r2, [r3, #142]	@ movhi
+ 291:../src/config.c **** 
+ 292:../src/config.c ****     // gps/nav stuff
+ 293:../src/config.c ****     cfg.gps_wp_radius = 200;
+ 1220              		.loc 1 293 0
+ 1221 08b6 2C4B     		ldr	r3, .L57
+ 1222 08b8 4FF0C802 		mov	r2, #200
+ 1223 08bc A3F89020 		strh	r2, [r3, #144]	@ movhi
+ 294:../src/config.c ****     cfg.gps_lpf = 20;
+ 1224              		.loc 1 294 0
+ 1225 08c0 294B     		ldr	r3, .L57
+ 1226 08c2 4FF01402 		mov	r2, #20
+ 1227 08c6 83F89220 		strb	r2, [r3, #146]
+ 295:../src/config.c ****     cfg.nav_slew_rate = 30;
+ 1228              		.loc 1 295 0
+ 1229 08ca 274B     		ldr	r3, .L57
+ 1230 08cc 4FF01E02 		mov	r2, #30
+ 1231 08d0 83F89320 		strb	r2, [r3, #147]
+ 296:../src/config.c ****     cfg.nav_controls_heading = 1;
+ 1232              		.loc 1 296 0
+ 1233 08d4 244B     		ldr	r3, .L57
+ 1234 08d6 4FF00102 		mov	r2, #1
+ 1235 08da 83F89420 		strb	r2, [r3, #148]
+ 297:../src/config.c ****     cfg.nav_speed_min = 100;
+ 1236              		.loc 1 297 0
+ 1237 08de 224B     		ldr	r3, .L57
+ 1238 08e0 4FF06402 		mov	r2, #100
+ 1239 08e4 A3F89620 		strh	r2, [r3, #150]	@ movhi
+ 298:../src/config.c ****     cfg.nav_speed_max = 300;
+ 1240              		.loc 1 298 0
+ 1241 08e8 1F4B     		ldr	r3, .L57
+ 1242 08ea 4FF49672 		mov	r2, #300
+ 1243 08ee A3F89820 		strh	r2, [r3, #152]	@ movhi
+ 299:../src/config.c ****     cfg.ap_mode = 40;
+ 1244              		.loc 1 299 0
+ 1245 08f2 1D4B     		ldr	r3, .L57
+ 1246 08f4 4FF02802 		mov	r2, #40
+ 1247 08f8 A3F89A20 		strh	r2, [r3, #154]	@ movhi
+ 300:../src/config.c **** 
+ 301:../src/config.c ****     // custom mixer. clear by defaults.
+ 302:../src/config.c ****     for (i = 0; i < MAX_MOTORS; i++)
+ 1248              		.loc 1 302 0
+ 1249 08fc 4FF00003 		mov	r3, #0
+ 1250 0900 FB60     		str	r3, [r7, #12]
+ 1251 0902 0CE0     		b	.L50
+ 1252              	.L51:
+ 303:../src/config.c ****         mcfg.customMixer[i].throttle = 0.0f;
+ 1253              		.loc 1 303 0 discriminator 2
+ 1254 0904 1A4A     		ldr	r2, .L57+8
+ 1255 0906 FB68     		ldr	r3, [r7, #12]
+ 1256 0908 03F10103 		add	r3, r3, #1
+ 1257 090c 4FEA0313 		lsl	r3, r3, #4
+ 1258 0910 D318     		adds	r3, r2, r3
+ 1259 0912 1A4A     		ldr	r2, .L57+20	@ float
+ 1260 0914 1A60     		str	r2, [r3, #0]	@ float
+ 302:../src/config.c ****     for (i = 0; i < MAX_MOTORS; i++)
+ 1261              		.loc 1 302 0 discriminator 2
+ 1262 0916 FB68     		ldr	r3, [r7, #12]
+ 1263 0918 03F10103 		add	r3, r3, #1
+ 1264 091c FB60     		str	r3, [r7, #12]
+ 1265              	.L50:
+ 302:../src/config.c ****     for (i = 0; i < MAX_MOTORS; i++)
+ 1266              		.loc 1 302 0 is_stmt 0 discriminator 1
+ 1267 091e FB68     		ldr	r3, [r7, #12]
+ 1268 0920 0B2B     		cmp	r3, #11
+ 1269 0922 EFDD     		ble	.L51
+ 304:../src/config.c **** 
+ 305:../src/config.c ****     // copy default config into all 3 profiles
+ 306:../src/config.c ****     for (i = 0; i < 3; i++)
+ 1270              		.loc 1 306 0 is_stmt 1
+ 1271 0924 4FF00003 		mov	r3, #0
+ 1272 0928 FB60     		str	r3, [r7, #12]
+ 1273 092a 16E0     		b	.L52
+ 1274              	.L53:
+ 307:../src/config.c ****         memcpy(&mcfg.profile[i], &cfg, sizeof(config_t));
+ 1275              		.loc 1 307 0 discriminator 2
+ 1276 092c FB68     		ldr	r3, [r7, #12]
+ 1277 092e 4FF09C02 		mov	r2, #156
+ 1278 0932 02FB03F3 		mul	r3, r2, r3
+ 1279 0936 03F58C72 		add	r2, r3, #280
+ 1280 093a 0D4B     		ldr	r3, .L57+8
+ 1281 093c D218     		adds	r2, r2, r3
+ 1282 093e 0A4B     		ldr	r3, .L57
+ 1283 0940 1146     		mov	r1, r2
+ 1284 0942 1A46     		mov	r2, r3
+ 1285 0944 4FF09C03 		mov	r3, #156
+ 1286 0948 0846     		mov	r0, r1
+ 1287 094a 1146     		mov	r1, r2
+ 1288 094c 1A46     		mov	r2, r3
+ 1289 094e FFF7FEFF 		bl	memcpy
+ 306:../src/config.c ****     for (i = 0; i < 3; i++)
+ 1290              		.loc 1 306 0 discriminator 2
+ 1291 0952 FB68     		ldr	r3, [r7, #12]
+ 1292 0954 03F10103 		add	r3, r3, #1
+ 1293 0958 FB60     		str	r3, [r7, #12]
+ 1294              	.L52:
+ 306:../src/config.c ****     for (i = 0; i < 3; i++)
+ 1295              		.loc 1 306 0 is_stmt 0 discriminator 1
+ 1296 095a FB68     		ldr	r3, [r7, #12]
+ 1297 095c 022B     		cmp	r3, #2
+ 1298 095e E5DD     		ble	.L53
+ 308:../src/config.c **** }
+ 1299              		.loc 1 308 0 is_stmt 1
+ 1300 0960 07F11007 		add	r7, r7, #16
+ 1301 0964 BD46     		mov	sp, r7
+ 1302 0966 80BD     		pop	{r7, pc}
+ 1303              	.L58:
+ 1304              		.align	2
+ 1305              	.L57:
+ 1306 0968 00000000 		.word	cfg
+ 1307 096c 0C000000 		.word	.LC1
+ 1308 0970 00000000 		.word	mcfg
+ 1309 0974 9A99193F 		.word	1058642330
+ 1310 0978 F6287C3F 		.word	1065101558
+ 1311 097c 00000000 		.word	0
+ 1312              		.cfi_endproc
+ 1313              	.LFE34:
+ 1315              		.align	2
+ 1316              		.global	sensors
+ 1317              		.thumb
+ 1318              		.thumb_func
+ 1320              	sensors:
+ 1321              	.LFB35:
+ 309:../src/config.c **** 
+ 310:../src/config.c **** bool sensors(uint32_t mask)
+ 311:../src/config.c **** {
+ 1322              		.loc 1 311 0
+ 1323              		.cfi_startproc
+ 1324              		@ args = 0, pretend = 0, frame = 8
+ 1325              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1326              		@ link register save eliminated.
+ 1327 0980 80B4     		push	{r7}
+ 1328              	.LCFI18:
+ 1329              		.cfi_def_cfa_offset 4
+ 1330              		.cfi_offset 7, -4
+ 1331 0982 83B0     		sub	sp, sp, #12
+ 1332              	.LCFI19:
+ 1333              		.cfi_def_cfa_offset 16
+ 1334 0984 00AF     		add	r7, sp, #0
+ 1335              	.LCFI20:
+ 1336              		.cfi_def_cfa_register 7
+ 1337 0986 7860     		str	r0, [r7, #4]
+ 312:../src/config.c ****     return enabledSensors & mask;
+ 1338              		.loc 1 312 0
+ 1339 0988 074B     		ldr	r3, .L61
+ 1340 098a 1A68     		ldr	r2, [r3, #0]
+ 1341 098c 7B68     		ldr	r3, [r7, #4]
+ 1342 098e 1340     		ands	r3, r3, r2
+ 1343 0990 002B     		cmp	r3, #0
+ 1344 0992 0CBF     		ite	eq
+ 1345 0994 0023     		moveq	r3, #0
+ 1346 0996 0123     		movne	r3, #1
+ 1347 0998 DBB2     		uxtb	r3, r3
+ 313:../src/config.c **** }
+ 1348              		.loc 1 313 0
+ 1349 099a 1846     		mov	r0, r3
+ 1350 099c 07F10C07 		add	r7, r7, #12
+ 1351 09a0 BD46     		mov	sp, r7
+ 1352 09a2 80BC     		pop	{r7}
+ 1353 09a4 7047     		bx	lr
+ 1354              	.L62:
+ 1355 09a6 00BF     		.align	2
+ 1356              	.L61:
+ 1357 09a8 00000000 		.word	enabledSensors
+ 1358              		.cfi_endproc
+ 1359              	.LFE35:
+ 1361              		.align	2
+ 1362              		.global	sensorsSet
+ 1363              		.thumb
+ 1364              		.thumb_func
+ 1366              	sensorsSet:
+ 1367              	.LFB36:
+ 314:../src/config.c **** 
+ 315:../src/config.c **** void sensorsSet(uint32_t mask)
+ 316:../src/config.c **** {
+ 1368              		.loc 1 316 0
+ 1369              		.cfi_startproc
+ 1370              		@ args = 0, pretend = 0, frame = 8
+ 1371              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1372              		@ link register save eliminated.
+ 1373 09ac 80B4     		push	{r7}
+ 1374              	.LCFI21:
+ 1375              		.cfi_def_cfa_offset 4
+ 1376              		.cfi_offset 7, -4
+ 1377 09ae 83B0     		sub	sp, sp, #12
+ 1378              	.LCFI22:
+ 1379              		.cfi_def_cfa_offset 16
+ 1380 09b0 00AF     		add	r7, sp, #0
+ 1381              	.LCFI23:
+ 1382              		.cfi_def_cfa_register 7
+ 1383 09b2 7860     		str	r0, [r7, #4]
+ 317:../src/config.c ****     enabledSensors |= mask;
+ 1384              		.loc 1 317 0
+ 1385 09b4 054B     		ldr	r3, .L64
+ 1386 09b6 1A68     		ldr	r2, [r3, #0]
+ 1387 09b8 7B68     		ldr	r3, [r7, #4]
+ 1388 09ba 1A43     		orrs	r2, r2, r3
+ 1389 09bc 034B     		ldr	r3, .L64
+ 1390 09be 1A60     		str	r2, [r3, #0]
+ 318:../src/config.c **** }
+ 1391              		.loc 1 318 0
+ 1392 09c0 07F10C07 		add	r7, r7, #12
+ 1393 09c4 BD46     		mov	sp, r7
+ 1394 09c6 80BC     		pop	{r7}
+ 1395 09c8 7047     		bx	lr
+ 1396              	.L65:
+ 1397 09ca 00BF     		.align	2
+ 1398              	.L64:
+ 1399 09cc 00000000 		.word	enabledSensors
+ 1400              		.cfi_endproc
+ 1401              	.LFE36:
+ 1403              		.align	2
+ 1404              		.global	sensorsClear
+ 1405              		.thumb
+ 1406              		.thumb_func
+ 1408              	sensorsClear:
+ 1409              	.LFB37:
+ 319:../src/config.c **** 
+ 320:../src/config.c **** void sensorsClear(uint32_t mask)
+ 321:../src/config.c **** {
+ 1410              		.loc 1 321 0
+ 1411              		.cfi_startproc
+ 1412              		@ args = 0, pretend = 0, frame = 8
+ 1413              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1414              		@ link register save eliminated.
+ 1415 09d0 80B4     		push	{r7}
+ 1416              	.LCFI24:
+ 1417              		.cfi_def_cfa_offset 4
+ 1418              		.cfi_offset 7, -4
+ 1419 09d2 83B0     		sub	sp, sp, #12
+ 1420              	.LCFI25:
+ 1421              		.cfi_def_cfa_offset 16
+ 1422 09d4 00AF     		add	r7, sp, #0
+ 1423              	.LCFI26:
+ 1424              		.cfi_def_cfa_register 7
+ 1425 09d6 7860     		str	r0, [r7, #4]
+ 322:../src/config.c ****     enabledSensors &= ~(mask);
+ 1426              		.loc 1 322 0
+ 1427 09d8 7B68     		ldr	r3, [r7, #4]
+ 1428 09da 6FEA0302 		mvn	r2, r3
+ 1429 09de 054B     		ldr	r3, .L67
+ 1430 09e0 1B68     		ldr	r3, [r3, #0]
+ 1431 09e2 1A40     		ands	r2, r2, r3
+ 1432 09e4 034B     		ldr	r3, .L67
+ 1433 09e6 1A60     		str	r2, [r3, #0]
+ 323:../src/config.c **** }
+ 1434              		.loc 1 323 0
+ 1435 09e8 07F10C07 		add	r7, r7, #12
+ 1436 09ec BD46     		mov	sp, r7
+ 1437 09ee 80BC     		pop	{r7}
+ 1438 09f0 7047     		bx	lr
+ 1439              	.L68:
+ 1440 09f2 00BF     		.align	2
+ 1441              	.L67:
+ 1442 09f4 00000000 		.word	enabledSensors
+ 1443              		.cfi_endproc
+ 1444              	.LFE37:
+ 1446              		.align	2
+ 1447              		.global	sensorsMask
+ 1448              		.thumb
+ 1449              		.thumb_func
+ 1451              	sensorsMask:
+ 1452              	.LFB38:
+ 324:../src/config.c **** 
+ 325:../src/config.c **** uint32_t sensorsMask(void)
+ 326:../src/config.c **** {
+ 1453              		.loc 1 326 0
+ 1454              		.cfi_startproc
+ 1455              		@ args = 0, pretend = 0, frame = 0
+ 1456              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1457              		@ link register save eliminated.
+ 1458 09f8 80B4     		push	{r7}
+ 1459              	.LCFI27:
+ 1460              		.cfi_def_cfa_offset 4
+ 1461              		.cfi_offset 7, -4
+ 1462 09fa 00AF     		add	r7, sp, #0
+ 1463              	.LCFI28:
+ 1464              		.cfi_def_cfa_register 7
+ 327:../src/config.c ****     return enabledSensors;
+ 1465              		.loc 1 327 0
+ 1466 09fc 024B     		ldr	r3, .L71
+ 1467 09fe 1B68     		ldr	r3, [r3, #0]
+ 328:../src/config.c **** }
+ 1468              		.loc 1 328 0
+ 1469 0a00 1846     		mov	r0, r3
+ 1470 0a02 BD46     		mov	sp, r7
+ 1471 0a04 80BC     		pop	{r7}
+ 1472 0a06 7047     		bx	lr
+ 1473              	.L72:
+ 1474              		.align	2
+ 1475              	.L71:
+ 1476 0a08 00000000 		.word	enabledSensors
+ 1477              		.cfi_endproc
+ 1478              	.LFE38:
+ 1480              		.align	2
+ 1481              		.global	feature
+ 1482              		.thumb
+ 1483              		.thumb_func
+ 1485              	feature:
+ 1486              	.LFB39:
+ 329:../src/config.c **** 
+ 330:../src/config.c **** bool feature(uint32_t mask)
+ 331:../src/config.c **** {
+ 1487              		.loc 1 331 0
+ 1488              		.cfi_startproc
+ 1489              		@ args = 0, pretend = 0, frame = 8
+ 1490              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1491              		@ link register save eliminated.
+ 1492 0a0c 80B4     		push	{r7}
+ 1493              	.LCFI29:
+ 1494              		.cfi_def_cfa_offset 4
+ 1495              		.cfi_offset 7, -4
+ 1496 0a0e 83B0     		sub	sp, sp, #12
+ 1497              	.LCFI30:
+ 1498              		.cfi_def_cfa_offset 16
+ 1499 0a10 00AF     		add	r7, sp, #0
+ 1500              	.LCFI31:
+ 1501              		.cfi_def_cfa_register 7
+ 1502 0a12 7860     		str	r0, [r7, #4]
+ 332:../src/config.c ****     return mcfg.enabledFeatures & mask;
+ 1503              		.loc 1 332 0
+ 1504 0a14 074B     		ldr	r3, .L75
+ 1505 0a16 9A68     		ldr	r2, [r3, #8]
+ 1506 0a18 7B68     		ldr	r3, [r7, #4]
+ 1507 0a1a 1340     		ands	r3, r3, r2
+ 1508 0a1c 002B     		cmp	r3, #0
+ 1509 0a1e 0CBF     		ite	eq
+ 1510 0a20 0023     		moveq	r3, #0
+ 1511 0a22 0123     		movne	r3, #1
+ 1512 0a24 DBB2     		uxtb	r3, r3
+ 333:../src/config.c **** }
+ 1513              		.loc 1 333 0
+ 1514 0a26 1846     		mov	r0, r3
+ 1515 0a28 07F10C07 		add	r7, r7, #12
+ 1516 0a2c BD46     		mov	sp, r7
+ 1517 0a2e 80BC     		pop	{r7}
+ 1518 0a30 7047     		bx	lr
+ 1519              	.L76:
+ 1520 0a32 00BF     		.align	2
+ 1521              	.L75:
+ 1522 0a34 00000000 		.word	mcfg
+ 1523              		.cfi_endproc
+ 1524              	.LFE39:
+ 1526              		.align	2
+ 1527              		.global	featureSet
+ 1528              		.thumb
+ 1529              		.thumb_func
+ 1531              	featureSet:
+ 1532              	.LFB40:
+ 334:../src/config.c **** 
+ 335:../src/config.c **** void featureSet(uint32_t mask)
+ 336:../src/config.c **** {
+ 1533              		.loc 1 336 0
+ 1534              		.cfi_startproc
+ 1535              		@ args = 0, pretend = 0, frame = 8
+ 1536              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1537              		@ link register save eliminated.
+ 1538 0a38 80B4     		push	{r7}
+ 1539              	.LCFI32:
+ 1540              		.cfi_def_cfa_offset 4
+ 1541              		.cfi_offset 7, -4
+ 1542 0a3a 83B0     		sub	sp, sp, #12
+ 1543              	.LCFI33:
+ 1544              		.cfi_def_cfa_offset 16
+ 1545 0a3c 00AF     		add	r7, sp, #0
+ 1546              	.LCFI34:
+ 1547              		.cfi_def_cfa_register 7
+ 1548 0a3e 7860     		str	r0, [r7, #4]
+ 337:../src/config.c ****     mcfg.enabledFeatures |= mask;
+ 1549              		.loc 1 337 0
+ 1550 0a40 054B     		ldr	r3, .L78
+ 1551 0a42 9A68     		ldr	r2, [r3, #8]
+ 1552 0a44 7B68     		ldr	r3, [r7, #4]
+ 1553 0a46 1A43     		orrs	r2, r2, r3
+ 1554 0a48 034B     		ldr	r3, .L78
+ 1555 0a4a 9A60     		str	r2, [r3, #8]
+ 338:../src/config.c **** }
+ 1556              		.loc 1 338 0
+ 1557 0a4c 07F10C07 		add	r7, r7, #12
+ 1558 0a50 BD46     		mov	sp, r7
+ 1559 0a52 80BC     		pop	{r7}
+ 1560 0a54 7047     		bx	lr
+ 1561              	.L79:
+ 1562 0a56 00BF     		.align	2
+ 1563              	.L78:
+ 1564 0a58 00000000 		.word	mcfg
+ 1565              		.cfi_endproc
+ 1566              	.LFE40:
+ 1568              		.align	2
+ 1569              		.global	featureClear
+ 1570              		.thumb
+ 1571              		.thumb_func
+ 1573              	featureClear:
+ 1574              	.LFB41:
+ 339:../src/config.c **** 
+ 340:../src/config.c **** void featureClear(uint32_t mask)
+ 341:../src/config.c **** {
+ 1575              		.loc 1 341 0
+ 1576              		.cfi_startproc
+ 1577              		@ args = 0, pretend = 0, frame = 8
+ 1578              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1579              		@ link register save eliminated.
+ 1580 0a5c 80B4     		push	{r7}
+ 1581              	.LCFI35:
+ 1582              		.cfi_def_cfa_offset 4
+ 1583              		.cfi_offset 7, -4
+ 1584 0a5e 83B0     		sub	sp, sp, #12
+ 1585              	.LCFI36:
+ 1586              		.cfi_def_cfa_offset 16
+ 1587 0a60 00AF     		add	r7, sp, #0
+ 1588              	.LCFI37:
+ 1589              		.cfi_def_cfa_register 7
+ 1590 0a62 7860     		str	r0, [r7, #4]
+ 342:../src/config.c ****     mcfg.enabledFeatures &= ~(mask);
+ 1591              		.loc 1 342 0
+ 1592 0a64 064B     		ldr	r3, .L81
+ 1593 0a66 9A68     		ldr	r2, [r3, #8]
+ 1594 0a68 7B68     		ldr	r3, [r7, #4]
+ 1595 0a6a 6FEA0303 		mvn	r3, r3
+ 1596 0a6e 1A40     		ands	r2, r2, r3
+ 1597 0a70 034B     		ldr	r3, .L81
+ 1598 0a72 9A60     		str	r2, [r3, #8]
+ 343:../src/config.c **** }
+ 1599              		.loc 1 343 0
+ 1600 0a74 07F10C07 		add	r7, r7, #12
+ 1601 0a78 BD46     		mov	sp, r7
+ 1602 0a7a 80BC     		pop	{r7}
+ 1603 0a7c 7047     		bx	lr
+ 1604              	.L82:
+ 1605 0a7e 00BF     		.align	2
+ 1606              	.L81:
+ 1607 0a80 00000000 		.word	mcfg
+ 1608              		.cfi_endproc
+ 1609              	.LFE41:
+ 1611              		.align	2
+ 1612              		.global	featureClearAll
+ 1613              		.thumb
+ 1614              		.thumb_func
+ 1616              	featureClearAll:
+ 1617              	.LFB42:
+ 344:../src/config.c **** 
+ 345:../src/config.c **** void featureClearAll()
+ 346:../src/config.c **** {
+ 1618              		.loc 1 346 0
+ 1619              		.cfi_startproc
+ 1620              		@ args = 0, pretend = 0, frame = 0
+ 1621              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1622              		@ link register save eliminated.
+ 1623 0a84 80B4     		push	{r7}
+ 1624              	.LCFI38:
+ 1625              		.cfi_def_cfa_offset 4
+ 1626              		.cfi_offset 7, -4
+ 1627 0a86 00AF     		add	r7, sp, #0
+ 1628              	.LCFI39:
+ 1629              		.cfi_def_cfa_register 7
+ 347:../src/config.c ****     mcfg.enabledFeatures = 0;
+ 1630              		.loc 1 347 0
+ 1631 0a88 034B     		ldr	r3, .L84
+ 1632 0a8a 4FF00002 		mov	r2, #0
+ 1633 0a8e 9A60     		str	r2, [r3, #8]
+ 348:../src/config.c **** }
+ 1634              		.loc 1 348 0
+ 1635 0a90 BD46     		mov	sp, r7
+ 1636 0a92 80BC     		pop	{r7}
+ 1637 0a94 7047     		bx	lr
+ 1638              	.L85:
+ 1639 0a96 00BF     		.align	2
+ 1640              	.L84:
+ 1641 0a98 00000000 		.word	mcfg
+ 1642              		.cfi_endproc
+ 1643              	.LFE42:
+ 1645              		.align	2
+ 1646              		.global	featureMask
+ 1647              		.thumb
+ 1648              		.thumb_func
+ 1650              	featureMask:
+ 1651              	.LFB43:
+ 349:../src/config.c **** 
+ 350:../src/config.c **** uint32_t featureMask(void)
+ 351:../src/config.c **** {
+ 1652              		.loc 1 351 0
+ 1653              		.cfi_startproc
+ 1654              		@ args = 0, pretend = 0, frame = 0
+ 1655              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1656              		@ link register save eliminated.
+ 1657 0a9c 80B4     		push	{r7}
+ 1658              	.LCFI40:
+ 1659              		.cfi_def_cfa_offset 4
+ 1660              		.cfi_offset 7, -4
+ 1661 0a9e 00AF     		add	r7, sp, #0
+ 1662              	.LCFI41:
+ 1663              		.cfi_def_cfa_register 7
+ 352:../src/config.c ****     return mcfg.enabledFeatures;
+ 1664              		.loc 1 352 0
+ 1665 0aa0 024B     		ldr	r3, .L88
+ 1666 0aa2 9B68     		ldr	r3, [r3, #8]
+ 353:../src/config.c **** }
+ 1667              		.loc 1 353 0
+ 1668 0aa4 1846     		mov	r0, r3
+ 1669 0aa6 BD46     		mov	sp, r7
+ 1670 0aa8 80BC     		pop	{r7}
+ 1671 0aaa 7047     		bx	lr
+ 1672              	.L89:
+ 1673              		.align	2
+ 1674              	.L88:
+ 1675 0aac 00000000 		.word	mcfg
+ 1676              		.cfi_endproc
+ 1677              	.LFE43:
+ 1679              	.Letext0:
+ 1680              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 1681              		.file 3 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/stm32f10x_flash.h"
+ 1682              		.file 4 "../src/board.h"
+ 1683              		.file 5 "../src/mw.h"
+ 1684              		.file 6 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 config.c
+                            *COM*:000002f0 mcfg
+                            *COM*:0000009c cfg
+     /tmp/ccVUOmGj.s:25     .rodata:00000000 rcChannelLetters
+     /tmp/ccVUOmGj.s:22     .rodata:00000000 $d
+     /tmp/ccVUOmGj.s:30     .data:00000000 EEPROM_CONF_VERSION
+     /tmp/ccVUOmGj.s:33     .bss:00000000 $d
+     /tmp/ccVUOmGj.s:34     .bss:00000000 enabledSensors
+     /tmp/ccVUOmGj.s:37     .text:00000000 $t
+     /tmp/ccVUOmGj.s:42     .text:00000000 parseRcChannels
+     /tmp/ccVUOmGj.s:106    .text:00000050 $d
+     /tmp/ccVUOmGj.s:111    .text:00000058 $t
+     /tmp/ccVUOmGj.s:115    .text:00000058 validEEPROM
+     /tmp/ccVUOmGj.s:210    .text:000000dc $d
+     /tmp/ccVUOmGj.s:215    .text:000000e4 $t
+     /tmp/ccVUOmGj.s:220    .text:000000e4 readEEPROM
+     /tmp/ccVUOmGj.s:462    .text:000002e4 $d
+     /tmp/ccVUOmGj.s:473    .text:00000304 $t
+     /tmp/ccVUOmGj.s:478    .text:00000304 writeEEPROM
+     /tmp/ccVUOmGj.s:669    .text:00000450 $d
+     /tmp/ccVUOmGj.s:677    .text:00000464 $t
+     /tmp/ccVUOmGj.s:682    .text:00000464 checkFirstTime
+     /tmp/ccVUOmGj.s:745    .text:00000498 resetConf
+     /tmp/ccVUOmGj.s:1616   .text:00000a84 featureClearAll
+     /tmp/ccVUOmGj.s:1531   .text:00000a38 featureSet
+     /tmp/ccVUOmGj.s:1047   .text:00000710 $d
+     /tmp/ccVUOmGj.s:1054   .text:00000724 $t
+     /tmp/ccVUOmGj.s:1306   .text:00000968 $d
+     /tmp/ccVUOmGj.s:1315   .text:00000980 $t
+     /tmp/ccVUOmGj.s:1320   .text:00000980 sensors
+     /tmp/ccVUOmGj.s:1357   .text:000009a8 $d
+     /tmp/ccVUOmGj.s:1361   .text:000009ac $t
+     /tmp/ccVUOmGj.s:1366   .text:000009ac sensorsSet
+     /tmp/ccVUOmGj.s:1399   .text:000009cc $d
+     /tmp/ccVUOmGj.s:1403   .text:000009d0 $t
+     /tmp/ccVUOmGj.s:1408   .text:000009d0 sensorsClear
+     /tmp/ccVUOmGj.s:1442   .text:000009f4 $d
+     /tmp/ccVUOmGj.s:1446   .text:000009f8 $t
+     /tmp/ccVUOmGj.s:1451   .text:000009f8 sensorsMask
+     /tmp/ccVUOmGj.s:1476   .text:00000a08 $d
+     /tmp/ccVUOmGj.s:1480   .text:00000a0c $t
+     /tmp/ccVUOmGj.s:1485   .text:00000a0c feature
+     /tmp/ccVUOmGj.s:1522   .text:00000a34 $d
+     /tmp/ccVUOmGj.s:1526   .text:00000a38 $t
+     /tmp/ccVUOmGj.s:1564   .text:00000a58 $d
+     /tmp/ccVUOmGj.s:1568   .text:00000a5c $t
+     /tmp/ccVUOmGj.s:1573   .text:00000a5c featureClear
+     /tmp/ccVUOmGj.s:1607   .text:00000a80 $d
+     /tmp/ccVUOmGj.s:1611   .text:00000a84 $t
+     /tmp/ccVUOmGj.s:1641   .text:00000a98 $d
+     /tmp/ccVUOmGj.s:1645   .text:00000a9c $t
+     /tmp/ccVUOmGj.s:1650   .text:00000a9c featureMask
+     /tmp/ccVUOmGj.s:1675   .text:00000aac $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+                           .group:00000000 wm4.mw.h.4.b0e233e0e6ae9c4c07b142ad41413d4c
+
+UNDEFINED SYMBOLS
+strchr
+failureMode
+memcpy
+lookupPitchRollRC
+lookupThrottleRC
+FLASH_Unlock
+FLASH_ClearFlag
+FLASH_ErasePage
+FLASH_ProgramWord
+FLASH_Lock
+blinkLED
+memset

@@ -1,0 +1,448 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"drv_ledring.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.align	2
+  19              		.global	ledringDetect
+  20              		.thumb
+  21              		.thumb_func
+  23              	ledringDetect:
+  24              	.LFB29:
+  25              		.file 1 "../src/drv_ledring.c"
+   1:../src/drv_ledring.c **** #include "board.h"
+   2:../src/drv_ledring.c **** #include "mw.h"
+   3:../src/drv_ledring.c **** 
+   4:../src/drv_ledring.c **** // Driver for DFRobot I2C Led Ring
+   5:../src/drv_ledring.c **** #define LED_RING_ADDRESS    0x6D
+   6:../src/drv_ledring.c **** 
+   7:../src/drv_ledring.c **** bool ledringDetect(void)
+   8:../src/drv_ledring.c **** {
+  26              		.loc 1 8 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 8
+  29              		@ frame_needed = 1, uses_anonymous_args = 0
+  30 0000 80B5     		push	{r7, lr}
+  31              	.LCFI0:
+  32              		.cfi_def_cfa_offset 8
+  33              		.cfi_offset 7, -8
+  34              		.cfi_offset 14, -4
+  35 0002 82B0     		sub	sp, sp, #8
+  36              	.LCFI1:
+  37              		.cfi_def_cfa_offset 16
+  38 0004 00AF     		add	r7, sp, #0
+  39              	.LCFI2:
+  40              		.cfi_def_cfa_register 7
+   9:../src/drv_ledring.c ****     bool ack = false;
+  41              		.loc 1 9 0
+  42 0006 4FF00003 		mov	r3, #0
+  43 000a FB71     		strb	r3, [r7, #7]
+  10:../src/drv_ledring.c ****     uint8_t sig = 'e';
+  44              		.loc 1 10 0
+  45 000c 4FF06503 		mov	r3, #101
+  46 0010 BB71     		strb	r3, [r7, #6]
+  11:../src/drv_ledring.c ****     
+  12:../src/drv_ledring.c ****     ack = i2cWrite(LED_RING_ADDRESS, 0xFF, sig);
+  47              		.loc 1 12 0
+  48 0012 BB79     		ldrb	r3, [r7, #6]	@ zero_extendqisi2
+  49 0014 4FF06D00 		mov	r0, #109
+  50 0018 4FF0FF01 		mov	r1, #255
+  51 001c 1A46     		mov	r2, r3
+  52 001e FFF7FEFF 		bl	i2cWrite
+  53 0022 0346     		mov	r3, r0
+  54 0024 FB71     		strb	r3, [r7, #7]
+  13:../src/drv_ledring.c ****     if (!ack)
+  55              		.loc 1 13 0
+  56 0026 FB79     		ldrb	r3, [r7, #7]
+  57 0028 83F00103 		eor	r3, r3, #1
+  58 002c DBB2     		uxtb	r3, r3
+  59 002e 002B     		cmp	r3, #0
+  60 0030 02D0     		beq	.L2
+  14:../src/drv_ledring.c ****         return false;
+  61              		.loc 1 14 0
+  62 0032 4FF00003 		mov	r3, #0
+  63 0036 01E0     		b	.L3
+  64              	.L2:
+  15:../src/drv_ledring.c ****     return true;
+  65              		.loc 1 15 0
+  66 0038 4FF00103 		mov	r3, #1
+  67              	.L3:
+  16:../src/drv_ledring.c **** }
+  68              		.loc 1 16 0
+  69 003c 1846     		mov	r0, r3
+  70 003e 07F10807 		add	r7, r7, #8
+  71 0042 BD46     		mov	sp, r7
+  72 0044 80BD     		pop	{r7, pc}
+  73              		.cfi_endproc
+  74              	.LFE29:
+  76 0046 00BF     		.align	2
+  77              		.global	ledringState
+  78              		.thumb
+  79              		.thumb_func
+  81              	ledringState:
+  82              	.LFB30:
+  17:../src/drv_ledring.c **** 
+  18:../src/drv_ledring.c **** void ledringState(void)
+  19:../src/drv_ledring.c **** {
+  83              		.loc 1 19 0
+  84              		.cfi_startproc
+  85              		@ args = 0, pretend = 0, frame = 16
+  86              		@ frame_needed = 1, uses_anonymous_args = 0
+  87 0048 80B5     		push	{r7, lr}
+  88              	.LCFI3:
+  89              		.cfi_def_cfa_offset 8
+  90              		.cfi_offset 7, -8
+  91              		.cfi_offset 14, -4
+  92 004a 84B0     		sub	sp, sp, #16
+  93              	.LCFI4:
+  94              		.cfi_def_cfa_offset 24
+  95 004c 00AF     		add	r7, sp, #0
+  96              	.LCFI5:
+  97              		.cfi_def_cfa_register 7
+  20:../src/drv_ledring.c ****     uint8_t b[10];
+  21:../src/drv_ledring.c ****     static uint8_t state;
+  22:../src/drv_ledring.c **** 
+  23:../src/drv_ledring.c ****     if (state == 0) {
+  98              		.loc 1 23 0
+  99 004e 574B     		ldr	r3, .L14
+ 100 0050 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 101 0052 002B     		cmp	r3, #0
+ 102 0054 1DD1     		bne	.L5
+  24:../src/drv_ledring.c ****         b[0] = 'z';
+ 103              		.loc 1 24 0
+ 104 0056 4FF07A03 		mov	r3, #122
+ 105 005a 3B71     		strb	r3, [r7, #4]
+  25:../src/drv_ledring.c ****         b[1] = (180 - heading) / 2;	// 1 unit = 2 degrees;
+ 106              		.loc 1 25 0
+ 107 005c 544B     		ldr	r3, .L14+4
+ 108 005e 1B88     		ldrh	r3, [r3, #0]
+ 109 0060 1BB2     		sxth	r3, r3
+ 110 0062 C3F1B403 		rsb	r3, r3, #180
+ 111 0066 4FEAD372 		lsr	r2, r3, #31
+ 112 006a D318     		adds	r3, r2, r3
+ 113 006c 4FEA6303 		asr	r3, r3, #1
+ 114 0070 DBB2     		uxtb	r3, r3
+ 115 0072 7B71     		strb	r3, [r7, #5]
+  26:../src/drv_ledring.c ****         i2cWriteBuffer(LED_RING_ADDRESS, 0xFF, 2, b);
+ 116              		.loc 1 26 0
+ 117 0074 07F10403 		add	r3, r7, #4
+ 118 0078 4FF06D00 		mov	r0, #109
+ 119 007c 4FF0FF01 		mov	r1, #255
+ 120 0080 4FF00202 		mov	r2, #2
+ 121 0084 FFF7FEFF 		bl	i2cWriteBuffer
+  27:../src/drv_ledring.c ****         state = 1;
+ 122              		.loc 1 27 0
+ 123 0088 484B     		ldr	r3, .L14
+ 124 008a 4FF00102 		mov	r2, #1
+ 125 008e 1A70     		strb	r2, [r3, #0]
+ 126 0090 88E0     		b	.L4
+ 127              	.L5:
+  28:../src/drv_ledring.c ****     } else if (state == 1) {
+ 128              		.loc 1 28 0
+ 129 0092 464B     		ldr	r3, .L14
+ 130 0094 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 131 0096 012B     		cmp	r3, #1
+ 132 0098 61D1     		bne	.L7
+  29:../src/drv_ledring.c ****         b[0] = 'y';
+ 133              		.loc 1 29 0
+ 134 009a 4FF07903 		mov	r3, #121
+ 135 009e 3B71     		strb	r3, [r7, #4]
+  30:../src/drv_ledring.c ****         b[1] = constrain(angle[ROLL] / 10 + 90, 0, 180);
+ 136              		.loc 1 30 0
+ 137 00a0 444B     		ldr	r3, .L14+8
+ 138 00a2 1B88     		ldrh	r3, [r3, #0]
+ 139 00a4 1BB2     		sxth	r3, r3
+ 140 00a6 444A     		ldr	r2, .L14+12
+ 141 00a8 82FB0312 		smull	r1, r2, r2, r3
+ 142 00ac 4FEAA202 		asr	r2, r2, #2
+ 143 00b0 4FEAE373 		asr	r3, r3, #31
+ 144 00b4 D31A     		subs	r3, r2, r3
+ 145 00b6 9BB2     		uxth	r3, r3
+ 146 00b8 1BB2     		sxth	r3, r3
+ 147 00ba 03F15A03 		add	r3, r3, #90
+ 148 00be 002B     		cmp	r3, #0
+ 149 00c0 13DB     		blt	.L8
+ 150              		.loc 1 30 0 is_stmt 0 discriminator 1
+ 151 00c2 3C4B     		ldr	r3, .L14+8
+ 152 00c4 1B88     		ldrh	r3, [r3, #0]
+ 153 00c6 1BB2     		sxth	r3, r3
+ 154 00c8 3B4A     		ldr	r2, .L14+12
+ 155 00ca 82FB0312 		smull	r1, r2, r2, r3
+ 156 00ce 4FEAA202 		asr	r2, r2, #2
+ 157 00d2 4FEAE373 		asr	r3, r3, #31
+ 158 00d6 D31A     		subs	r3, r2, r3
+ 159 00d8 9BB2     		uxth	r3, r3
+ 160 00da 1BB2     		sxth	r3, r3
+ 161 00dc 03F15A03 		add	r3, r3, #90
+ 162 00e0 B42B     		cmp	r3, #180
+ 163 00e2 A8BF     		it	ge
+ 164 00e4 B423     		movge	r3, #180
+ 165 00e6 DBB2     		uxtb	r3, r3
+ 166 00e8 01E0     		b	.L9
+ 167              	.L8:
+ 168              		.loc 1 30 0 discriminator 2
+ 169 00ea 4FF00003 		mov	r3, #0
+ 170              	.L9:
+ 171              		.loc 1 30 0 discriminator 3
+ 172 00ee 7B71     		strb	r3, [r7, #5]
+  31:../src/drv_ledring.c ****         b[2] = constrain(angle[PITCH] / 10 + 90, 0, 180);
+ 173              		.loc 1 31 0 is_stmt 1 discriminator 3
+ 174 00f0 304B     		ldr	r3, .L14+8
+ 175 00f2 5B88     		ldrh	r3, [r3, #2]
+ 176 00f4 1BB2     		sxth	r3, r3
+ 177 00f6 304A     		ldr	r2, .L14+12
+ 178 00f8 82FB0312 		smull	r1, r2, r2, r3
+ 179 00fc 4FEAA202 		asr	r2, r2, #2
+ 180 0100 4FEAE373 		asr	r3, r3, #31
+ 181 0104 D31A     		subs	r3, r2, r3
+ 182 0106 9BB2     		uxth	r3, r3
+ 183 0108 1BB2     		sxth	r3, r3
+ 184 010a 03F15A03 		add	r3, r3, #90
+ 185 010e 002B     		cmp	r3, #0
+ 186 0110 13DB     		blt	.L10
+ 187              		.loc 1 31 0 is_stmt 0 discriminator 1
+ 188 0112 284B     		ldr	r3, .L14+8
+ 189 0114 5B88     		ldrh	r3, [r3, #2]
+ 190 0116 1BB2     		sxth	r3, r3
+ 191 0118 274A     		ldr	r2, .L14+12
+ 192 011a 82FB0312 		smull	r1, r2, r2, r3
+ 193 011e 4FEAA202 		asr	r2, r2, #2
+ 194 0122 4FEAE373 		asr	r3, r3, #31
+ 195 0126 D31A     		subs	r3, r2, r3
+ 196 0128 9BB2     		uxth	r3, r3
+ 197 012a 1BB2     		sxth	r3, r3
+ 198 012c 03F15A03 		add	r3, r3, #90
+ 199 0130 B42B     		cmp	r3, #180
+ 200 0132 A8BF     		it	ge
+ 201 0134 B423     		movge	r3, #180
+ 202 0136 DBB2     		uxtb	r3, r3
+ 203 0138 01E0     		b	.L11
+ 204              	.L10:
+ 205              		.loc 1 31 0 discriminator 2
+ 206 013a 4FF00003 		mov	r3, #0
+ 207              	.L11:
+ 208              		.loc 1 31 0 discriminator 3
+ 209 013e BB71     		strb	r3, [r7, #6]
+  32:../src/drv_ledring.c ****         i2cWriteBuffer(LED_RING_ADDRESS, 0xFF, 3, b);
+ 210              		.loc 1 32 0 is_stmt 1 discriminator 3
+ 211 0140 07F10403 		add	r3, r7, #4
+ 212 0144 4FF06D00 		mov	r0, #109
+ 213 0148 4FF0FF01 		mov	r1, #255
+ 214 014c 4FF00302 		mov	r2, #3
+ 215 0150 FFF7FEFF 		bl	i2cWriteBuffer
+  33:../src/drv_ledring.c ****         state = 2;
+ 216              		.loc 1 33 0 discriminator 3
+ 217 0154 154B     		ldr	r3, .L14
+ 218 0156 4FF00202 		mov	r2, #2
+ 219 015a 1A70     		strb	r2, [r3, #0]
+ 220 015c 22E0     		b	.L4
+ 221              	.L7:
+  34:../src/drv_ledring.c ****     } else if (state == 2) {
+ 222              		.loc 1 34 0
+ 223 015e 134B     		ldr	r3, .L14
+ 224 0160 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 225 0162 022B     		cmp	r3, #2
+ 226 0164 1ED1     		bne	.L4
+  35:../src/drv_ledring.c ****         b[0] = 'd';		// all unicolor GREEN 
+ 227              		.loc 1 35 0
+ 228 0166 4FF06403 		mov	r3, #100
+ 229 016a 3B71     		strb	r3, [r7, #4]
+  36:../src/drv_ledring.c ****         b[1] = 1;
+ 230              		.loc 1 36 0
+ 231 016c 4FF00103 		mov	r3, #1
+ 232 0170 7B71     		strb	r3, [r7, #5]
+  37:../src/drv_ledring.c ****         if (f.ARMED)
+ 233              		.loc 1 37 0
+ 234 0172 124B     		ldr	r3, .L14+16
+ 235 0174 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 236 0176 002B     		cmp	r3, #0
+ 237 0178 03D0     		beq	.L12
+  38:../src/drv_ledring.c ****             b[2] = 1;
+ 238              		.loc 1 38 0
+ 239 017a 4FF00103 		mov	r3, #1
+ 240 017e BB71     		strb	r3, [r7, #6]
+ 241 0180 02E0     		b	.L13
+ 242              	.L12:
+  39:../src/drv_ledring.c ****         else
+  40:../src/drv_ledring.c ****             b[2] = 0;
+ 243              		.loc 1 40 0
+ 244 0182 4FF00003 		mov	r3, #0
+ 245 0186 BB71     		strb	r3, [r7, #6]
+ 246              	.L13:
+  41:../src/drv_ledring.c ****         i2cWriteBuffer(LED_RING_ADDRESS, 0xFF, 3, b);
+ 247              		.loc 1 41 0
+ 248 0188 07F10403 		add	r3, r7, #4
+ 249 018c 4FF06D00 		mov	r0, #109
+ 250 0190 4FF0FF01 		mov	r1, #255
+ 251 0194 4FF00302 		mov	r2, #3
+ 252 0198 FFF7FEFF 		bl	i2cWriteBuffer
+  42:../src/drv_ledring.c ****         state = 0;
+ 253              		.loc 1 42 0
+ 254 019c 034B     		ldr	r3, .L14
+ 255 019e 4FF00002 		mov	r2, #0
+ 256 01a2 1A70     		strb	r2, [r3, #0]
+ 257              	.L4:
+  43:../src/drv_ledring.c ****     }
+  44:../src/drv_ledring.c **** }
+ 258              		.loc 1 44 0
+ 259 01a4 07F11007 		add	r7, r7, #16
+ 260 01a8 BD46     		mov	sp, r7
+ 261 01aa 80BD     		pop	{r7, pc}
+ 262              	.L15:
+ 263              		.align	2
+ 264              	.L14:
+ 265 01ac 00000000 		.word	state.9036
+ 266 01b0 00000000 		.word	heading
+ 267 01b4 00000000 		.word	angle
+ 268 01b8 67666666 		.word	1717986919
+ 269 01bc 00000000 		.word	f
+ 270              		.cfi_endproc
+ 271              	.LFE30:
+ 273              		.align	2
+ 274              		.global	ledringBlink
+ 275              		.thumb
+ 276              		.thumb_func
+ 278              	ledringBlink:
+ 279              	.LFB31:
+  45:../src/drv_ledring.c **** 
+  46:../src/drv_ledring.c **** void ledringBlink(void)
+  47:../src/drv_ledring.c **** {
+ 280              		.loc 1 47 0
+ 281              		.cfi_startproc
+ 282              		@ args = 0, pretend = 0, frame = 8
+ 283              		@ frame_needed = 1, uses_anonymous_args = 0
+ 284 01c0 80B5     		push	{r7, lr}
+ 285              	.LCFI6:
+ 286              		.cfi_def_cfa_offset 8
+ 287              		.cfi_offset 7, -8
+ 288              		.cfi_offset 14, -4
+ 289 01c2 82B0     		sub	sp, sp, #8
+ 290              	.LCFI7:
+ 291              		.cfi_def_cfa_offset 16
+ 292 01c4 00AF     		add	r7, sp, #0
+ 293              	.LCFI8:
+ 294              		.cfi_def_cfa_register 7
+  48:../src/drv_ledring.c ****     uint8_t b[3];
+  49:../src/drv_ledring.c ****     b[0] = 'k';
+ 295              		.loc 1 49 0
+ 296 01c6 4FF06B03 		mov	r3, #107
+ 297 01ca 3B71     		strb	r3, [r7, #4]
+  50:../src/drv_ledring.c ****     b[1] = 10;
+ 298              		.loc 1 50 0
+ 299 01cc 4FF00A03 		mov	r3, #10
+ 300 01d0 7B71     		strb	r3, [r7, #5]
+  51:../src/drv_ledring.c ****     b[2] = 10;
+ 301              		.loc 1 51 0
+ 302 01d2 4FF00A03 		mov	r3, #10
+ 303 01d6 BB71     		strb	r3, [r7, #6]
+  52:../src/drv_ledring.c ****     i2cWriteBuffer(LED_RING_ADDRESS, 0xFF, 3, b);
+ 304              		.loc 1 52 0
+ 305 01d8 07F10403 		add	r3, r7, #4
+ 306 01dc 4FF06D00 		mov	r0, #109
+ 307 01e0 4FF0FF01 		mov	r1, #255
+ 308 01e4 4FF00302 		mov	r2, #3
+ 309 01e8 FFF7FEFF 		bl	i2cWriteBuffer
+  53:../src/drv_ledring.c **** }
+ 310              		.loc 1 53 0
+ 311 01ec 07F10807 		add	r7, r7, #8
+ 312 01f0 BD46     		mov	sp, r7
+ 313 01f2 80BD     		pop	{r7, pc}
+ 314              		.cfi_endproc
+ 315              	.LFE31:
+ 317              		.bss
+ 318              	state.9036:
+ 319 0000 00       		.space	1
+ 320              		.text
+ 321              	.Letext0:
+ 322              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 323              		.file 3 "../src/mw.h"
+ 324              		.file 4 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 drv_ledring.c
+     /tmp/ccgHMDvd.s:18     .text:00000000 $t
+     /tmp/ccgHMDvd.s:23     .text:00000000 ledringDetect
+     /tmp/ccgHMDvd.s:81     .text:00000048 ledringState
+     /tmp/ccgHMDvd.s:265    .text:000001ac $d
+     /tmp/ccgHMDvd.s:318    .bss:00000000 state.9036
+     /tmp/ccgHMDvd.s:273    .text:000001c0 $t
+     /tmp/ccgHMDvd.s:278    .text:000001c0 ledringBlink
+     /tmp/ccgHMDvd.s:319    .bss:00000000 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+                           .group:00000000 wm4.mw.h.4.b0e233e0e6ae9c4c07b142ad41413d4c
+
+UNDEFINED SYMBOLS
+i2cWrite
+i2cWriteBuffer
+heading
+angle
+f

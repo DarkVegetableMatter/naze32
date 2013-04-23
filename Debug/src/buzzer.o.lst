@@ -1,0 +1,849 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"buzzer.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.bss
+  19              	buzzerIsOn:
+  20 0000 00       		.space	1
+  21              	beepDone:
+  22 0001 00       		.space	1
+  23 0002 0000     		.align	2
+  24              	buzzerLastToggleTime:
+  25 0004 00000000 		.space	4
+  26              		.text
+  27              		.align	2
+  28              		.global	buzzer
+  29              		.thumb
+  30              		.thumb_func
+  32              	buzzer:
+  33              	.LFB29:
+  34              		.file 1 "../src/buzzer.c"
+   1:../src/buzzer.c **** #include "board.h"
+   2:../src/buzzer.c **** #include "mw.h"
+   3:../src/buzzer.c **** 
+   4:../src/buzzer.c **** static uint8_t buzzerIsOn = 0, beepDone = 0;
+   5:../src/buzzer.c **** static uint32_t buzzerLastToggleTime;
+   6:../src/buzzer.c **** static void beep(uint16_t pulse);
+   7:../src/buzzer.c **** static void beep_code(char first, char second, char third, char pause);
+   8:../src/buzzer.c **** 
+   9:../src/buzzer.c **** void buzzer(uint8_t warn_vbat)
+  10:../src/buzzer.c **** {
+  35              		.loc 1 10 0
+  36              		.cfi_startproc
+  37              		@ args = 0, pretend = 0, frame = 8
+  38              		@ frame_needed = 1, uses_anonymous_args = 0
+  39 0000 80B5     		push	{r7, lr}
+  40              	.LCFI0:
+  41              		.cfi_def_cfa_offset 8
+  42              		.cfi_offset 7, -8
+  43              		.cfi_offset 14, -4
+  44 0002 82B0     		sub	sp, sp, #8
+  45              	.LCFI1:
+  46              		.cfi_def_cfa_offset 16
+  47 0004 00AF     		add	r7, sp, #0
+  48              	.LCFI2:
+  49              		.cfi_def_cfa_register 7
+  50 0006 0346     		mov	r3, r0
+  51 0008 FB71     		strb	r3, [r7, #7]
+  11:../src/buzzer.c ****     static uint8_t beeperOnBox;
+  12:../src/buzzer.c ****     static uint8_t warn_noGPSfix = 0;
+  13:../src/buzzer.c ****     static uint8_t warn_failsafe = 0;
+  14:../src/buzzer.c ****     static uint8_t warn_runtime = 0;
+  15:../src/buzzer.c **** 
+  16:../src/buzzer.c ****     //=====================  BeeperOn via rcOptions =====================
+  17:../src/buzzer.c ****     if (rcOptions[BOXBEEPERON]) {       // unconditional beeper on via AUXn switch 
+  52              		.loc 1 17 0
+  53 000a 824B     		ldr	r3, .L20
+  54 000c 5B7B     		ldrb	r3, [r3, #13]	@ zero_extendqisi2
+  55 000e 002B     		cmp	r3, #0
+  56 0010 04D0     		beq	.L2
+  18:../src/buzzer.c ****         beeperOnBox = 1;
+  57              		.loc 1 18 0
+  58 0012 814B     		ldr	r3, .L20+4
+  59 0014 4FF00102 		mov	r2, #1
+  60 0018 1A70     		strb	r2, [r3, #0]
+  61 001a 03E0     		b	.L3
+  62              	.L2:
+  19:../src/buzzer.c ****     } else {
+  20:../src/buzzer.c ****         beeperOnBox = 0;
+  63              		.loc 1 20 0
+  64 001c 7E4B     		ldr	r3, .L20+4
+  65 001e 4FF00002 		mov	r2, #0
+  66 0022 1A70     		strb	r2, [r3, #0]
+  67              	.L3:
+  21:../src/buzzer.c ****     }
+  22:../src/buzzer.c ****     //===================== Beeps for failsafe =====================
+  23:../src/buzzer.c ****     if (feature(FEATURE_FAILSAFE)) {
+  68              		.loc 1 23 0
+  69 0024 4FF40070 		mov	r0, #512
+  70 0028 FFF7FEFF 		bl	feature
+  71 002c 0346     		mov	r3, r0
+  72 002e 002B     		cmp	r3, #0
+  73 0030 46D0     		beq	.L4
+  24:../src/buzzer.c ****         if (failsafeCnt > (5 * cfg.failsafe_delay) && f.ARMED) {
+  74              		.loc 1 24 0
+  75 0032 7A4B     		ldr	r3, .L20+8
+  76 0034 1B88     		ldrh	r3, [r3, #0]
+  77 0036 19B2     		sxth	r1, r3
+  78 0038 794B     		ldr	r3, .L20+12
+  79 003a 93F86430 		ldrb	r3, [r3, #100]	@ zero_extendqisi2
+  80 003e 1A46     		mov	r2, r3
+  81 0040 1346     		mov	r3, r2
+  82 0042 4FEA8303 		lsl	r3, r3, #2
+  83 0046 9B18     		adds	r3, r3, r2
+  84 0048 9942     		cmp	r1, r3
+  85 004a 1CDD     		ble	.L5
+  86              		.loc 1 24 0 is_stmt 0 discriminator 1
+  87 004c 754B     		ldr	r3, .L20+16
+  88 004e 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+  89 0050 002B     		cmp	r3, #0
+  90 0052 18D0     		beq	.L5
+  25:../src/buzzer.c ****             warn_failsafe = 1;      //set failsafe warning level to 1 while landing
+  91              		.loc 1 25 0 is_stmt 1
+  92 0054 744B     		ldr	r3, .L20+20
+  93 0056 4FF00102 		mov	r2, #1
+  94 005a 1A70     		strb	r2, [r3, #0]
+  26:../src/buzzer.c ****             if (failsafeCnt > 5 * (cfg.failsafe_delay + cfg.failsafe_off_delay))
+  95              		.loc 1 26 0
+  96 005c 6F4B     		ldr	r3, .L20+8
+  97 005e 1B88     		ldrh	r3, [r3, #0]
+  98 0060 19B2     		sxth	r1, r3
+  99 0062 6F4B     		ldr	r3, .L20+12
+ 100 0064 93F86430 		ldrb	r3, [r3, #100]	@ zero_extendqisi2
+ 101 0068 1A46     		mov	r2, r3
+ 102 006a 6D4B     		ldr	r3, .L20+12
+ 103 006c 93F86530 		ldrb	r3, [r3, #101]	@ zero_extendqisi2
+ 104 0070 D218     		adds	r2, r2, r3
+ 105 0072 1346     		mov	r3, r2
+ 106 0074 4FEA8303 		lsl	r3, r3, #2
+ 107 0078 9B18     		adds	r3, r3, r2
+ 108 007a 9942     		cmp	r1, r3
+ 109 007c 03DD     		ble	.L5
+  27:../src/buzzer.c ****                 warn_failsafe = 2;  //start "find me" signal after landing   
+ 110              		.loc 1 27 0
+ 111 007e 6A4B     		ldr	r3, .L20+20
+ 112 0080 4FF00202 		mov	r2, #2
+ 113 0084 1A70     		strb	r2, [r3, #0]
+ 114              	.L5:
+  28:../src/buzzer.c ****         }
+  29:../src/buzzer.c ****         if (failsafeCnt > (5 * cfg.failsafe_delay) && !f.ARMED)
+ 115              		.loc 1 29 0
+ 116 0086 654B     		ldr	r3, .L20+8
+ 117 0088 1B88     		ldrh	r3, [r3, #0]
+ 118 008a 19B2     		sxth	r1, r3
+ 119 008c 644B     		ldr	r3, .L20+12
+ 120 008e 93F86430 		ldrb	r3, [r3, #100]	@ zero_extendqisi2
+ 121 0092 1A46     		mov	r2, r3
+ 122 0094 1346     		mov	r3, r2
+ 123 0096 4FEA8303 		lsl	r3, r3, #2
+ 124 009a 9B18     		adds	r3, r3, r2
+ 125 009c 9942     		cmp	r1, r3
+ 126 009e 07DD     		ble	.L6
+ 127              		.loc 1 29 0 is_stmt 0 discriminator 1
+ 128 00a0 604B     		ldr	r3, .L20+16
+ 129 00a2 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 130 00a4 002B     		cmp	r3, #0
+ 131 00a6 03D1     		bne	.L6
+  30:../src/buzzer.c ****             warn_failsafe = 2;      // tx turned off while motors are off: start "find me" signal
+ 132              		.loc 1 30 0 is_stmt 1
+ 133 00a8 5F4B     		ldr	r3, .L20+20
+ 134 00aa 4FF00202 		mov	r2, #2
+ 135 00ae 1A70     		strb	r2, [r3, #0]
+ 136              	.L6:
+  31:../src/buzzer.c ****         if (failsafeCnt == 0)
+ 137              		.loc 1 31 0
+ 138 00b0 5A4B     		ldr	r3, .L20+8
+ 139 00b2 1B88     		ldrh	r3, [r3, #0]
+ 140 00b4 002B     		cmp	r3, #0
+ 141 00b6 03D1     		bne	.L4
+  32:../src/buzzer.c ****             warn_failsafe = 0;      // turn off alarm if TX is okay
+ 142              		.loc 1 32 0
+ 143 00b8 5B4B     		ldr	r3, .L20+20
+ 144 00ba 4FF00002 		mov	r2, #0
+ 145 00be 1A70     		strb	r2, [r3, #0]
+ 146              	.L4:
+  33:../src/buzzer.c ****     }
+  34:../src/buzzer.c **** 
+  35:../src/buzzer.c ****     //===================== GPS fix notification handling =====================
+  36:../src/buzzer.c ****     if (sensors(SENSOR_GPS)) {
+ 147              		.loc 1 36 0
+ 148 00c0 4FF01000 		mov	r0, #16
+ 149 00c4 FFF7FEFF 		bl	sensors
+ 150 00c8 0346     		mov	r3, r0
+ 151 00ca 002B     		cmp	r3, #0
+ 152 00cc 14D0     		beq	.L7
+  37:../src/buzzer.c ****         if ((rcOptions[BOXGPSHOME] || rcOptions[BOXGPSHOLD]) && !f.GPS_FIX) {     // if no fix and 
+ 153              		.loc 1 37 0
+ 154 00ce 514B     		ldr	r3, .L20
+ 155 00d0 9B7A     		ldrb	r3, [r3, #10]	@ zero_extendqisi2
+ 156 00d2 002B     		cmp	r3, #0
+ 157 00d4 03D1     		bne	.L8
+ 158              		.loc 1 37 0 is_stmt 0 discriminator 2
+ 159 00d6 4F4B     		ldr	r3, .L20
+ 160 00d8 DB7A     		ldrb	r3, [r3, #11]	@ zero_extendqisi2
+ 161 00da 002B     		cmp	r3, #0
+ 162 00dc 08D0     		beq	.L9
+ 163              	.L8:
+ 164              		.loc 1 37 0 discriminator 1
+ 165 00de 514B     		ldr	r3, .L20+16
+ 166 00e0 DB7A     		ldrb	r3, [r3, #11]	@ zero_extendqisi2
+ 167 00e2 002B     		cmp	r3, #0
+ 168 00e4 04D1     		bne	.L9
+  38:../src/buzzer.c ****             warn_noGPSfix = 1;
+ 169              		.loc 1 38 0 is_stmt 1
+ 170 00e6 514B     		ldr	r3, .L20+24
+ 171 00e8 4FF00102 		mov	r2, #1
+ 172 00ec 1A70     		strb	r2, [r3, #0]
+ 173 00ee 03E0     		b	.L7
+ 174              	.L9:
+  39:../src/buzzer.c ****         } else {
+  40:../src/buzzer.c ****             warn_noGPSfix = 0;
+ 175              		.loc 1 40 0
+ 176 00f0 4E4B     		ldr	r3, .L20+24
+ 177 00f2 4FF00002 		mov	r2, #0
+ 178 00f6 1A70     		strb	r2, [r3, #0]
+ 179              	.L7:
+  41:../src/buzzer.c ****         }
+  42:../src/buzzer.c ****     }
+  43:../src/buzzer.c **** 
+  44:../src/buzzer.c ****     //===================== Priority driven Handling =====================
+  45:../src/buzzer.c ****     // beepcode(length1,length2,length3,pause)
+  46:../src/buzzer.c ****     // D: Double, L: Long, M: Middle, S: Short, N: None
+  47:../src/buzzer.c ****     if (warn_failsafe == 2)
+ 180              		.loc 1 47 0
+ 181 00f8 4B4B     		ldr	r3, .L20+20
+ 182 00fa 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 183 00fc 022B     		cmp	r3, #2
+ 184 00fe 0AD1     		bne	.L10
+  48:../src/buzzer.c ****         beep_code('L','N','N','D');                 // failsafe "find me" signal
+ 185              		.loc 1 48 0
+ 186 0100 4FF04C00 		mov	r0, #76
+ 187 0104 4FF04E01 		mov	r1, #78
+ 188 0108 4FF04E02 		mov	r2, #78
+ 189 010c 4FF04403 		mov	r3, #68
+ 190 0110 00F096F8 		bl	beep_code
+ 191 0114 7AE0     		b	.L1
+ 192              	.L10:
+  49:../src/buzzer.c ****     else if (warn_failsafe == 1)
+ 193              		.loc 1 49 0
+ 194 0116 444B     		ldr	r3, .L20+20
+ 195 0118 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 196 011a 012B     		cmp	r3, #1
+ 197 011c 0AD1     		bne	.L12
+  50:../src/buzzer.c ****         beep_code('S','M','L','M');                 // failsafe landing active
+ 198              		.loc 1 50 0
+ 199 011e 4FF05300 		mov	r0, #83
+ 200 0122 4FF04D01 		mov	r1, #77
+ 201 0126 4FF04C02 		mov	r2, #76
+ 202 012a 4FF04D03 		mov	r3, #77
+ 203 012e 00F087F8 		bl	beep_code
+ 204 0132 6BE0     		b	.L1
+ 205              	.L12:
+  51:../src/buzzer.c ****     else if (warn_noGPSfix == 1)
+ 206              		.loc 1 51 0
+ 207 0134 3D4B     		ldr	r3, .L20+24
+ 208 0136 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 209 0138 012B     		cmp	r3, #1
+ 210 013a 0AD1     		bne	.L13
+  52:../src/buzzer.c ****         beep_code('S','S','N','M');
+ 211              		.loc 1 52 0
+ 212 013c 4FF05300 		mov	r0, #83
+ 213 0140 4FF05301 		mov	r1, #83
+ 214 0144 4FF04E02 		mov	r2, #78
+ 215 0148 4FF04D03 		mov	r3, #77
+ 216 014c 00F078F8 		bl	beep_code
+ 217 0150 5CE0     		b	.L1
+ 218              	.L13:
+  53:../src/buzzer.c ****     else if (beeperOnBox == 1)
+ 219              		.loc 1 53 0
+ 220 0152 314B     		ldr	r3, .L20+4
+ 221 0154 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 222 0156 012B     		cmp	r3, #1
+ 223 0158 0AD1     		bne	.L14
+  54:../src/buzzer.c ****         beep_code('S','S','S','M');                 // beeperon
+ 224              		.loc 1 54 0
+ 225 015a 4FF05300 		mov	r0, #83
+ 226 015e 4FF05301 		mov	r1, #83
+ 227 0162 4FF05302 		mov	r2, #83
+ 228 0166 4FF04D03 		mov	r3, #77
+ 229 016a 00F069F8 		bl	beep_code
+ 230 016e 4DE0     		b	.L1
+ 231              	.L14:
+  55:../src/buzzer.c ****     else if (warn_vbat == 4)
+ 232              		.loc 1 55 0
+ 233 0170 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 234 0172 042B     		cmp	r3, #4
+ 235 0174 0AD1     		bne	.L15
+  56:../src/buzzer.c ****         beep_code('S','M','M','D');
+ 236              		.loc 1 56 0
+ 237 0176 4FF05300 		mov	r0, #83
+ 238 017a 4FF04D01 		mov	r1, #77
+ 239 017e 4FF04D02 		mov	r2, #77
+ 240 0182 4FF04403 		mov	r3, #68
+ 241 0186 00F05BF8 		bl	beep_code
+ 242 018a 3FE0     		b	.L1
+ 243              	.L15:
+  57:../src/buzzer.c ****     else if (warn_vbat == 2)
+ 244              		.loc 1 57 0
+ 245 018c FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 246 018e 022B     		cmp	r3, #2
+ 247 0190 0AD1     		bne	.L16
+  58:../src/buzzer.c ****         beep_code('S','S','M','D');
+ 248              		.loc 1 58 0
+ 249 0192 4FF05300 		mov	r0, #83
+ 250 0196 4FF05301 		mov	r1, #83
+ 251 019a 4FF04D02 		mov	r2, #77
+ 252 019e 4FF04403 		mov	r3, #68
+ 253 01a2 00F04DF8 		bl	beep_code
+ 254 01a6 31E0     		b	.L1
+ 255              	.L16:
+  59:../src/buzzer.c ****     else if (warn_vbat == 1)
+ 256              		.loc 1 59 0
+ 257 01a8 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 258 01aa 012B     		cmp	r3, #1
+ 259 01ac 0AD1     		bne	.L17
+  60:../src/buzzer.c ****         beep_code('S','M','N','D');
+ 260              		.loc 1 60 0
+ 261 01ae 4FF05300 		mov	r0, #83
+ 262 01b2 4FF04D01 		mov	r1, #77
+ 263 01b6 4FF04E02 		mov	r2, #78
+ 264 01ba 4FF04403 		mov	r3, #68
+ 265 01be 00F03FF8 		bl	beep_code
+ 266 01c2 23E0     		b	.L1
+ 267              	.L17:
+  61:../src/buzzer.c ****     else if (warn_runtime == 1 && f.ARMED)
+ 268              		.loc 1 61 0
+ 269 01c4 1A4B     		ldr	r3, .L20+28
+ 270 01c6 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 271 01c8 012B     		cmp	r3, #1
+ 272 01ca 0ED1     		bne	.L18
+ 273              		.loc 1 61 0 is_stmt 0 discriminator 1
+ 274 01cc 154B     		ldr	r3, .L20+16
+ 275 01ce 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 276 01d0 002B     		cmp	r3, #0
+ 277 01d2 0AD0     		beq	.L18
+  62:../src/buzzer.c ****         beep_code('S','S','M','N');                 // Runtime warning
+ 278              		.loc 1 62 0 is_stmt 1
+ 279 01d4 4FF05300 		mov	r0, #83
+ 280 01d8 4FF05301 		mov	r1, #83
+ 281 01dc 4FF04D02 		mov	r2, #77
+ 282 01e0 4FF04E03 		mov	r3, #78
+ 283 01e4 00F02CF8 		bl	beep_code
+ 284 01e8 10E0     		b	.L1
+ 285              	.L18:
+  63:../src/buzzer.c ****     else if (toggleBeep > 0)
+ 286              		.loc 1 63 0
+ 287 01ea 124B     		ldr	r3, .L20+32
+ 288 01ec 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 289 01ee 002B     		cmp	r3, #0
+ 290 01f0 04D0     		beq	.L19
+  64:../src/buzzer.c ****         beep(50);                                   // fast confirmation beep
+ 291              		.loc 1 64 0
+ 292 01f2 4FF03200 		mov	r0, #50
+ 293 01f6 00F0B9F8 		bl	beep
+ 294 01fa 07E0     		b	.L1
+ 295              	.L19:
+  65:../src/buzzer.c ****     else { 
+  66:../src/buzzer.c ****         buzzerIsOn = 0;
+ 296              		.loc 1 66 0
+ 297 01fc 0E4B     		ldr	r3, .L20+36
+ 298 01fe 4FF00002 		mov	r2, #0
+ 299 0202 1A70     		strb	r2, [r3, #0]
+  67:../src/buzzer.c ****         BEEP_OFF;
+ 300              		.loc 1 67 0
+ 301 0204 0D4B     		ldr	r3, .L20+40
+ 302 0206 4FF48052 		mov	r2, #4096
+ 303 020a 1A61     		str	r2, [r3, #16]
+ 304              	.L1:
+  68:../src/buzzer.c ****     }
+  69:../src/buzzer.c **** }
+ 305              		.loc 1 69 0
+ 306 020c 07F10807 		add	r7, r7, #8
+ 307 0210 BD46     		mov	sp, r7
+ 308 0212 80BD     		pop	{r7, pc}
+ 309              	.L21:
+ 310              		.align	2
+ 311              	.L20:
+ 312 0214 00000000 		.word	rcOptions
+ 313 0218 09000000 		.word	beeperOnBox.9040
+ 314 021c 00000000 		.word	failsafeCnt
+ 315 0220 00000000 		.word	cfg
+ 316 0224 00000000 		.word	f
+ 317 0228 0A000000 		.word	warn_failsafe.9042
+ 318 022c 0B000000 		.word	warn_noGPSfix.9041
+ 319 0230 0C000000 		.word	warn_runtime.9043
+ 320 0234 00000000 		.word	toggleBeep
+ 321 0238 00000000 		.word	buzzerIsOn
+ 322 023c 00080140 		.word	1073809408
+ 323              		.cfi_endproc
+ 324              	.LFE29:
+ 326              		.align	2
+ 327              		.thumb
+ 328              		.thumb_func
+ 330              	beep_code:
+ 331              	.LFB30:
+  70:../src/buzzer.c **** 
+  71:../src/buzzer.c **** void beep_code(char first, char second, char third, char pause)
+  72:../src/buzzer.c **** {
+ 332              		.loc 1 72 0
+ 333              		.cfi_startproc
+ 334              		@ args = 0, pretend = 0, frame = 16
+ 335              		@ frame_needed = 1, uses_anonymous_args = 0
+ 336 0240 80B5     		push	{r7, lr}
+ 337              	.LCFI3:
+ 338              		.cfi_def_cfa_offset 8
+ 339              		.cfi_offset 7, -8
+ 340              		.cfi_offset 14, -4
+ 341 0242 84B0     		sub	sp, sp, #16
+ 342              	.LCFI4:
+ 343              		.cfi_def_cfa_offset 24
+ 344 0244 00AF     		add	r7, sp, #0
+ 345              	.LCFI5:
+ 346              		.cfi_def_cfa_register 7
+ 347 0246 F871     		strb	r0, [r7, #7]
+ 348 0248 B971     		strb	r1, [r7, #6]
+ 349 024a 7A71     		strb	r2, [r7, #5]
+ 350 024c 3B71     		strb	r3, [r7, #4]
+  73:../src/buzzer.c ****     char patternChar[4];
+  74:../src/buzzer.c ****     uint16_t Duration;
+  75:../src/buzzer.c ****     static uint8_t icnt = 0;
+  76:../src/buzzer.c **** 
+  77:../src/buzzer.c ****     patternChar[0] = first;
+ 351              		.loc 1 77 0
+ 352 024e FB79     		ldrb	r3, [r7, #7]
+ 353 0250 3B72     		strb	r3, [r7, #8]
+  78:../src/buzzer.c ****     patternChar[1] = second;
+ 354              		.loc 1 78 0
+ 355 0252 BB79     		ldrb	r3, [r7, #6]
+ 356 0254 7B72     		strb	r3, [r7, #9]
+  79:../src/buzzer.c ****     patternChar[2] = third;
+ 357              		.loc 1 79 0
+ 358 0256 7B79     		ldrb	r3, [r7, #5]
+ 359 0258 BB72     		strb	r3, [r7, #10]
+  80:../src/buzzer.c ****     patternChar[3] = pause;
+ 360              		.loc 1 80 0
+ 361 025a 3B79     		ldrb	r3, [r7, #4]
+ 362 025c FB72     		strb	r3, [r7, #11]
+  81:../src/buzzer.c ****     switch(patternChar[icnt]) {
+ 363              		.loc 1 81 0
+ 364 025e 3D4B     		ldr	r3, .L35
+ 365 0260 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 366 0262 07F11002 		add	r2, r7, #16
+ 367 0266 D318     		adds	r3, r2, r3
+ 368 0268 13F8083C 		ldrb	r3, [r3, #-8]	@ zero_extendqisi2
+ 369 026c A3F14403 		sub	r3, r3, #68
+ 370 0270 0A2B     		cmp	r3, #10
+ 371 0272 29D8     		bhi	.L23
+ 372 0274 01A2     		adr	r2, .L28
+ 373 0276 52F823F0 		ldr	pc, [r2, r3, lsl #2]
+ 374 027a 00BF     		.align	2
+ 375              	.L28:
+ 376 027c B9020000 		.word	.L24+1
+ 377 0280 C9020000 		.word	.L23+1
+ 378 0284 C9020000 		.word	.L23+1
+ 379 0288 C9020000 		.word	.L23+1
+ 380 028c C9020000 		.word	.L23+1
+ 381 0290 C9020000 		.word	.L23+1
+ 382 0294 C9020000 		.word	.L23+1
+ 383 0298 C9020000 		.word	.L23+1
+ 384 029c B1020000 		.word	.L25+1
+ 385 02a0 A9020000 		.word	.L26+1
+ 386 02a4 C1020000 		.word	.L27+1
+ 387              	.L26:
+  82:../src/buzzer.c ****         case 'M': 
+  83:../src/buzzer.c ****             Duration = 100; 
+ 388              		.loc 1 83 0
+ 389 02a8 4FF06403 		mov	r3, #100
+ 390 02ac FB81     		strh	r3, [r7, #14]	@ movhi
+  84:../src/buzzer.c ****             break;
+ 391              		.loc 1 84 0
+ 392 02ae 0FE0     		b	.L29
+ 393              	.L25:
+  85:../src/buzzer.c ****         case 'L': 
+  86:../src/buzzer.c ****             Duration = 200; 
+ 394              		.loc 1 86 0
+ 395 02b0 4FF0C803 		mov	r3, #200
+ 396 02b4 FB81     		strh	r3, [r7, #14]	@ movhi
+  87:../src/buzzer.c ****             break;
+ 397              		.loc 1 87 0
+ 398 02b6 0BE0     		b	.L29
+ 399              	.L24:
+  88:../src/buzzer.c ****         case 'D': 
+  89:../src/buzzer.c ****             Duration = 2000; 
+ 400              		.loc 1 89 0
+ 401 02b8 4FF4FA63 		mov	r3, #2000
+ 402 02bc FB81     		strh	r3, [r7, #14]	@ movhi
+  90:../src/buzzer.c ****             break;
+ 403              		.loc 1 90 0
+ 404 02be 07E0     		b	.L29
+ 405              	.L27:
+  91:../src/buzzer.c ****         case 'N': 
+  92:../src/buzzer.c ****             Duration = 0; 
+ 406              		.loc 1 92 0
+ 407 02c0 4FF00003 		mov	r3, #0
+ 408 02c4 FB81     		strh	r3, [r7, #14]	@ movhi
+  93:../src/buzzer.c ****             break;
+ 409              		.loc 1 93 0
+ 410 02c6 03E0     		b	.L29
+ 411              	.L23:
+  94:../src/buzzer.c ****         default:
+  95:../src/buzzer.c ****             Duration = 50; 
+ 412              		.loc 1 95 0
+ 413 02c8 4FF03203 		mov	r3, #50
+ 414 02cc FB81     		strh	r3, [r7, #14]	@ movhi
+  96:../src/buzzer.c ****             break;
+ 415              		.loc 1 96 0
+ 416 02ce 00BF     		nop
+ 417              	.L29:
+  97:../src/buzzer.c ****     }
+  98:../src/buzzer.c **** 
+  99:../src/buzzer.c ****     if (icnt < 3 && Duration != 0)
+ 418              		.loc 1 99 0
+ 419 02d0 204B     		ldr	r3, .L35
+ 420 02d2 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 421 02d4 022B     		cmp	r3, #2
+ 422 02d6 06D8     		bhi	.L30
+ 423              		.loc 1 99 0 is_stmt 0 discriminator 1
+ 424 02d8 FB89     		ldrh	r3, [r7, #14]
+ 425 02da 002B     		cmp	r3, #0
+ 426 02dc 03D0     		beq	.L30
+ 100:../src/buzzer.c ****         beep(Duration);
+ 427              		.loc 1 100 0 is_stmt 1
+ 428 02de FB89     		ldrh	r3, [r7, #14]
+ 429 02e0 1846     		mov	r0, r3
+ 430 02e2 00F043F8 		bl	beep
+ 431              	.L30:
+ 101:../src/buzzer.c ****     if (icnt >= 3 && (buzzerLastToggleTime < millis() - Duration)) {
+ 432              		.loc 1 101 0
+ 433 02e6 1B4B     		ldr	r3, .L35
+ 434 02e8 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 435 02ea 022B     		cmp	r3, #2
+ 436 02ec 10D9     		bls	.L31
+ 437              		.loc 1 101 0 is_stmt 0 discriminator 1
+ 438 02ee FFF7FEFF 		bl	millis
+ 439 02f2 0246     		mov	r2, r0
+ 440 02f4 FB89     		ldrh	r3, [r7, #14]
+ 441 02f6 D21A     		subs	r2, r2, r3
+ 442 02f8 174B     		ldr	r3, .L35+4
+ 443 02fa 1B68     		ldr	r3, [r3, #0]
+ 444 02fc 9A42     		cmp	r2, r3
+ 445 02fe 07D9     		bls	.L31
+ 102:../src/buzzer.c ****         icnt = 0;
+ 446              		.loc 1 102 0 is_stmt 1
+ 447 0300 144B     		ldr	r3, .L35
+ 448 0302 4FF00002 		mov	r2, #0
+ 449 0306 1A70     		strb	r2, [r3, #0]
+ 103:../src/buzzer.c ****         toggleBeep = 0;
+ 450              		.loc 1 103 0
+ 451 0308 144B     		ldr	r3, .L35+8
+ 452 030a 4FF00002 		mov	r2, #0
+ 453 030e 1A70     		strb	r2, [r3, #0]
+ 454              	.L31:
+ 104:../src/buzzer.c ****     }
+ 105:../src/buzzer.c ****     if (beepDone == 1 || Duration == 0) {
+ 455              		.loc 1 105 0
+ 456 0310 134B     		ldr	r3, .L35+12
+ 457 0312 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 458 0314 012B     		cmp	r3, #1
+ 459 0316 02D0     		beq	.L32
+ 460              		.loc 1 105 0 is_stmt 0 discriminator 1
+ 461 0318 FB89     		ldrh	r3, [r7, #14]
+ 462 031a 002B     		cmp	r3, #0
+ 463 031c 16D1     		bne	.L22
+ 464              	.L32:
+ 106:../src/buzzer.c ****         if (icnt < 3)
+ 465              		.loc 1 106 0 is_stmt 1
+ 466 031e 0D4B     		ldr	r3, .L35
+ 467 0320 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 468 0322 022B     		cmp	r3, #2
+ 469 0324 06D8     		bhi	.L34
+ 107:../src/buzzer.c ****             icnt++;
+ 470              		.loc 1 107 0
+ 471 0326 0B4B     		ldr	r3, .L35
+ 472 0328 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 473 032a 03F10103 		add	r3, r3, #1
+ 474 032e DAB2     		uxtb	r2, r3
+ 475 0330 084B     		ldr	r3, .L35
+ 476 0332 1A70     		strb	r2, [r3, #0]
+ 477              	.L34:
+ 108:../src/buzzer.c ****         beepDone = 0;
+ 478              		.loc 1 108 0
+ 479 0334 0A4B     		ldr	r3, .L35+12
+ 480 0336 4FF00002 		mov	r2, #0
+ 481 033a 1A70     		strb	r2, [r3, #0]
+ 109:../src/buzzer.c ****         buzzerIsOn = 0;
+ 482              		.loc 1 109 0
+ 483 033c 094B     		ldr	r3, .L35+16
+ 484 033e 4FF00002 		mov	r2, #0
+ 485 0342 1A70     		strb	r2, [r3, #0]
+ 110:../src/buzzer.c ****         BEEP_OFF;
+ 486              		.loc 1 110 0
+ 487 0344 084B     		ldr	r3, .L35+20
+ 488 0346 4FF48052 		mov	r2, #4096
+ 489 034a 1A61     		str	r2, [r3, #16]
+ 490              	.L22:
+ 111:../src/buzzer.c ****     }
+ 112:../src/buzzer.c **** }
+ 491              		.loc 1 112 0
+ 492 034c 07F11007 		add	r7, r7, #16
+ 493 0350 BD46     		mov	sp, r7
+ 494 0352 80BD     		pop	{r7, pc}
+ 495              	.L36:
+ 496              		.align	2
+ 497              	.L35:
+ 498 0354 08000000 		.word	icnt.9052
+ 499 0358 04000000 		.word	buzzerLastToggleTime
+ 500 035c 00000000 		.word	toggleBeep
+ 501 0360 01000000 		.word	beepDone
+ 502 0364 00000000 		.word	buzzerIsOn
+ 503 0368 00080140 		.word	1073809408
+ 504              		.cfi_endproc
+ 505              	.LFE30:
+ 507              		.align	2
+ 508              		.thumb
+ 509              		.thumb_func
+ 511              	beep:
+ 512              	.LFB31:
+ 113:../src/buzzer.c **** 
+ 114:../src/buzzer.c **** static void beep(uint16_t pulse)
+ 115:../src/buzzer.c **** {
+ 513              		.loc 1 115 0
+ 514              		.cfi_startproc
+ 515              		@ args = 0, pretend = 0, frame = 8
+ 516              		@ frame_needed = 1, uses_anonymous_args = 0
+ 517 036c 80B5     		push	{r7, lr}
+ 518              	.LCFI6:
+ 519              		.cfi_def_cfa_offset 8
+ 520              		.cfi_offset 7, -8
+ 521              		.cfi_offset 14, -4
+ 522 036e 82B0     		sub	sp, sp, #8
+ 523              	.LCFI7:
+ 524              		.cfi_def_cfa_offset 16
+ 525 0370 00AF     		add	r7, sp, #0
+ 526              	.LCFI8:
+ 527              		.cfi_def_cfa_register 7
+ 528 0372 0346     		mov	r3, r0
+ 529 0374 FB80     		strh	r3, [r7, #6]	@ movhi
+ 116:../src/buzzer.c ****     if (!buzzerIsOn && (millis() >= (buzzerLastToggleTime + 50))) {         // Buzzer is off and lo
+ 530              		.loc 1 116 0
+ 531 0376 244B     		ldr	r3, .L41
+ 532 0378 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 533 037a 002B     		cmp	r3, #0
+ 534 037c 16D1     		bne	.L38
+ 535              		.loc 1 116 0 is_stmt 0 discriminator 1
+ 536 037e FFF7FEFF 		bl	millis
+ 537 0382 0246     		mov	r2, r0
+ 538 0384 214B     		ldr	r3, .L41+4
+ 539 0386 1B68     		ldr	r3, [r3, #0]
+ 540 0388 03F13203 		add	r3, r3, #50
+ 541 038c 9A42     		cmp	r2, r3
+ 542 038e 0DD3     		bcc	.L38
+ 117:../src/buzzer.c ****         buzzerIsOn = 1;
+ 543              		.loc 1 117 0 is_stmt 1
+ 544 0390 1D4B     		ldr	r3, .L41
+ 545 0392 4FF00102 		mov	r2, #1
+ 546 0396 1A70     		strb	r2, [r3, #0]
+ 118:../src/buzzer.c ****         BEEP_ON;
+ 547              		.loc 1 118 0
+ 548 0398 1D4B     		ldr	r3, .L41+8
+ 549 039a 4FF48052 		mov	r2, #4096
+ 550 039e 5A61     		str	r2, [r3, #20]
+ 119:../src/buzzer.c ****         buzzerLastToggleTime = millis();      // save the time the buzer turned on
+ 551              		.loc 1 119 0
+ 552 03a0 FFF7FEFF 		bl	millis
+ 553 03a4 0246     		mov	r2, r0
+ 554 03a6 194B     		ldr	r3, .L41+4
+ 555 03a8 1A60     		str	r2, [r3, #0]
+ 556 03aa 28E0     		b	.L37
+ 557              	.L38:
+ 120:../src/buzzer.c ****     } else if (buzzerIsOn && (millis() >= buzzerLastToggleTime + pulse)) {         // Buzzer is on 
+ 558              		.loc 1 120 0
+ 559 03ac 164B     		ldr	r3, .L41
+ 560 03ae 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 561 03b0 002B     		cmp	r3, #0
+ 562 03b2 24D0     		beq	.L37
+ 563              		.loc 1 120 0 is_stmt 0 discriminator 1
+ 564 03b4 FFF7FEFF 		bl	millis
+ 565 03b8 0246     		mov	r2, r0
+ 566 03ba F988     		ldrh	r1, [r7, #6]
+ 567 03bc 134B     		ldr	r3, .L41+4
+ 568 03be 1B68     		ldr	r3, [r3, #0]
+ 569 03c0 CB18     		adds	r3, r1, r3
+ 570 03c2 9A42     		cmp	r2, r3
+ 571 03c4 1BD3     		bcc	.L37
+ 121:../src/buzzer.c ****         buzzerIsOn = 0;
+ 572              		.loc 1 121 0 is_stmt 1
+ 573 03c6 104B     		ldr	r3, .L41
+ 574 03c8 4FF00002 		mov	r2, #0
+ 575 03cc 1A70     		strb	r2, [r3, #0]
+ 122:../src/buzzer.c ****         BEEP_OFF;
+ 576              		.loc 1 122 0
+ 577 03ce 104B     		ldr	r3, .L41+8
+ 578 03d0 4FF48052 		mov	r2, #4096
+ 579 03d4 1A61     		str	r2, [r3, #16]
+ 123:../src/buzzer.c ****         buzzerLastToggleTime = millis();
+ 580              		.loc 1 123 0
+ 581 03d6 FFF7FEFF 		bl	millis
+ 582 03da 0246     		mov	r2, r0
+ 583 03dc 0B4B     		ldr	r3, .L41+4
+ 584 03de 1A60     		str	r2, [r3, #0]
+ 124:../src/buzzer.c ****         if (toggleBeep >0)
+ 585              		.loc 1 124 0
+ 586 03e0 0C4B     		ldr	r3, .L41+12
+ 587 03e2 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 588 03e4 002B     		cmp	r3, #0
+ 589 03e6 06D0     		beq	.L40
+ 125:../src/buzzer.c ****             toggleBeep--;
+ 590              		.loc 1 125 0
+ 591 03e8 0A4B     		ldr	r3, .L41+12
+ 592 03ea 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 593 03ec 03F1FF33 		add	r3, r3, #-1
+ 594 03f0 DAB2     		uxtb	r2, r3
+ 595 03f2 084B     		ldr	r3, .L41+12
+ 596 03f4 1A70     		strb	r2, [r3, #0]
+ 597              	.L40:
+ 126:../src/buzzer.c ****         beepDone = 1;
+ 598              		.loc 1 126 0
+ 599 03f6 084B     		ldr	r3, .L41+16
+ 600 03f8 4FF00102 		mov	r2, #1
+ 601 03fc 1A70     		strb	r2, [r3, #0]
+ 602              	.L37:
+ 127:../src/buzzer.c ****     }
+ 128:../src/buzzer.c **** }
+ 603              		.loc 1 128 0
+ 604 03fe 07F10807 		add	r7, r7, #8
+ 605 0402 BD46     		mov	sp, r7
+ 606 0404 80BD     		pop	{r7, pc}
+ 607              	.L42:
+ 608 0406 00BF     		.align	2
+ 609              	.L41:
+ 610 0408 00000000 		.word	buzzerIsOn
+ 611 040c 04000000 		.word	buzzerLastToggleTime
+ 612 0410 00080140 		.word	1073809408
+ 613 0414 00000000 		.word	toggleBeep
+ 614 0418 01000000 		.word	beepDone
+ 615              		.cfi_endproc
+ 616              	.LFE31:
+ 618              		.bss
+ 619              	icnt.9052:
+ 620 0008 00       		.space	1
+ 621              	beeperOnBox.9040:
+ 622 0009 00       		.space	1
+ 623              	warn_failsafe.9042:
+ 624 000a 00       		.space	1
+ 625              	warn_noGPSfix.9041:
+ 626 000b 00       		.space	1
+ 627              	warn_runtime.9043:
+ 628 000c 00       		.space	1
+ 629 000d 000000   		.text
+ 630              	.Letext0:
+ 631              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 632              		.file 3 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/stm32f10x.h"
+ 633              		.file 4 "../src/board.h"
+ 634              		.file 5 "../src/mw.h"
+ 635              		.file 6 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 buzzer.c
+     /tmp/ccWafhrx.s:19     .bss:00000000 buzzerIsOn
+     /tmp/ccWafhrx.s:20     .bss:00000000 $d
+     /tmp/ccWafhrx.s:21     .bss:00000001 beepDone
+     /tmp/ccWafhrx.s:24     .bss:00000004 buzzerLastToggleTime
+     /tmp/ccWafhrx.s:27     .text:00000000 $t
+     /tmp/ccWafhrx.s:32     .text:00000000 buzzer
+     /tmp/ccWafhrx.s:330    .text:00000240 beep_code
+     /tmp/ccWafhrx.s:511    .text:0000036c beep
+     /tmp/ccWafhrx.s:312    .text:00000214 $d
+     /tmp/ccWafhrx.s:621    .bss:00000009 beeperOnBox.9040
+     /tmp/ccWafhrx.s:623    .bss:0000000a warn_failsafe.9042
+     /tmp/ccWafhrx.s:625    .bss:0000000b warn_noGPSfix.9041
+     /tmp/ccWafhrx.s:627    .bss:0000000c warn_runtime.9043
+     /tmp/ccWafhrx.s:326    .text:00000240 $t
+     /tmp/ccWafhrx.s:376    .text:0000027c $d
+     /tmp/ccWafhrx.s:389    .text:000002a8 $t
+     /tmp/ccWafhrx.s:498    .text:00000354 $d
+     /tmp/ccWafhrx.s:619    .bss:00000008 icnt.9052
+     /tmp/ccWafhrx.s:507    .text:0000036c $t
+     /tmp/ccWafhrx.s:610    .text:00000408 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+                           .group:00000000 wm4.mw.h.4.b0e233e0e6ae9c4c07b142ad41413d4c
+
+UNDEFINED SYMBOLS
+feature
+sensors
+rcOptions
+failsafeCnt
+cfg
+f
+toggleBeep
+millis

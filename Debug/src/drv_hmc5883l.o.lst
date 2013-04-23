@@ -1,0 +1,701 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"drv_hmc5883l.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.align	2
+  19              		.global	hmc5883lDetect
+  20              		.thumb
+  21              		.thumb_func
+  23              	hmc5883lDetect:
+  24              	.LFB29:
+  25              		.file 1 "../src/drv_hmc5883l.c"
+   1:../src/drv_hmc5883l.c **** #include "board.h"
+   2:../src/drv_hmc5883l.c **** 
+   3:../src/drv_hmc5883l.c **** // HMC5883L, default address 0x1E
+   4:../src/drv_hmc5883l.c **** // PB12 connected to MAG_DRDY on rev4 hardware
+   5:../src/drv_hmc5883l.c **** 
+   6:../src/drv_hmc5883l.c **** #define MAG_ADDRESS 0x1E
+   7:../src/drv_hmc5883l.c **** #define MAG_DATA_REGISTER 0x03
+   8:../src/drv_hmc5883l.c **** 
+   9:../src/drv_hmc5883l.c **** #define HMC58X3_R_CONFA 0
+  10:../src/drv_hmc5883l.c **** #define HMC58X3_R_CONFB 1
+  11:../src/drv_hmc5883l.c **** #define HMC58X3_R_MODE 2
+  12:../src/drv_hmc5883l.c **** #define HMC58X3_X_SELF_TEST_GAUSS (+1.16)       // X axis level when bias current is applied.
+  13:../src/drv_hmc5883l.c **** #define HMC58X3_Y_SELF_TEST_GAUSS (+1.16)       // Y axis level when bias current is applied.
+  14:../src/drv_hmc5883l.c **** #define HMC58X3_Z_SELF_TEST_GAUSS (+1.08)       // Y axis level when bias current is applied.
+  15:../src/drv_hmc5883l.c **** #define SELF_TEST_LOW_LIMIT  (243.0 / 390.0)    // Low limit when gain is 5.
+  16:../src/drv_hmc5883l.c **** #define SELF_TEST_HIGH_LIMIT (575.0 / 390.0)    // High limit when gain is 5.
+  17:../src/drv_hmc5883l.c **** #define HMC_POS_BIAS 1
+  18:../src/drv_hmc5883l.c **** #define HMC_NEG_BIAS 2
+  19:../src/drv_hmc5883l.c **** 
+  20:../src/drv_hmc5883l.c **** bool hmc5883lDetect(void)
+  21:../src/drv_hmc5883l.c **** {
+  26              		.loc 1 21 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 8
+  29              		@ frame_needed = 1, uses_anonymous_args = 0
+  30 0000 80B5     		push	{r7, lr}
+  31              	.LCFI0:
+  32              		.cfi_def_cfa_offset 8
+  33              		.cfi_offset 7, -8
+  34              		.cfi_offset 14, -4
+  35 0002 82B0     		sub	sp, sp, #8
+  36              	.LCFI1:
+  37              		.cfi_def_cfa_offset 16
+  38 0004 00AF     		add	r7, sp, #0
+  39              	.LCFI2:
+  40              		.cfi_def_cfa_register 7
+  22:../src/drv_hmc5883l.c ****     bool ack = false;
+  41              		.loc 1 22 0
+  42 0006 4FF00003 		mov	r3, #0
+  43 000a FB71     		strb	r3, [r7, #7]
+  23:../src/drv_hmc5883l.c ****     uint8_t sig = 0;
+  44              		.loc 1 23 0
+  45 000c 4FF00003 		mov	r3, #0
+  46 0010 BB71     		strb	r3, [r7, #6]
+  24:../src/drv_hmc5883l.c **** 
+  25:../src/drv_hmc5883l.c ****     ack = i2cRead(MAG_ADDRESS, 0x0A, 1, &sig);
+  47              		.loc 1 25 0
+  48 0012 07F10603 		add	r3, r7, #6
+  49 0016 4FF01E00 		mov	r0, #30
+  50 001a 4FF00A01 		mov	r1, #10
+  51 001e 4FF00102 		mov	r2, #1
+  52 0022 FFF7FEFF 		bl	i2cRead
+  53 0026 0346     		mov	r3, r0
+  54 0028 FB71     		strb	r3, [r7, #7]
+  26:../src/drv_hmc5883l.c ****     if (!ack || sig != 'H')
+  55              		.loc 1 26 0
+  56 002a FB79     		ldrb	r3, [r7, #7]
+  57 002c 83F00103 		eor	r3, r3, #1
+  58 0030 DBB2     		uxtb	r3, r3
+  59 0032 002B     		cmp	r3, #0
+  60 0034 02D1     		bne	.L2
+  61              		.loc 1 26 0 is_stmt 0 discriminator 1
+  62 0036 BB79     		ldrb	r3, [r7, #6]	@ zero_extendqisi2
+  63 0038 482B     		cmp	r3, #72
+  64 003a 02D0     		beq	.L3
+  65              	.L2:
+  27:../src/drv_hmc5883l.c ****         return false;
+  66              		.loc 1 27 0 is_stmt 1
+  67 003c 4FF00003 		mov	r3, #0
+  68 0040 01E0     		b	.L5
+  69              	.L3:
+  28:../src/drv_hmc5883l.c **** 
+  29:../src/drv_hmc5883l.c ****     return true;
+  70              		.loc 1 29 0
+  71 0042 4FF00103 		mov	r3, #1
+  72              	.L5:
+  30:../src/drv_hmc5883l.c **** }
+  73              		.loc 1 30 0
+  74 0046 1846     		mov	r0, r3
+  75 0048 07F10807 		add	r7, r7, #8
+  76 004c BD46     		mov	sp, r7
+  77 004e 80BD     		pop	{r7, pc}
+  78              		.cfi_endproc
+  79              	.LFE29:
+  81              		.global	__aeabi_i2d
+  82              		.global	__aeabi_ddiv
+  83              		.global	__aeabi_d2f
+  84              		.align	2
+  85              		.global	hmc5883lInit
+  86              		.thumb
+  87              		.thumb_func
+  89              	hmc5883lInit:
+  90              	.LFB30:
+  31:../src/drv_hmc5883l.c **** 
+  32:../src/drv_hmc5883l.c **** void hmc5883lInit(float *calibrationGain)
+  33:../src/drv_hmc5883l.c **** {
+  91              		.loc 1 33 0
+  92              		.cfi_startproc
+  93              		@ args = 0, pretend = 0, frame = 56
+  94              		@ frame_needed = 1, uses_anonymous_args = 0
+  95 0050 80B5     		push	{r7, lr}
+  96              	.LCFI3:
+  97              		.cfi_def_cfa_offset 8
+  98              		.cfi_offset 7, -8
+  99              		.cfi_offset 14, -4
+ 100 0052 8EB0     		sub	sp, sp, #56
+ 101              	.LCFI4:
+ 102              		.cfi_def_cfa_offset 64
+ 103 0054 00AF     		add	r7, sp, #0
+ 104              	.LCFI5:
+ 105              		.cfi_def_cfa_register 7
+ 106 0056 7860     		str	r0, [r7, #4]
+  34:../src/drv_hmc5883l.c ****     GPIO_InitTypeDef GPIO_InitStructure;
+  35:../src/drv_hmc5883l.c ****     float magGain[3];
+  36:../src/drv_hmc5883l.c ****     int16_t magADC[3];
+  37:../src/drv_hmc5883l.c ****     int i;
+  38:../src/drv_hmc5883l.c ****     int32_t xyz_total[3] = { 0, 0, 0 }; // 32 bit totals so they won't overflow.
+ 107              		.loc 1 38 0
+ 108 0058 4FF00003 		mov	r3, #0
+ 109 005c FB60     		str	r3, [r7, #12]
+ 110 005e 4FF00003 		mov	r3, #0
+ 111 0062 3B61     		str	r3, [r7, #16]
+ 112 0064 4FF00003 		mov	r3, #0
+ 113 0068 7B61     		str	r3, [r7, #20]
+  39:../src/drv_hmc5883l.c ****     bool bret = true;           // Error indicator
+ 114              		.loc 1 39 0
+ 115 006a 4FF00103 		mov	r3, #1
+ 116 006e 87F83330 		strb	r3, [r7, #51]
+  40:../src/drv_hmc5883l.c **** 
+  41:../src/drv_hmc5883l.c ****     // PB12 - MAG_DRDY output on rev4 hardware
+  42:../src/drv_hmc5883l.c ****     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
+ 117              		.loc 1 42 0
+ 118 0072 4FF48053 		mov	r3, #4096
+ 119 0076 BB85     		strh	r3, [r7, #44]	@ movhi
+  43:../src/drv_hmc5883l.c ****     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+ 120              		.loc 1 43 0
+ 121 0078 4FF00203 		mov	r3, #2
+ 122 007c 87F82E30 		strb	r3, [r7, #46]
+  44:../src/drv_hmc5883l.c ****     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+ 123              		.loc 1 44 0
+ 124 0080 4FF00403 		mov	r3, #4
+ 125 0084 87F82F30 		strb	r3, [r7, #47]
+  45:../src/drv_hmc5883l.c ****     GPIO_Init(GPIOB, &GPIO_InitStructure);
+ 126              		.loc 1 45 0
+ 127 0088 07F12C03 		add	r3, r7, #44
+ 128 008c A048     		ldr	r0, .L17+16
+ 129 008e 1946     		mov	r1, r3
+ 130 0090 FFF7FEFF 		bl	GPIO_Init
+  46:../src/drv_hmc5883l.c **** 
+  47:../src/drv_hmc5883l.c ****     delay(50);
+ 131              		.loc 1 47 0
+ 132 0094 4FF03200 		mov	r0, #50
+ 133 0098 FFF7FEFF 		bl	delay
+  48:../src/drv_hmc5883l.c ****     i2cWrite(MAG_ADDRESS, HMC58X3_R_CONFA, 0x010 + HMC_POS_BIAS);   // Reg A DOR = 0x010 + MS1, MS0
+ 134              		.loc 1 48 0
+ 135 009c 4FF01E00 		mov	r0, #30
+ 136 00a0 4FF00001 		mov	r1, #0
+ 137 00a4 4FF01102 		mov	r2, #17
+ 138 00a8 FFF7FEFF 		bl	i2cWrite
+  49:../src/drv_hmc5883l.c ****     // Note that the  very first measurement after a gain change maintains the same gain as the pre
+  50:../src/drv_hmc5883l.c ****     // The new gain setting is effective from the second measurement and on.
+  51:../src/drv_hmc5883l.c ****     i2cWrite(MAG_ADDRESS, HMC58X3_R_CONFB, 2 << 5); // Set the Gain
+ 139              		.loc 1 51 0
+ 140 00ac 4FF01E00 		mov	r0, #30
+ 141 00b0 4FF00101 		mov	r1, #1
+ 142 00b4 4FF04002 		mov	r2, #64
+ 143 00b8 FFF7FEFF 		bl	i2cWrite
+  52:../src/drv_hmc5883l.c ****     delay(100);
+ 144              		.loc 1 52 0
+ 145 00bc 4FF06400 		mov	r0, #100
+ 146 00c0 FFF7FEFF 		bl	delay
+  53:../src/drv_hmc5883l.c ****     hmc5883lRead(magADC);
+ 147              		.loc 1 53 0
+ 148 00c4 07F11803 		add	r3, r7, #24
+ 149 00c8 1846     		mov	r0, r3
+ 150 00ca FFF7FEFF 		bl	hmc5883lRead
+  54:../src/drv_hmc5883l.c **** 
+  55:../src/drv_hmc5883l.c ****     for (i = 0; i < 10; i++) {  // Collect 10 samples
+ 151              		.loc 1 55 0
+ 152 00ce 4FF00003 		mov	r3, #0
+ 153 00d2 7B63     		str	r3, [r7, #52]
+ 154 00d4 41E0     		b	.L7
+ 155              	.L10:
+  56:../src/drv_hmc5883l.c ****         i2cWrite(MAG_ADDRESS, HMC58X3_R_MODE, 1);
+ 156              		.loc 1 56 0
+ 157 00d6 4FF01E00 		mov	r0, #30
+ 158 00da 4FF00201 		mov	r1, #2
+ 159 00de 4FF00102 		mov	r2, #1
+ 160 00e2 FFF7FEFF 		bl	i2cWrite
+  57:../src/drv_hmc5883l.c ****         delay(50);
+ 161              		.loc 1 57 0
+ 162 00e6 4FF03200 		mov	r0, #50
+ 163 00ea FFF7FEFF 		bl	delay
+  58:../src/drv_hmc5883l.c ****         hmc5883lRead(magADC);       // Get the raw values in case the scales have already been chan
+ 164              		.loc 1 58 0
+ 165 00ee 07F11803 		add	r3, r7, #24
+ 166 00f2 1846     		mov	r0, r3
+ 167 00f4 FFF7FEFF 		bl	hmc5883lRead
+  59:../src/drv_hmc5883l.c **** 
+  60:../src/drv_hmc5883l.c ****         // Since the measurements are noisy, they should be averaged rather than taking the max.
+  61:../src/drv_hmc5883l.c ****         xyz_total[0] += magADC[0];
+ 168              		.loc 1 61 0
+ 169 00f8 FA68     		ldr	r2, [r7, #12]
+ 170 00fa 3B8B     		ldrh	r3, [r7, #24]
+ 171 00fc 1BB2     		sxth	r3, r3
+ 172 00fe D318     		adds	r3, r2, r3
+ 173 0100 FB60     		str	r3, [r7, #12]
+  62:../src/drv_hmc5883l.c ****         xyz_total[1] += magADC[1];
+ 174              		.loc 1 62 0
+ 175 0102 3A69     		ldr	r2, [r7, #16]
+ 176 0104 7B8B     		ldrh	r3, [r7, #26]
+ 177 0106 1BB2     		sxth	r3, r3
+ 178 0108 D318     		adds	r3, r2, r3
+ 179 010a 3B61     		str	r3, [r7, #16]
+  63:../src/drv_hmc5883l.c ****         xyz_total[2] += magADC[2];
+ 180              		.loc 1 63 0
+ 181 010c 7A69     		ldr	r2, [r7, #20]
+ 182 010e BB8B     		ldrh	r3, [r7, #28]
+ 183 0110 1BB2     		sxth	r3, r3
+ 184 0112 D318     		adds	r3, r2, r3
+ 185 0114 7B61     		str	r3, [r7, #20]
+  64:../src/drv_hmc5883l.c **** 
+  65:../src/drv_hmc5883l.c ****         // Detect saturation.
+  66:../src/drv_hmc5883l.c ****         if (-4096 >= min(magADC[0], min(magADC[1], magADC[2]))) {
+ 186              		.loc 1 66 0
+ 187 0116 BA8B     		ldrh	r2, [r7, #28]
+ 188 0118 7B8B     		ldrh	r3, [r7, #26]
+ 189 011a 12B2     		sxth	r2, r2
+ 190 011c 1BB2     		sxth	r3, r3
+ 191 011e 9A42     		cmp	r2, r3
+ 192 0120 B8BF     		it	lt
+ 193 0122 1346     		movlt	r3, r2
+ 194 0124 9AB2     		uxth	r2, r3
+ 195 0126 3B8B     		ldrh	r3, [r7, #24]
+ 196 0128 12B2     		sxth	r2, r2
+ 197 012a 1BB2     		sxth	r3, r3
+ 198 012c 9A42     		cmp	r2, r3
+ 199 012e B8BF     		it	lt
+ 200 0130 1346     		movlt	r3, r2
+ 201 0132 9BB2     		uxth	r3, r3
+ 202 0134 1AB2     		sxth	r2, r3
+ 203 0136 774B     		ldr	r3, .L17+20
+ 204 0138 9A42     		cmp	r2, r3
+ 205 013a 04DA     		bge	.L8
+  67:../src/drv_hmc5883l.c ****             bret = false;
+ 206              		.loc 1 67 0
+ 207 013c 4FF00003 		mov	r3, #0
+ 208 0140 87F83330 		strb	r3, [r7, #51]
+  68:../src/drv_hmc5883l.c ****             break;              // Breaks out of the for loop.  No sense in continuing if we satura
+ 209              		.loc 1 68 0
+ 210 0144 0CE0     		b	.L9
+ 211              	.L8:
+  69:../src/drv_hmc5883l.c ****         }
+  70:../src/drv_hmc5883l.c ****         LED1_TOGGLE;
+ 212              		.loc 1 70 0
+ 213 0146 724B     		ldr	r3, .L17+16
+ 214 0148 714A     		ldr	r2, .L17+16
+ 215 014a D268     		ldr	r2, [r2, #12]
+ 216 014c 82F01002 		eor	r2, r2, #16
+ 217 0150 DA60     		str	r2, [r3, #12]
+  55:../src/drv_hmc5883l.c ****     for (i = 0; i < 10; i++) {  // Collect 10 samples
+ 218              		.loc 1 55 0
+ 219 0152 7B6B     		ldr	r3, [r7, #52]
+ 220 0154 03F10103 		add	r3, r3, #1
+ 221 0158 7B63     		str	r3, [r7, #52]
+ 222              	.L7:
+  55:../src/drv_hmc5883l.c ****     for (i = 0; i < 10; i++) {  // Collect 10 samples
+ 223              		.loc 1 55 0 is_stmt 0 discriminator 1
+ 224 015a 7B6B     		ldr	r3, [r7, #52]
+ 225 015c 092B     		cmp	r3, #9
+ 226 015e BADD     		ble	.L10
+ 227              	.L9:
+  71:../src/drv_hmc5883l.c ****     }
+  72:../src/drv_hmc5883l.c **** 
+  73:../src/drv_hmc5883l.c ****     // Apply the negative bias. (Same gain)
+  74:../src/drv_hmc5883l.c ****     i2cWrite(MAG_ADDRESS, HMC58X3_R_CONFA, 0x010 + HMC_NEG_BIAS);   // Reg A DOR = 0x010 + MS1, MS0
+ 228              		.loc 1 74 0 is_stmt 1
+ 229 0160 4FF01E00 		mov	r0, #30
+ 230 0164 4FF00001 		mov	r1, #0
+ 231 0168 4FF01202 		mov	r2, #18
+ 232 016c FFF7FEFF 		bl	i2cWrite
+  75:../src/drv_hmc5883l.c ****     for (i = 0; i < 10; i++) {
+ 233              		.loc 1 75 0
+ 234 0170 4FF00003 		mov	r3, #0
+ 235 0174 7B63     		str	r3, [r7, #52]
+ 236 0176 41E0     		b	.L11
+ 237              	.L14:
+  76:../src/drv_hmc5883l.c ****         i2cWrite(MAG_ADDRESS, HMC58X3_R_MODE, 1);
+ 238              		.loc 1 76 0
+ 239 0178 4FF01E00 		mov	r0, #30
+ 240 017c 4FF00201 		mov	r1, #2
+ 241 0180 4FF00102 		mov	r2, #1
+ 242 0184 FFF7FEFF 		bl	i2cWrite
+  77:../src/drv_hmc5883l.c ****         delay(50);
+ 243              		.loc 1 77 0
+ 244 0188 4FF03200 		mov	r0, #50
+ 245 018c FFF7FEFF 		bl	delay
+  78:../src/drv_hmc5883l.c ****         hmc5883lRead(magADC);               // Get the raw values in case the scales have already b
+ 246              		.loc 1 78 0
+ 247 0190 07F11803 		add	r3, r7, #24
+ 248 0194 1846     		mov	r0, r3
+ 249 0196 FFF7FEFF 		bl	hmc5883lRead
+  79:../src/drv_hmc5883l.c **** 
+  80:../src/drv_hmc5883l.c ****         // Since the measurements are noisy, they should be averaged.
+  81:../src/drv_hmc5883l.c ****         xyz_total[0] -= magADC[0];
+ 250              		.loc 1 81 0
+ 251 019a FA68     		ldr	r2, [r7, #12]
+ 252 019c 3B8B     		ldrh	r3, [r7, #24]
+ 253 019e 1BB2     		sxth	r3, r3
+ 254 01a0 D31A     		subs	r3, r2, r3
+ 255 01a2 FB60     		str	r3, [r7, #12]
+  82:../src/drv_hmc5883l.c ****         xyz_total[1] -= magADC[1];
+ 256              		.loc 1 82 0
+ 257 01a4 3A69     		ldr	r2, [r7, #16]
+ 258 01a6 7B8B     		ldrh	r3, [r7, #26]
+ 259 01a8 1BB2     		sxth	r3, r3
+ 260 01aa D31A     		subs	r3, r2, r3
+ 261 01ac 3B61     		str	r3, [r7, #16]
+  83:../src/drv_hmc5883l.c ****         xyz_total[2] -= magADC[2];
+ 262              		.loc 1 83 0
+ 263 01ae 7A69     		ldr	r2, [r7, #20]
+ 264 01b0 BB8B     		ldrh	r3, [r7, #28]
+ 265 01b2 1BB2     		sxth	r3, r3
+ 266 01b4 D31A     		subs	r3, r2, r3
+ 267 01b6 7B61     		str	r3, [r7, #20]
+  84:../src/drv_hmc5883l.c **** 
+  85:../src/drv_hmc5883l.c ****         // Detect saturation.
+  86:../src/drv_hmc5883l.c ****         if (-4096 >= min(magADC[0], min(magADC[1], magADC[2]))) {
+ 268              		.loc 1 86 0
+ 269 01b8 BA8B     		ldrh	r2, [r7, #28]
+ 270 01ba 7B8B     		ldrh	r3, [r7, #26]
+ 271 01bc 12B2     		sxth	r2, r2
+ 272 01be 1BB2     		sxth	r3, r3
+ 273 01c0 9A42     		cmp	r2, r3
+ 274 01c2 B8BF     		it	lt
+ 275 01c4 1346     		movlt	r3, r2
+ 276 01c6 9AB2     		uxth	r2, r3
+ 277 01c8 3B8B     		ldrh	r3, [r7, #24]
+ 278 01ca 12B2     		sxth	r2, r2
+ 279 01cc 1BB2     		sxth	r3, r3
+ 280 01ce 9A42     		cmp	r2, r3
+ 281 01d0 B8BF     		it	lt
+ 282 01d2 1346     		movlt	r3, r2
+ 283 01d4 9BB2     		uxth	r3, r3
+ 284 01d6 1AB2     		sxth	r2, r3
+ 285 01d8 4E4B     		ldr	r3, .L17+20
+ 286 01da 9A42     		cmp	r2, r3
+ 287 01dc 04DA     		bge	.L12
+  87:../src/drv_hmc5883l.c ****             bret = false;
+ 288              		.loc 1 87 0
+ 289 01de 4FF00003 		mov	r3, #0
+ 290 01e2 87F83330 		strb	r3, [r7, #51]
+  88:../src/drv_hmc5883l.c ****             break;              // Breaks out of the for loop.  No sense in continuing if we satura
+ 291              		.loc 1 88 0
+ 292 01e6 0CE0     		b	.L13
+ 293              	.L12:
+  89:../src/drv_hmc5883l.c ****         }
+  90:../src/drv_hmc5883l.c ****         LED1_TOGGLE;
+ 294              		.loc 1 90 0
+ 295 01e8 494B     		ldr	r3, .L17+16
+ 296 01ea 494A     		ldr	r2, .L17+16
+ 297 01ec D268     		ldr	r2, [r2, #12]
+ 298 01ee 82F01002 		eor	r2, r2, #16
+ 299 01f2 DA60     		str	r2, [r3, #12]
+  75:../src/drv_hmc5883l.c ****     for (i = 0; i < 10; i++) {
+ 300              		.loc 1 75 0
+ 301 01f4 7B6B     		ldr	r3, [r7, #52]
+ 302 01f6 03F10103 		add	r3, r3, #1
+ 303 01fa 7B63     		str	r3, [r7, #52]
+ 304              	.L11:
+  75:../src/drv_hmc5883l.c ****     for (i = 0; i < 10; i++) {
+ 305              		.loc 1 75 0 is_stmt 0 discriminator 1
+ 306 01fc 7B6B     		ldr	r3, [r7, #52]
+ 307 01fe 092B     		cmp	r3, #9
+ 308 0200 BADD     		ble	.L14
+ 309              	.L13:
+  91:../src/drv_hmc5883l.c ****     }
+  92:../src/drv_hmc5883l.c **** 
+  93:../src/drv_hmc5883l.c ****     magGain[0] = fabs(820.0 * HMC58X3_X_SELF_TEST_GAUSS * 2.0 * 10.0 / xyz_total[0]);
+ 310              		.loc 1 93 0 is_stmt 1
+ 311 0202 FB68     		ldr	r3, [r7, #12]
+ 312 0204 1846     		mov	r0, r3
+ 313 0206 FFF7FEFF 		bl	__aeabi_i2d
+ 314 020a 0246     		mov	r2, r0
+ 315 020c 0B46     		mov	r3, r1
+ 316 020e 3CA1     		adr	r1, .L17
+ 317 0210 D1E90001 		ldrd	r0, [r1]
+ 318 0214 FFF7FEFF 		bl	__aeabi_ddiv
+ 319 0218 0246     		mov	r2, r0
+ 320 021a 0B46     		mov	r3, r1
+ 321 021c 1046     		mov	r0, r2
+ 322 021e 1946     		mov	r1, r3
+ 323 0220 FFF7FEFF 		bl	__aeabi_d2f
+ 324 0224 0346     		mov	r3, r0
+ 325 0226 23F00043 		bic	r3, r3, #-2147483648
+ 326 022a 3B62     		str	r3, [r7, #32]	@ float
+  94:../src/drv_hmc5883l.c ****     magGain[1] = fabs(820.0 * HMC58X3_Y_SELF_TEST_GAUSS * 2.0 * 10.0 / xyz_total[1]);
+ 327              		.loc 1 94 0
+ 328 022c 3B69     		ldr	r3, [r7, #16]
+ 329 022e 1846     		mov	r0, r3
+ 330 0230 FFF7FEFF 		bl	__aeabi_i2d
+ 331 0234 0246     		mov	r2, r0
+ 332 0236 0B46     		mov	r3, r1
+ 333 0238 31A1     		adr	r1, .L17
+ 334 023a D1E90001 		ldrd	r0, [r1]
+ 335 023e FFF7FEFF 		bl	__aeabi_ddiv
+ 336 0242 0246     		mov	r2, r0
+ 337 0244 0B46     		mov	r3, r1
+ 338 0246 1046     		mov	r0, r2
+ 339 0248 1946     		mov	r1, r3
+ 340 024a FFF7FEFF 		bl	__aeabi_d2f
+ 341 024e 0346     		mov	r3, r0
+ 342 0250 23F00043 		bic	r3, r3, #-2147483648
+ 343 0254 7B62     		str	r3, [r7, #36]	@ float
+  95:../src/drv_hmc5883l.c ****     magGain[2] = fabs(820.0 * HMC58X3_Z_SELF_TEST_GAUSS * 2.0 * 10.0 / xyz_total[2]);
+ 344              		.loc 1 95 0
+ 345 0256 7B69     		ldr	r3, [r7, #20]
+ 346 0258 1846     		mov	r0, r3
+ 347 025a FFF7FEFF 		bl	__aeabi_i2d
+ 348 025e 0246     		mov	r2, r0
+ 349 0260 0B46     		mov	r3, r1
+ 350 0262 29A1     		adr	r1, .L17+8
+ 351 0264 D1E90001 		ldrd	r0, [r1]
+ 352 0268 FFF7FEFF 		bl	__aeabi_ddiv
+ 353 026c 0246     		mov	r2, r0
+ 354 026e 0B46     		mov	r3, r1
+ 355 0270 1046     		mov	r0, r2
+ 356 0272 1946     		mov	r1, r3
+ 357 0274 FFF7FEFF 		bl	__aeabi_d2f
+ 358 0278 0346     		mov	r3, r0
+ 359 027a 23F00043 		bic	r3, r3, #-2147483648
+ 360 027e BB62     		str	r3, [r7, #40]	@ float
+  96:../src/drv_hmc5883l.c **** 
+  97:../src/drv_hmc5883l.c ****     // leave test mode
+  98:../src/drv_hmc5883l.c ****     i2cWrite(MAG_ADDRESS, HMC58X3_R_CONFA, 0x70);   // Configuration Register A  -- 0 11 100 00  nu
+ 361              		.loc 1 98 0
+ 362 0280 4FF01E00 		mov	r0, #30
+ 363 0284 4FF00001 		mov	r1, #0
+ 364 0288 4FF07002 		mov	r2, #112
+ 365 028c FFF7FEFF 		bl	i2cWrite
+  99:../src/drv_hmc5883l.c ****     i2cWrite(MAG_ADDRESS, HMC58X3_R_CONFB, 0x20);   // Configuration Register B  -- 001 00000    co
+ 366              		.loc 1 99 0
+ 367 0290 4FF01E00 		mov	r0, #30
+ 368 0294 4FF00101 		mov	r1, #1
+ 369 0298 4FF02002 		mov	r2, #32
+ 370 029c FFF7FEFF 		bl	i2cWrite
+ 100:../src/drv_hmc5883l.c ****     i2cWrite(MAG_ADDRESS, HMC58X3_R_MODE, 0x00);    // Mode register             -- 000000 00    co
+ 371              		.loc 1 100 0
+ 372 02a0 4FF01E00 		mov	r0, #30
+ 373 02a4 4FF00201 		mov	r1, #2
+ 374 02a8 4FF00002 		mov	r2, #0
+ 375 02ac FFF7FEFF 		bl	i2cWrite
+ 101:../src/drv_hmc5883l.c ****     delay(100);
+ 376              		.loc 1 101 0
+ 377 02b0 4FF06400 		mov	r0, #100
+ 378 02b4 FFF7FEFF 		bl	delay
+ 102:../src/drv_hmc5883l.c **** 
+ 103:../src/drv_hmc5883l.c ****     if (!bret) {                // Something went wrong so get a best guess
+ 379              		.loc 1 103 0
+ 380 02b8 97F83330 		ldrb	r3, [r7, #51]
+ 381 02bc 83F00103 		eor	r3, r3, #1
+ 382 02c0 DBB2     		uxtb	r3, r3
+ 383 02c2 002B     		cmp	r3, #0
+ 384 02c4 05D0     		beq	.L15
+ 104:../src/drv_hmc5883l.c ****         magGain[0] = 1.0;
+ 385              		.loc 1 104 0
+ 386 02c6 144B     		ldr	r3, .L17+24	@ float
+ 387 02c8 3B62     		str	r3, [r7, #32]	@ float
+ 105:../src/drv_hmc5883l.c ****         magGain[1] = 1.0;
+ 388              		.loc 1 105 0
+ 389 02ca 134B     		ldr	r3, .L17+24	@ float
+ 390 02cc 7B62     		str	r3, [r7, #36]	@ float
+ 106:../src/drv_hmc5883l.c ****         magGain[2] = 1.0;
+ 391              		.loc 1 106 0
+ 392 02ce 124B     		ldr	r3, .L17+24	@ float
+ 393 02d0 BB62     		str	r3, [r7, #40]	@ float
+ 394              	.L15:
+ 107:../src/drv_hmc5883l.c ****     }
+ 108:../src/drv_hmc5883l.c **** 
+ 109:../src/drv_hmc5883l.c ****     // if parameter was passed, give calibration values back
+ 110:../src/drv_hmc5883l.c ****     if (calibrationGain) {
+ 395              		.loc 1 110 0
+ 396 02d2 7B68     		ldr	r3, [r7, #4]
+ 397 02d4 002B     		cmp	r3, #0
+ 398 02d6 0CD0     		beq	.L6
+ 111:../src/drv_hmc5883l.c ****         calibrationGain[0] = magGain[0];
+ 399              		.loc 1 111 0
+ 400 02d8 3A6A     		ldr	r2, [r7, #32]	@ float
+ 401 02da 7B68     		ldr	r3, [r7, #4]
+ 402 02dc 1A60     		str	r2, [r3, #0]	@ float
+ 112:../src/drv_hmc5883l.c ****         calibrationGain[1] = magGain[1];
+ 403              		.loc 1 112 0
+ 404 02de 7B68     		ldr	r3, [r7, #4]
+ 405 02e0 03F10403 		add	r3, r3, #4
+ 406 02e4 7A6A     		ldr	r2, [r7, #36]	@ float
+ 407 02e6 1A60     		str	r2, [r3, #0]	@ float
+ 113:../src/drv_hmc5883l.c ****         calibrationGain[2] = magGain[2];
+ 408              		.loc 1 113 0
+ 409 02e8 7B68     		ldr	r3, [r7, #4]
+ 410 02ea 03F10803 		add	r3, r3, #8
+ 411 02ee BA6A     		ldr	r2, [r7, #40]	@ float
+ 412 02f0 1A60     		str	r2, [r3, #0]	@ float
+ 413              	.L6:
+ 114:../src/drv_hmc5883l.c ****     }
+ 115:../src/drv_hmc5883l.c **** }
+ 414              		.loc 1 115 0
+ 415 02f2 07F13807 		add	r7, r7, #56
+ 416 02f6 BD46     		mov	sp, r7
+ 417 02f8 80BD     		pop	{r7, pc}
+ 418              	.L18:
+ 419 02fa 00BFAFF3 		.align	3
+ 419      0080
+ 420              	.L17:
+ 421 0300 00000000 		.word	0
+ 422 0304 0094D240 		.word	1087542272
+ 423 0308 00000000 		.word	0
+ 424 030c 004CD140 		.word	1087458304
+ 425 0310 000C0140 		.word	1073810432
+ 426 0314 01F0FFFF 		.word	-4095
+ 427 0318 0000803F 		.word	1065353216
+ 428              		.cfi_endproc
+ 429              	.LFE30:
+ 431              		.align	2
+ 432              		.global	hmc5883lRead
+ 433              		.thumb
+ 434              		.thumb_func
+ 436              	hmc5883lRead:
+ 437              	.LFB31:
+ 116:../src/drv_hmc5883l.c **** 
+ 117:../src/drv_hmc5883l.c **** void hmc5883lRead(int16_t *magData)
+ 118:../src/drv_hmc5883l.c **** {
+ 438              		.loc 1 118 0
+ 439              		.cfi_startproc
+ 440              		@ args = 0, pretend = 0, frame = 16
+ 441              		@ frame_needed = 1, uses_anonymous_args = 0
+ 442 031c 80B5     		push	{r7, lr}
+ 443              	.LCFI6:
+ 444              		.cfi_def_cfa_offset 8
+ 445              		.cfi_offset 7, -8
+ 446              		.cfi_offset 14, -4
+ 447 031e 84B0     		sub	sp, sp, #16
+ 448              	.LCFI7:
+ 449              		.cfi_def_cfa_offset 24
+ 450 0320 00AF     		add	r7, sp, #0
+ 451              	.LCFI8:
+ 452              		.cfi_def_cfa_register 7
+ 453 0322 7860     		str	r0, [r7, #4]
+ 119:../src/drv_hmc5883l.c ****     uint8_t buf[6];
+ 120:../src/drv_hmc5883l.c **** 
+ 121:../src/drv_hmc5883l.c ****     i2cRead(MAG_ADDRESS, MAG_DATA_REGISTER, 6, buf);
+ 454              		.loc 1 121 0
+ 455 0324 07F10803 		add	r3, r7, #8
+ 456 0328 4FF01E00 		mov	r0, #30
+ 457 032c 4FF00301 		mov	r1, #3
+ 458 0330 4FF00602 		mov	r2, #6
+ 459 0334 FFF7FEFF 		bl	i2cRead
+ 122:../src/drv_hmc5883l.c **** 
+ 123:../src/drv_hmc5883l.c ****     magData[0] = buf[0] << 8 | buf[1];
+ 460              		.loc 1 123 0
+ 461 0338 3B7A     		ldrb	r3, [r7, #8]	@ zero_extendqisi2
+ 462 033a 4FEA0323 		lsl	r3, r3, #8
+ 463 033e 9AB2     		uxth	r2, r3
+ 464 0340 7B7A     		ldrb	r3, [r7, #9]	@ zero_extendqisi2
+ 465 0342 1343     		orrs	r3, r3, r2
+ 466 0344 9AB2     		uxth	r2, r3
+ 467 0346 7B68     		ldr	r3, [r7, #4]
+ 468 0348 1A80     		strh	r2, [r3, #0]	@ movhi
+ 124:../src/drv_hmc5883l.c ****     magData[1] = buf[2] << 8 | buf[3];
+ 469              		.loc 1 124 0
+ 470 034a 7B68     		ldr	r3, [r7, #4]
+ 471 034c 03F10203 		add	r3, r3, #2
+ 472 0350 BA7A     		ldrb	r2, [r7, #10]	@ zero_extendqisi2
+ 473 0352 4FEA0222 		lsl	r2, r2, #8
+ 474 0356 91B2     		uxth	r1, r2
+ 475 0358 FA7A     		ldrb	r2, [r7, #11]	@ zero_extendqisi2
+ 476 035a 0A43     		orrs	r2, r2, r1
+ 477 035c 92B2     		uxth	r2, r2
+ 478 035e 1A80     		strh	r2, [r3, #0]	@ movhi
+ 125:../src/drv_hmc5883l.c ****     magData[2] = buf[4] << 8 | buf[5];
+ 479              		.loc 1 125 0
+ 480 0360 7B68     		ldr	r3, [r7, #4]
+ 481 0362 03F10403 		add	r3, r3, #4
+ 482 0366 3A7B     		ldrb	r2, [r7, #12]	@ zero_extendqisi2
+ 483 0368 4FEA0222 		lsl	r2, r2, #8
+ 484 036c 91B2     		uxth	r1, r2
+ 485 036e 7A7B     		ldrb	r2, [r7, #13]	@ zero_extendqisi2
+ 486 0370 0A43     		orrs	r2, r2, r1
+ 487 0372 92B2     		uxth	r2, r2
+ 488 0374 1A80     		strh	r2, [r3, #0]	@ movhi
+ 126:../src/drv_hmc5883l.c **** }
+ 489              		.loc 1 126 0
+ 490 0376 07F11007 		add	r7, r7, #16
+ 491 037a BD46     		mov	sp, r7
+ 492 037c 80BD     		pop	{r7, pc}
+ 493              		.cfi_endproc
+ 494              	.LFE31:
+ 496              	.Letext0:
+ 497              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 498              		.file 3 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/stm32f10x.h"
+ 499              		.file 4 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/stm32f10x_gpio.h"
+ 500              		.file 5 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 drv_hmc5883l.c
+     /tmp/ccTtRgEb.s:18     .text:00000000 $t
+     /tmp/ccTtRgEb.s:23     .text:00000000 hmc5883lDetect
+     /tmp/ccTtRgEb.s:89     .text:00000050 hmc5883lInit
+     /tmp/ccTtRgEb.s:436    .text:0000031c hmc5883lRead
+     /tmp/ccTtRgEb.s:421    .text:00000300 $d
+     /tmp/ccTtRgEb.s:431    .text:0000031c $t
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+
+UNDEFINED SYMBOLS
+i2cRead
+__aeabi_i2d
+__aeabi_ddiv
+__aeabi_d2f
+GPIO_Init
+delay
+i2cWrite

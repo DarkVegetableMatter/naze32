@@ -1,0 +1,539 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"drv_mma845x.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.bss
+  19              	device_id:
+  20 0000 00       		.space	1
+  21              		.text
+  22              		.align	2
+  23              		.global	mma8452Detect
+  24              		.thumb
+  25              		.thumb_func
+  27              	mma8452Detect:
+  28              	.LFB29:
+  29              		.file 1 "../src/drv_mma845x.c"
+   1:../src/drv_mma845x.c **** #include "board.h"
+   2:../src/drv_mma845x.c **** 
+   3:../src/drv_mma845x.c **** // MMA8452QT, Standard address 0x1C
+   4:../src/drv_mma845x.c **** // ACC_INT2 routed to PA5
+   5:../src/drv_mma845x.c **** 
+   6:../src/drv_mma845x.c **** #define MMA8452_ADDRESS     0x1C
+   7:../src/drv_mma845x.c **** 
+   8:../src/drv_mma845x.c **** #define MMA8452_DEVICE_SIGNATURE    0x2A
+   9:../src/drv_mma845x.c **** #define MMA8451_DEVICE_SIGNATURE    0x1A
+  10:../src/drv_mma845x.c **** 
+  11:../src/drv_mma845x.c **** #define MMA8452_STATUS              0x00
+  12:../src/drv_mma845x.c **** #define MMA8452_OUT_X_MSB           0x01
+  13:../src/drv_mma845x.c **** #define MMA8452_WHO_AM_I            0x0D
+  14:../src/drv_mma845x.c **** #define MMA8452_XYZ_DATA_CFG        0x0E
+  15:../src/drv_mma845x.c **** #define MMA8452_HP_FILTER_CUTOFF    0x0F
+  16:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG1           0x2A
+  17:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG2           0x2B
+  18:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG3           0x2C
+  19:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG4           0x2D
+  20:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG5           0x2E
+  21:../src/drv_mma845x.c **** 
+  22:../src/drv_mma845x.c **** #define MMA8452_FS_RANGE_8G         0x02
+  23:../src/drv_mma845x.c **** #define MMA8452_FS_RANGE_4G         0x01
+  24:../src/drv_mma845x.c **** #define MMA8452_FS_RANGE_2G         0x00
+  25:../src/drv_mma845x.c **** 
+  26:../src/drv_mma845x.c **** #define MMA8452_HPF_CUTOFF_LV1      0x00
+  27:../src/drv_mma845x.c **** #define MMA8452_HPF_CUTOFF_LV2      0x01
+  28:../src/drv_mma845x.c **** #define MMA8452_HPF_CUTOFF_LV3      0x02
+  29:../src/drv_mma845x.c **** #define MMA8452_HPF_CUTOFF_LV4      0x03
+  30:../src/drv_mma845x.c **** 
+  31:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG2_B7_ST     0x80
+  32:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG2_B6_RST    0x40
+  33:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG2_B4_SMODS1 0x10
+  34:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG2_B3_SMODS0 0x08
+  35:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG2_B2_SLPE   0x04
+  36:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG2_B1_MODS1  0x02
+  37:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG2_B0_MODS0  0x01
+  38:../src/drv_mma845x.c **** 
+  39:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG2_MODS_LP   0x03
+  40:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG2_MODS_HR   0x02
+  41:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG2_MODS_LNLP 0x01
+  42:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG2_MODS_NOR  0x00
+  43:../src/drv_mma845x.c **** 
+  44:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG3_IPOL          0x02
+  45:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG4_INT_EN_DRDY   0x01
+  46:../src/drv_mma845x.c **** 
+  47:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG1_LNOISE        0x04
+  48:../src/drv_mma845x.c **** #define MMA8452_CTRL_REG1_ACTIVE        0x01
+  49:../src/drv_mma845x.c **** 
+  50:../src/drv_mma845x.c **** extern uint16_t acc_1G;
+  51:../src/drv_mma845x.c **** static uint8_t device_id;
+  52:../src/drv_mma845x.c **** 
+  53:../src/drv_mma845x.c **** static void mma8452Init(void);
+  54:../src/drv_mma845x.c **** static void mma8452Read(int16_t *accelData);
+  55:../src/drv_mma845x.c **** static void mma8452Align(int16_t *accelData);
+  56:../src/drv_mma845x.c **** 
+  57:../src/drv_mma845x.c **** bool mma8452Detect(sensor_t *acc)
+  58:../src/drv_mma845x.c **** {
+  30              		.loc 1 58 0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 16
+  33              		@ frame_needed = 1, uses_anonymous_args = 0
+  34 0000 80B5     		push	{r7, lr}
+  35              	.LCFI0:
+  36              		.cfi_def_cfa_offset 8
+  37              		.cfi_offset 7, -8
+  38              		.cfi_offset 14, -4
+  39 0002 84B0     		sub	sp, sp, #16
+  40              	.LCFI1:
+  41              		.cfi_def_cfa_offset 24
+  42 0004 00AF     		add	r7, sp, #0
+  43              	.LCFI2:
+  44              		.cfi_def_cfa_register 7
+  45 0006 7860     		str	r0, [r7, #4]
+  59:../src/drv_mma845x.c ****     bool ack = false;
+  46              		.loc 1 59 0
+  47 0008 4FF00003 		mov	r3, #0
+  48 000c FB73     		strb	r3, [r7, #15]
+  60:../src/drv_mma845x.c ****     uint8_t sig = 0;
+  49              		.loc 1 60 0
+  50 000e 4FF00003 		mov	r3, #0
+  51 0012 BB73     		strb	r3, [r7, #14]
+  61:../src/drv_mma845x.c **** 
+  62:../src/drv_mma845x.c ****     ack = i2cRead(MMA8452_ADDRESS, MMA8452_WHO_AM_I, 1, &sig);
+  52              		.loc 1 62 0
+  53 0014 07F10E03 		add	r3, r7, #14
+  54 0018 4FF01C00 		mov	r0, #28
+  55 001c 4FF00D01 		mov	r1, #13
+  56 0020 4FF00102 		mov	r2, #1
+  57 0024 FFF7FEFF 		bl	i2cRead
+  58 0028 0346     		mov	r3, r0
+  59 002a FB73     		strb	r3, [r7, #15]
+  63:../src/drv_mma845x.c ****     if (!ack || (sig != MMA8452_DEVICE_SIGNATURE && sig != MMA8451_DEVICE_SIGNATURE))
+  60              		.loc 1 63 0
+  61 002c FB7B     		ldrb	r3, [r7, #15]
+  62 002e 83F00103 		eor	r3, r3, #1
+  63 0032 DBB2     		uxtb	r3, r3
+  64 0034 002B     		cmp	r3, #0
+  65 0036 05D1     		bne	.L2
+  66              		.loc 1 63 0 is_stmt 0 discriminator 1
+  67 0038 BB7B     		ldrb	r3, [r7, #14]	@ zero_extendqisi2
+  68 003a 2A2B     		cmp	r3, #42
+  69 003c 05D0     		beq	.L3
+  70 003e BB7B     		ldrb	r3, [r7, #14]	@ zero_extendqisi2
+  71 0040 1A2B     		cmp	r3, #26
+  72 0042 02D0     		beq	.L3
+  73              	.L2:
+  64:../src/drv_mma845x.c ****         return false;
+  74              		.loc 1 64 0 is_stmt 1
+  75 0044 4FF00003 		mov	r3, #0
+  76 0048 0DE0     		b	.L5
+  77              	.L3:
+  65:../src/drv_mma845x.c **** 
+  66:../src/drv_mma845x.c ****     acc->init = mma8452Init;
+  78              		.loc 1 66 0
+  79 004a 7B68     		ldr	r3, [r7, #4]
+  80 004c 084A     		ldr	r2, .L6
+  81 004e 1A60     		str	r2, [r3, #0]
+  67:../src/drv_mma845x.c ****     acc->read = mma8452Read;
+  82              		.loc 1 67 0
+  83 0050 7B68     		ldr	r3, [r7, #4]
+  84 0052 084A     		ldr	r2, .L6+4
+  85 0054 5A60     		str	r2, [r3, #4]
+  68:../src/drv_mma845x.c ****     acc->align = mma8452Align;
+  86              		.loc 1 68 0
+  87 0056 7B68     		ldr	r3, [r7, #4]
+  88 0058 074A     		ldr	r2, .L6+8
+  89 005a 9A60     		str	r2, [r3, #8]
+  69:../src/drv_mma845x.c ****     device_id = sig;
+  90              		.loc 1 69 0
+  91 005c BA7B     		ldrb	r2, [r7, #14]	@ zero_extendqisi2
+  92 005e 074B     		ldr	r3, .L6+12
+  93 0060 1A70     		strb	r2, [r3, #0]
+  70:../src/drv_mma845x.c ****     return true;
+  94              		.loc 1 70 0
+  95 0062 4FF00103 		mov	r3, #1
+  96              	.L5:
+  71:../src/drv_mma845x.c **** }
+  97              		.loc 1 71 0
+  98 0066 1846     		mov	r0, r3
+  99 0068 07F11007 		add	r7, r7, #16
+ 100 006c BD46     		mov	sp, r7
+ 101 006e 80BD     		pop	{r7, pc}
+ 102              	.L7:
+ 103              		.align	2
+ 104              	.L6:
+ 105 0070 00000000 		.word	mma8452Init
+ 106 0074 00000000 		.word	mma8452Read
+ 107 0078 00000000 		.word	mma8452Align
+ 108 007c 00000000 		.word	device_id
+ 109              		.cfi_endproc
+ 110              	.LFE29:
+ 112              		.align	2
+ 113              		.thumb
+ 114              		.thumb_func
+ 116              	mma8452Init:
+ 117              	.LFB30:
+  72:../src/drv_mma845x.c **** 
+  73:../src/drv_mma845x.c **** static void mma8452Init(void)
+  74:../src/drv_mma845x.c **** {
+ 118              		.loc 1 74 0
+ 119              		.cfi_startproc
+ 120              		@ args = 0, pretend = 0, frame = 8
+ 121              		@ frame_needed = 1, uses_anonymous_args = 0
+ 122 0080 80B5     		push	{r7, lr}
+ 123              	.LCFI3:
+ 124              		.cfi_def_cfa_offset 8
+ 125              		.cfi_offset 7, -8
+ 126              		.cfi_offset 14, -4
+ 127 0082 82B0     		sub	sp, sp, #8
+ 128              	.LCFI4:
+ 129              		.cfi_def_cfa_offset 16
+ 130 0084 00AF     		add	r7, sp, #0
+ 131              	.LCFI5:
+ 132              		.cfi_def_cfa_register 7
+  75:../src/drv_mma845x.c ****     GPIO_InitTypeDef GPIO_InitStructure;
+  76:../src/drv_mma845x.c **** 
+  77:../src/drv_mma845x.c ****     // PA5 - ACC_INT2 output on rev3/4 hardware
+  78:../src/drv_mma845x.c ****     // OLIMEXINO - The PA5 pin is wired up to LED1, if you need to use an mma8452 on an Olimexino u
+  79:../src/drv_mma845x.c ****     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+ 133              		.loc 1 79 0
+ 134 0086 4FF02003 		mov	r3, #32
+ 135 008a BB80     		strh	r3, [r7, #4]	@ movhi
+  80:../src/drv_mma845x.c ****     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+ 136              		.loc 1 80 0
+ 137 008c 4FF00203 		mov	r3, #2
+ 138 0090 BB71     		strb	r3, [r7, #6]
+  81:../src/drv_mma845x.c ****     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+ 139              		.loc 1 81 0
+ 140 0092 4FF00403 		mov	r3, #4
+ 141 0096 FB71     		strb	r3, [r7, #7]
+  82:../src/drv_mma845x.c ****     GPIO_Init(GPIOA, &GPIO_InitStructure);
+ 142              		.loc 1 82 0
+ 143 0098 07F10403 		add	r3, r7, #4
+ 144 009c 2548     		ldr	r0, .L9
+ 145 009e 1946     		mov	r1, r3
+ 146 00a0 FFF7FEFF 		bl	GPIO_Init
+  83:../src/drv_mma845x.c **** 
+  84:../src/drv_mma845x.c ****     i2cWrite(MMA8452_ADDRESS, MMA8452_CTRL_REG1, 0); // Put device in standby to configure stuff
+ 147              		.loc 1 84 0
+ 148 00a4 4FF01C00 		mov	r0, #28
+ 149 00a8 4FF02A01 		mov	r1, #42
+ 150 00ac 4FF00002 		mov	r2, #0
+ 151 00b0 FFF7FEFF 		bl	i2cWrite
+  85:../src/drv_mma845x.c ****     i2cWrite(MMA8452_ADDRESS, MMA8452_XYZ_DATA_CFG, MMA8452_FS_RANGE_8G);
+ 152              		.loc 1 85 0
+ 153 00b4 4FF01C00 		mov	r0, #28
+ 154 00b8 4FF00E01 		mov	r1, #14
+ 155 00bc 4FF00202 		mov	r2, #2
+ 156 00c0 FFF7FEFF 		bl	i2cWrite
+  86:../src/drv_mma845x.c ****     i2cWrite(MMA8452_ADDRESS, MMA8452_HP_FILTER_CUTOFF, MMA8452_HPF_CUTOFF_LV4);
+ 157              		.loc 1 86 0
+ 158 00c4 4FF01C00 		mov	r0, #28
+ 159 00c8 4FF00F01 		mov	r1, #15
+ 160 00cc 4FF00302 		mov	r2, #3
+ 161 00d0 FFF7FEFF 		bl	i2cWrite
+  87:../src/drv_mma845x.c ****     i2cWrite(MMA8452_ADDRESS, MMA8452_CTRL_REG2, MMA8452_CTRL_REG2_MODS_HR | MMA8452_CTRL_REG2_MODS
+ 162              		.loc 1 87 0
+ 163 00d4 4FF01C00 		mov	r0, #28
+ 164 00d8 4FF02B01 		mov	r1, #43
+ 165 00dc 4FF01202 		mov	r2, #18
+ 166 00e0 FFF7FEFF 		bl	i2cWrite
+  88:../src/drv_mma845x.c ****     i2cWrite(MMA8452_ADDRESS, MMA8452_CTRL_REG3, MMA8452_CTRL_REG3_IPOL); // Interrupt polarity (ac
+ 167              		.loc 1 88 0
+ 168 00e4 4FF01C00 		mov	r0, #28
+ 169 00e8 4FF02C01 		mov	r1, #44
+ 170 00ec 4FF00202 		mov	r2, #2
+ 171 00f0 FFF7FEFF 		bl	i2cWrite
+  89:../src/drv_mma845x.c ****     i2cWrite(MMA8452_ADDRESS, MMA8452_CTRL_REG4, MMA8452_CTRL_REG4_INT_EN_DRDY); // Enable DRDY int
+ 172              		.loc 1 89 0
+ 173 00f4 4FF01C00 		mov	r0, #28
+ 174 00f8 4FF02D01 		mov	r1, #45
+ 175 00fc 4FF00102 		mov	r2, #1
+ 176 0100 FFF7FEFF 		bl	i2cWrite
+  90:../src/drv_mma845x.c ****     i2cWrite(MMA8452_ADDRESS, MMA8452_CTRL_REG5, 0); // DRDY routed to INT2
+ 177              		.loc 1 90 0
+ 178 0104 4FF01C00 		mov	r0, #28
+ 179 0108 4FF02E01 		mov	r1, #46
+ 180 010c 4FF00002 		mov	r2, #0
+ 181 0110 FFF7FEFF 		bl	i2cWrite
+  91:../src/drv_mma845x.c ****     i2cWrite(MMA8452_ADDRESS, MMA8452_CTRL_REG1, MMA8452_CTRL_REG1_LNOISE | MMA8452_CTRL_REG1_ACTIV
+ 182              		.loc 1 91 0
+ 183 0114 4FF01C00 		mov	r0, #28
+ 184 0118 4FF02A01 		mov	r1, #42
+ 185 011c 4FF00502 		mov	r2, #5
+ 186 0120 FFF7FEFF 		bl	i2cWrite
+  92:../src/drv_mma845x.c **** 
+  93:../src/drv_mma845x.c ****     acc_1G = 256;
+ 187              		.loc 1 93 0
+ 188 0124 044B     		ldr	r3, .L9+4
+ 189 0126 4FF48072 		mov	r2, #256
+ 190 012a 1A80     		strh	r2, [r3, #0]	@ movhi
+  94:../src/drv_mma845x.c **** }
+ 191              		.loc 1 94 0
+ 192 012c 07F10807 		add	r7, r7, #8
+ 193 0130 BD46     		mov	sp, r7
+ 194 0132 80BD     		pop	{r7, pc}
+ 195              	.L10:
+ 196              		.align	2
+ 197              	.L9:
+ 198 0134 00080140 		.word	1073809408
+ 199 0138 00000000 		.word	acc_1G
+ 200              		.cfi_endproc
+ 201              	.LFE30:
+ 203              		.align	2
+ 204              		.thumb
+ 205              		.thumb_func
+ 207              	mma8452Read:
+ 208              	.LFB31:
+  95:../src/drv_mma845x.c **** 
+  96:../src/drv_mma845x.c **** static void mma8452Read(int16_t *accelData)
+  97:../src/drv_mma845x.c **** {
+ 209              		.loc 1 97 0
+ 210              		.cfi_startproc
+ 211              		@ args = 0, pretend = 0, frame = 16
+ 212              		@ frame_needed = 1, uses_anonymous_args = 0
+ 213 013c 80B5     		push	{r7, lr}
+ 214              	.LCFI6:
+ 215              		.cfi_def_cfa_offset 8
+ 216              		.cfi_offset 7, -8
+ 217              		.cfi_offset 14, -4
+ 218 013e 84B0     		sub	sp, sp, #16
+ 219              	.LCFI7:
+ 220              		.cfi_def_cfa_offset 24
+ 221 0140 00AF     		add	r7, sp, #0
+ 222              	.LCFI8:
+ 223              		.cfi_def_cfa_register 7
+ 224 0142 7860     		str	r0, [r7, #4]
+  98:../src/drv_mma845x.c ****     uint8_t buf[6];
+  99:../src/drv_mma845x.c **** 
+ 100:../src/drv_mma845x.c ****     i2cRead(MMA8452_ADDRESS, MMA8452_OUT_X_MSB, 6, buf);
+ 225              		.loc 1 100 0
+ 226 0144 07F10803 		add	r3, r7, #8
+ 227 0148 4FF01C00 		mov	r0, #28
+ 228 014c 4FF00101 		mov	r1, #1
+ 229 0150 4FF00602 		mov	r2, #6
+ 230 0154 FFF7FEFF 		bl	i2cRead
+ 101:../src/drv_mma845x.c ****     accelData[0] = ((int16_t)((buf[0] << 8) | buf[1]) >> 2) / 4;
+ 231              		.loc 1 101 0
+ 232 0158 3B7A     		ldrb	r3, [r7, #8]	@ zero_extendqisi2
+ 233 015a 4FEA0323 		lsl	r3, r3, #8
+ 234 015e 9AB2     		uxth	r2, r3
+ 235 0160 7B7A     		ldrb	r3, [r7, #9]	@ zero_extendqisi2
+ 236 0162 1343     		orrs	r3, r3, r2
+ 237 0164 9BB2     		uxth	r3, r3
+ 238 0166 1BB2     		sxth	r3, r3
+ 239 0168 4FEAA303 		asr	r3, r3, #2
+ 240 016c 9BB2     		uxth	r3, r3
+ 241 016e 1BB2     		sxth	r3, r3
+ 242 0170 002B     		cmp	r3, #0
+ 243 0172 01DA     		bge	.L12
+ 244 0174 03F10303 		add	r3, r3, #3
+ 245              	.L12:
+ 246 0178 4FEAA303 		asr	r3, r3, #2
+ 247 017c 9AB2     		uxth	r2, r3
+ 248 017e 7B68     		ldr	r3, [r7, #4]
+ 249 0180 1A80     		strh	r2, [r3, #0]	@ movhi
+ 102:../src/drv_mma845x.c ****     accelData[1] = ((int16_t)((buf[2] << 8) | buf[3]) >> 2) / 4;
+ 250              		.loc 1 102 0
+ 251 0182 7B68     		ldr	r3, [r7, #4]
+ 252 0184 03F10202 		add	r2, r3, #2
+ 253 0188 BB7A     		ldrb	r3, [r7, #10]	@ zero_extendqisi2
+ 254 018a 4FEA0323 		lsl	r3, r3, #8
+ 255 018e 99B2     		uxth	r1, r3
+ 256 0190 FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 257 0192 0B43     		orrs	r3, r3, r1
+ 258 0194 9BB2     		uxth	r3, r3
+ 259 0196 1BB2     		sxth	r3, r3
+ 260 0198 4FEAA303 		asr	r3, r3, #2
+ 261 019c 9BB2     		uxth	r3, r3
+ 262 019e 1BB2     		sxth	r3, r3
+ 263 01a0 002B     		cmp	r3, #0
+ 264 01a2 01DA     		bge	.L13
+ 265 01a4 03F10303 		add	r3, r3, #3
+ 266              	.L13:
+ 267 01a8 4FEAA303 		asr	r3, r3, #2
+ 268 01ac 9BB2     		uxth	r3, r3
+ 269 01ae 1380     		strh	r3, [r2, #0]	@ movhi
+ 103:../src/drv_mma845x.c ****     accelData[2] = ((int16_t)((buf[4] << 8) | buf[5]) >> 2) / 4;
+ 270              		.loc 1 103 0
+ 271 01b0 7B68     		ldr	r3, [r7, #4]
+ 272 01b2 03F10402 		add	r2, r3, #4
+ 273 01b6 3B7B     		ldrb	r3, [r7, #12]	@ zero_extendqisi2
+ 274 01b8 4FEA0323 		lsl	r3, r3, #8
+ 275 01bc 99B2     		uxth	r1, r3
+ 276 01be 7B7B     		ldrb	r3, [r7, #13]	@ zero_extendqisi2
+ 277 01c0 0B43     		orrs	r3, r3, r1
+ 278 01c2 9BB2     		uxth	r3, r3
+ 279 01c4 1BB2     		sxth	r3, r3
+ 280 01c6 4FEAA303 		asr	r3, r3, #2
+ 281 01ca 9BB2     		uxth	r3, r3
+ 282 01cc 1BB2     		sxth	r3, r3
+ 283 01ce 002B     		cmp	r3, #0
+ 284 01d0 01DA     		bge	.L14
+ 285 01d2 03F10303 		add	r3, r3, #3
+ 286              	.L14:
+ 287 01d6 4FEAA303 		asr	r3, r3, #2
+ 288 01da 9BB2     		uxth	r3, r3
+ 289 01dc 1380     		strh	r3, [r2, #0]	@ movhi
+ 104:../src/drv_mma845x.c **** }
+ 290              		.loc 1 104 0
+ 291 01de 07F11007 		add	r7, r7, #16
+ 292 01e2 BD46     		mov	sp, r7
+ 293 01e4 80BD     		pop	{r7, pc}
+ 294              		.cfi_endproc
+ 295              	.LFE31:
+ 297 01e6 00BF     		.align	2
+ 298              		.thumb
+ 299              		.thumb_func
+ 301              	mma8452Align:
+ 302              	.LFB32:
+ 105:../src/drv_mma845x.c **** 
+ 106:../src/drv_mma845x.c **** static void mma8452Align(int16_t *accelData)
+ 107:../src/drv_mma845x.c **** {
+ 303              		.loc 1 107 0
+ 304              		.cfi_startproc
+ 305              		@ args = 0, pretend = 0, frame = 8
+ 306              		@ frame_needed = 1, uses_anonymous_args = 0
+ 307              		@ link register save eliminated.
+ 308 01e8 80B4     		push	{r7}
+ 309              	.LCFI9:
+ 310              		.cfi_def_cfa_offset 4
+ 311              		.cfi_offset 7, -4
+ 312 01ea 83B0     		sub	sp, sp, #12
+ 313              	.LCFI10:
+ 314              		.cfi_def_cfa_offset 16
+ 315 01ec 00AF     		add	r7, sp, #0
+ 316              	.LCFI11:
+ 317              		.cfi_def_cfa_register 7
+ 318 01ee 7860     		str	r0, [r7, #4]
+ 108:../src/drv_mma845x.c ****     accelData[0] = -accelData[0];
+ 319              		.loc 1 108 0
+ 320 01f0 7B68     		ldr	r3, [r7, #4]
+ 321 01f2 1B88     		ldrh	r3, [r3, #0]
+ 322 01f4 9BB2     		uxth	r3, r3
+ 323 01f6 C3F10003 		rsb	r3, r3, #0
+ 324 01fa 9BB2     		uxth	r3, r3
+ 325 01fc 9AB2     		uxth	r2, r3
+ 326 01fe 7B68     		ldr	r3, [r7, #4]
+ 327 0200 1A80     		strh	r2, [r3, #0]	@ movhi
+ 109:../src/drv_mma845x.c ****     accelData[1] = -accelData[1];
+ 328              		.loc 1 109 0
+ 329 0202 7B68     		ldr	r3, [r7, #4]
+ 330 0204 03F10203 		add	r3, r3, #2
+ 331 0208 7A68     		ldr	r2, [r7, #4]
+ 332 020a 02F10202 		add	r2, r2, #2
+ 333 020e 1288     		ldrh	r2, [r2, #0]
+ 334 0210 92B2     		uxth	r2, r2
+ 335 0212 C2F10002 		rsb	r2, r2, #0
+ 336 0216 92B2     		uxth	r2, r2
+ 337 0218 92B2     		uxth	r2, r2
+ 338 021a 1A80     		strh	r2, [r3, #0]	@ movhi
+ 110:../src/drv_mma845x.c ****     accelData[2] = accelData[2];
+ 339              		.loc 1 110 0
+ 340 021c 7B68     		ldr	r3, [r7, #4]
+ 341 021e 03F10403 		add	r3, r3, #4
+ 342 0222 7A68     		ldr	r2, [r7, #4]
+ 343 0224 9288     		ldrh	r2, [r2, #4]
+ 344 0226 1A80     		strh	r2, [r3, #0]	@ movhi
+ 111:../src/drv_mma845x.c **** }
+ 345              		.loc 1 111 0
+ 346 0228 07F10C07 		add	r7, r7, #12
+ 347 022c BD46     		mov	sp, r7
+ 348 022e 80BC     		pop	{r7}
+ 349 0230 7047     		bx	lr
+ 350              		.cfi_endproc
+ 351              	.LFE32:
+ 353              	.Letext0:
+ 354              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 355              		.file 3 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/stm32f10x.h"
+ 356              		.file 4 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/stm32f10x_gpio.h"
+ 357              		.file 5 "../src/board.h"
+ 358              		.file 6 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 drv_mma845x.c
+     /tmp/ccMwRz8A.s:19     .bss:00000000 device_id
+     /tmp/ccMwRz8A.s:20     .bss:00000000 $d
+     /tmp/ccMwRz8A.s:22     .text:00000000 $t
+     /tmp/ccMwRz8A.s:27     .text:00000000 mma8452Detect
+     /tmp/ccMwRz8A.s:105    .text:00000070 $d
+     /tmp/ccMwRz8A.s:116    .text:00000080 mma8452Init
+     /tmp/ccMwRz8A.s:207    .text:0000013c mma8452Read
+     /tmp/ccMwRz8A.s:301    .text:000001e8 mma8452Align
+     /tmp/ccMwRz8A.s:112    .text:00000080 $t
+     /tmp/ccMwRz8A.s:198    .text:00000134 $d
+     /tmp/ccMwRz8A.s:203    .text:0000013c $t
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+
+UNDEFINED SYMBOLS
+i2cRead
+GPIO_Init
+i2cWrite
+acc_1G

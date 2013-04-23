@@ -1,0 +1,1364 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"drv_bmp085.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.bss
+  19              	convDone:
+  20 0000 00       		.space	1
+  21 0001 00       		.align	1
+  22              	convOverrun:
+  23 0002 0000     		.space	2
+  24              		.text
+  25              		.align	2
+  26              		.global	EXTI15_10_IRQHandler
+  27              		.thumb
+  28              		.thumb_func
+  30              	EXTI15_10_IRQHandler:
+  31              	.LFB29:
+  32              		.file 1 "../src/drv_bmp085.c"
+   1:../src/drv_bmp085.c **** #include "board.h"
+   2:../src/drv_bmp085.c **** 
+   3:../src/drv_bmp085.c **** // BMP085, Standard address 0x77
+   4:../src/drv_bmp085.c **** static bool convDone = false;
+   5:../src/drv_bmp085.c **** static uint16_t convOverrun = 0;
+   6:../src/drv_bmp085.c **** 
+   7:../src/drv_bmp085.c **** #define BARO_OFF                 digitalLo(BARO_GPIO, BARO_PIN);
+   8:../src/drv_bmp085.c **** #define BARO_ON                  digitalHi(BARO_GPIO, BARO_PIN);
+   9:../src/drv_bmp085.c **** 
+  10:../src/drv_bmp085.c **** // EXTI14 for BMP085 End of Conversion Interrupt
+  11:../src/drv_bmp085.c **** void EXTI15_10_IRQHandler(void)
+  12:../src/drv_bmp085.c **** {
+  33              		.loc 1 12 0
+  34              		.cfi_startproc
+  35              		@ args = 0, pretend = 0, frame = 0
+  36              		@ frame_needed = 1, uses_anonymous_args = 0
+  37 0000 80B5     		push	{r7, lr}
+  38              	.LCFI0:
+  39              		.cfi_def_cfa_offset 8
+  40              		.cfi_offset 7, -8
+  41              		.cfi_offset 14, -4
+  42 0002 00AF     		add	r7, sp, #0
+  43              	.LCFI1:
+  44              		.cfi_def_cfa_register 7
+  13:../src/drv_bmp085.c ****     if (EXTI_GetITStatus(EXTI_Line14) == SET) {
+  45              		.loc 1 13 0
+  46 0004 4FF48040 		mov	r0, #16384
+  47 0008 FFF7FEFF 		bl	EXTI_GetITStatus
+  48 000c 0346     		mov	r3, r0
+  49 000e 012B     		cmp	r3, #1
+  50 0010 07D1     		bne	.L1
+  14:../src/drv_bmp085.c ****         EXTI_ClearITPendingBit(EXTI_Line14);
+  51              		.loc 1 14 0
+  52 0012 4FF48040 		mov	r0, #16384
+  53 0016 FFF7FEFF 		bl	EXTI_ClearITPendingBit
+  15:../src/drv_bmp085.c ****         convDone = true;
+  54              		.loc 1 15 0
+  55 001a 024B     		ldr	r3, .L3
+  56 001c 4FF00102 		mov	r2, #1
+  57 0020 1A70     		strb	r2, [r3, #0]
+  58              	.L1:
+  16:../src/drv_bmp085.c ****     }
+  17:../src/drv_bmp085.c **** }
+  59              		.loc 1 17 0
+  60 0022 80BD     		pop	{r7, pc}
+  61              	.L4:
+  62              		.align	2
+  63              	.L3:
+  64 0024 00000000 		.word	convDone
+  65              		.cfi_endproc
+  66              	.LFE29:
+  68              		.bss
+  69              		.align	2
+  70              	bmp085:
+  71 0004 00000000 		.space	36
+  71      00000000 
+  71      00000000 
+  71      00000000 
+  71      00000000 
+  72              	bmp085InitDone:
+  73 0028 00       		.space	1
+  74 0029 00       		.align	1
+  75              	bmp085_ut:
+  76 002a 0000     		.space	2
+  77              		.align	2
+  78              	bmp085_up:
+  79 002c 00000000 		.space	4
+  80              		.text
+  81              		.align	2
+  82              		.global	bmp085Detect
+  83              		.thumb
+  84              		.thumb_func
+  86              	bmp085Detect:
+  87              	.LFB30:
+  18:../src/drv_bmp085.c **** 
+  19:../src/drv_bmp085.c **** typedef struct {
+  20:../src/drv_bmp085.c ****     int16_t ac1;
+  21:../src/drv_bmp085.c ****     int16_t ac2;
+  22:../src/drv_bmp085.c ****     int16_t ac3;
+  23:../src/drv_bmp085.c ****     uint16_t ac4;
+  24:../src/drv_bmp085.c ****     uint16_t ac5;
+  25:../src/drv_bmp085.c ****     uint16_t ac6;
+  26:../src/drv_bmp085.c ****     int16_t b1;
+  27:../src/drv_bmp085.c ****     int16_t b2;
+  28:../src/drv_bmp085.c ****     int16_t mb;
+  29:../src/drv_bmp085.c ****     int16_t mc;
+  30:../src/drv_bmp085.c ****     int16_t md;
+  31:../src/drv_bmp085.c **** } bmp085_smd500_calibration_param_t;
+  32:../src/drv_bmp085.c **** 
+  33:../src/drv_bmp085.c **** typedef struct  {
+  34:../src/drv_bmp085.c ****     bmp085_smd500_calibration_param_t cal_param;
+  35:../src/drv_bmp085.c ****     uint8_t mode;
+  36:../src/drv_bmp085.c ****     uint8_t chip_id, ml_version, al_version;
+  37:../src/drv_bmp085.c ****     uint8_t dev_addr;
+  38:../src/drv_bmp085.c ****     int32_t param_b5;
+  39:../src/drv_bmp085.c ****     int16_t oversampling_setting;
+  40:../src/drv_bmp085.c **** } bmp085_t;
+  41:../src/drv_bmp085.c **** 
+  42:../src/drv_bmp085.c **** #define BMP085_I2C_ADDR         0x77
+  43:../src/drv_bmp085.c **** #define BMP085_CHIP_ID          0x55
+  44:../src/drv_bmp085.c **** #define BOSCH_PRESSURE_BMP085   85
+  45:../src/drv_bmp085.c **** #define BMP085_CHIP_ID_REG      0xD0
+  46:../src/drv_bmp085.c **** #define BMP085_VERSION_REG      0xD1
+  47:../src/drv_bmp085.c **** #define E_SENSOR_NOT_DETECTED   (char) 0
+  48:../src/drv_bmp085.c **** #define BMP085_PROM_START__ADDR 0xaa
+  49:../src/drv_bmp085.c **** #define BMP085_PROM_DATA__LEN   22
+  50:../src/drv_bmp085.c **** #define BMP085_T_MEASURE        0x2E                // temperature measurent 
+  51:../src/drv_bmp085.c **** #define BMP085_P_MEASURE        0x34                // pressure measurement
+  52:../src/drv_bmp085.c **** #define BMP085_CTRL_MEAS_REG    0xF4
+  53:../src/drv_bmp085.c **** #define BMP085_ADC_OUT_MSB_REG  0xF6
+  54:../src/drv_bmp085.c **** #define BMP085_ADC_OUT_LSB_REG  0xF7
+  55:../src/drv_bmp085.c **** #define BMP085_CHIP_ID__POS     0
+  56:../src/drv_bmp085.c **** #define BMP085_CHIP_ID__MSK     0xFF
+  57:../src/drv_bmp085.c **** #define BMP085_CHIP_ID__LEN     8
+  58:../src/drv_bmp085.c **** #define BMP085_CHIP_ID__REG     BMP085_CHIP_ID_REG
+  59:../src/drv_bmp085.c **** 
+  60:../src/drv_bmp085.c **** #define BMP085_ML_VERSION__POS      0
+  61:../src/drv_bmp085.c **** #define BMP085_ML_VERSION__LEN      4
+  62:../src/drv_bmp085.c **** #define BMP085_ML_VERSION__MSK      0x0F
+  63:../src/drv_bmp085.c **** #define BMP085_ML_VERSION__REG      BMP085_VERSION_REG
+  64:../src/drv_bmp085.c **** 
+  65:../src/drv_bmp085.c **** #define BMP085_AL_VERSION__POS      4
+  66:../src/drv_bmp085.c **** #define BMP085_AL_VERSION__LEN      4
+  67:../src/drv_bmp085.c **** #define BMP085_AL_VERSION__MSK      0xF0
+  68:../src/drv_bmp085.c **** #define BMP085_AL_VERSION__REG      BMP085_VERSION_REG
+  69:../src/drv_bmp085.c **** 
+  70:../src/drv_bmp085.c **** #define BMP085_GET_BITSLICE(regvar, bitname) (regvar & bitname##__MSK) >> bitname##__POS
+  71:../src/drv_bmp085.c **** #define BMP085_SET_BITSLICE(regvar, bitname, val) (regvar & ~bitname##__MSK) | ((val<<bitname##__PO
+  72:../src/drv_bmp085.c **** 
+  73:../src/drv_bmp085.c **** #define SMD500_PARAM_MG      3038        //calibration parameter
+  74:../src/drv_bmp085.c **** #define SMD500_PARAM_MH     -7357        //calibration parameter
+  75:../src/drv_bmp085.c **** #define SMD500_PARAM_MI      3791        //calibration parameter
+  76:../src/drv_bmp085.c **** 
+  77:../src/drv_bmp085.c **** static bmp085_t bmp085 = { { 0, } };
+  78:../src/drv_bmp085.c **** static bool bmp085InitDone = false;
+  79:../src/drv_bmp085.c **** static uint16_t bmp085_ut;  // static result of temperature measurement
+  80:../src/drv_bmp085.c **** static uint32_t bmp085_up;  // static result of pressure measurement
+  81:../src/drv_bmp085.c **** 
+  82:../src/drv_bmp085.c **** static void bmp085_get_cal_param(void);
+  83:../src/drv_bmp085.c **** static void bmp085_start_ut(void);
+  84:../src/drv_bmp085.c **** static void bmp085_get_ut(void);
+  85:../src/drv_bmp085.c **** static void bmp085_start_up(void);
+  86:../src/drv_bmp085.c **** static void bmp085_get_up(void);
+  87:../src/drv_bmp085.c **** static int32_t bmp085_get_temperature(uint32_t ut);
+  88:../src/drv_bmp085.c **** static int32_t bmp085_get_pressure(uint32_t up);
+  89:../src/drv_bmp085.c **** static void bmp085_calculate(int32_t *pressure, int32_t *temperature);
+  90:../src/drv_bmp085.c **** 
+  91:../src/drv_bmp085.c **** bool bmp085Detect(baro_t *baro)
+  92:../src/drv_bmp085.c **** {
+  88              		.loc 1 92 0
+  89              		.cfi_startproc
+  90              		@ args = 0, pretend = 0, frame = 32
+  91              		@ frame_needed = 1, uses_anonymous_args = 0
+  92 0028 80B5     		push	{r7, lr}
+  93              	.LCFI2:
+  94              		.cfi_def_cfa_offset 8
+  95              		.cfi_offset 7, -8
+  96              		.cfi_offset 14, -4
+  97 002a 88B0     		sub	sp, sp, #32
+  98              	.LCFI3:
+  99              		.cfi_def_cfa_offset 40
+ 100 002c 00AF     		add	r7, sp, #0
+ 101              	.LCFI4:
+ 102              		.cfi_def_cfa_register 7
+ 103 002e 7860     		str	r0, [r7, #4]
+  93:../src/drv_bmp085.c ****     GPIO_InitTypeDef GPIO_InitStructure;
+  94:../src/drv_bmp085.c ****     EXTI_InitTypeDef EXTI_InitStructure;
+  95:../src/drv_bmp085.c ****     NVIC_InitTypeDef NVIC_InitStructure;
+  96:../src/drv_bmp085.c ****     uint8_t data;
+  97:../src/drv_bmp085.c **** 
+  98:../src/drv_bmp085.c ****     if (bmp085InitDone)
+ 104              		.loc 1 98 0
+ 105 0030 534B     		ldr	r3, .L10
+ 106 0032 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 107 0034 002B     		cmp	r3, #0
+ 108 0036 02D0     		beq	.L6
+  99:../src/drv_bmp085.c ****         return true;
+ 109              		.loc 1 99 0
+ 110 0038 4FF00103 		mov	r3, #1
+ 111 003c 9BE0     		b	.L9
+ 112              	.L6:
+ 100:../src/drv_bmp085.c **** 
+ 101:../src/drv_bmp085.c ****     // PC13, PC14 (Barometer XCLR reset output, EOC input)
+ 102:../src/drv_bmp085.c ****     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+ 113              		.loc 1 102 0
+ 114 003e 4FF40053 		mov	r3, #8192
+ 115 0042 BB83     		strh	r3, [r7, #28]	@ movhi
+ 103:../src/drv_bmp085.c ****     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+ 116              		.loc 1 103 0
+ 117 0044 4FF00203 		mov	r3, #2
+ 118 0048 BB77     		strb	r3, [r7, #30]
+ 104:../src/drv_bmp085.c ****     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+ 119              		.loc 1 104 0
+ 120 004a 4FF01003 		mov	r3, #16
+ 121 004e FB77     		strb	r3, [r7, #31]
+ 105:../src/drv_bmp085.c ****     GPIO_Init(GPIOC, &GPIO_InitStructure);
+ 122              		.loc 1 105 0
+ 123 0050 07F11C03 		add	r3, r7, #28
+ 124 0054 4B48     		ldr	r0, .L10+4
+ 125 0056 1946     		mov	r1, r3
+ 126 0058 FFF7FEFF 		bl	GPIO_Init
+ 106:../src/drv_bmp085.c ****     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
+ 127              		.loc 1 106 0
+ 128 005c 4FF48043 		mov	r3, #16384
+ 129 0060 BB83     		strh	r3, [r7, #28]	@ movhi
+ 107:../src/drv_bmp085.c ****     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+ 130              		.loc 1 107 0
+ 131 0062 4FF00403 		mov	r3, #4
+ 132 0066 FB77     		strb	r3, [r7, #31]
+ 108:../src/drv_bmp085.c ****     GPIO_Init(GPIOC, &GPIO_InitStructure);
+ 133              		.loc 1 108 0
+ 134 0068 07F11C03 		add	r3, r7, #28
+ 135 006c 4548     		ldr	r0, .L10+4
+ 136 006e 1946     		mov	r1, r3
+ 137 0070 FFF7FEFF 		bl	GPIO_Init
+ 109:../src/drv_bmp085.c ****     BARO_ON;
+ 138              		.loc 1 109 0
+ 139 0074 434B     		ldr	r3, .L10+4
+ 140 0076 4FF40052 		mov	r2, #8192
+ 141 007a 1A61     		str	r2, [r3, #16]
+ 110:../src/drv_bmp085.c **** 
+ 111:../src/drv_bmp085.c ****     // EXTI interrupt for barometer EOC
+ 112:../src/drv_bmp085.c ****     GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource14);
+ 142              		.loc 1 112 0
+ 143 007c 4FF00200 		mov	r0, #2
+ 144 0080 4FF00E01 		mov	r1, #14
+ 145 0084 FFF7FEFF 		bl	GPIO_EXTILineConfig
+ 113:../src/drv_bmp085.c ****     EXTI_InitStructure.EXTI_Line = EXTI_Line14;
+ 146              		.loc 1 113 0
+ 147 0088 4FF48043 		mov	r3, #16384
+ 148 008c 7B61     		str	r3, [r7, #20]
+ 114:../src/drv_bmp085.c ****     EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+ 149              		.loc 1 114 0
+ 150 008e 4FF00003 		mov	r3, #0
+ 151 0092 3B76     		strb	r3, [r7, #24]
+ 115:../src/drv_bmp085.c ****     EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+ 152              		.loc 1 115 0
+ 153 0094 4FF00803 		mov	r3, #8
+ 154 0098 7B76     		strb	r3, [r7, #25]
+ 116:../src/drv_bmp085.c ****     EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+ 155              		.loc 1 116 0
+ 156 009a 4FF00103 		mov	r3, #1
+ 157 009e BB76     		strb	r3, [r7, #26]
+ 117:../src/drv_bmp085.c ****     EXTI_Init(&EXTI_InitStructure);
+ 158              		.loc 1 117 0
+ 159 00a0 07F11403 		add	r3, r7, #20
+ 160 00a4 1846     		mov	r0, r3
+ 161 00a6 FFF7FEFF 		bl	EXTI_Init
+ 118:../src/drv_bmp085.c **** 
+ 119:../src/drv_bmp085.c ****     // Enable and set EXTI10-15 Interrupt to the lowest priority
+ 120:../src/drv_bmp085.c ****     NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
+ 162              		.loc 1 120 0
+ 163 00aa 4FF02803 		mov	r3, #40
+ 164 00ae 3B74     		strb	r3, [r7, #16]
+ 121:../src/drv_bmp085.c ****     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0F;
+ 165              		.loc 1 121 0
+ 166 00b0 4FF00F03 		mov	r3, #15
+ 167 00b4 7B74     		strb	r3, [r7, #17]
+ 122:../src/drv_bmp085.c ****     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0F;
+ 168              		.loc 1 122 0
+ 169 00b6 4FF00F03 		mov	r3, #15
+ 170 00ba BB74     		strb	r3, [r7, #18]
+ 123:../src/drv_bmp085.c ****     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+ 171              		.loc 1 123 0
+ 172 00bc 4FF00103 		mov	r3, #1
+ 173 00c0 FB74     		strb	r3, [r7, #19]
+ 124:../src/drv_bmp085.c ****     NVIC_Init(&NVIC_InitStructure);
+ 174              		.loc 1 124 0
+ 175 00c2 07F11003 		add	r3, r7, #16
+ 176 00c6 1846     		mov	r0, r3
+ 177 00c8 FFF7FEFF 		bl	NVIC_Init
+ 125:../src/drv_bmp085.c **** 
+ 126:../src/drv_bmp085.c ****     delay(20); // datasheet says 10ms, we'll be careful and do 20. this is after ms5611 driver kill
+ 178              		.loc 1 126 0
+ 179 00cc 4FF01400 		mov	r0, #20
+ 180 00d0 FFF7FEFF 		bl	delay
+ 127:../src/drv_bmp085.c **** 
+ 128:../src/drv_bmp085.c ****     i2cRead(BMP085_I2C_ADDR, BMP085_CHIP_ID__REG, 1, &data);  /* read Chip Id */
+ 181              		.loc 1 128 0
+ 182 00d4 07F10F03 		add	r3, r7, #15
+ 183 00d8 4FF07700 		mov	r0, #119
+ 184 00dc 4FF0D001 		mov	r1, #208
+ 185 00e0 4FF00102 		mov	r2, #1
+ 186 00e4 FFF7FEFF 		bl	i2cRead
+ 129:../src/drv_bmp085.c ****     bmp085.chip_id = BMP085_GET_BITSLICE(data, BMP085_CHIP_ID);
+ 187              		.loc 1 129 0
+ 188 00e8 FA7B     		ldrb	r2, [r7, #15]	@ zero_extendqisi2
+ 189 00ea 274B     		ldr	r3, .L10+8
+ 190 00ec DA75     		strb	r2, [r3, #23]
+ 130:../src/drv_bmp085.c ****     bmp085.oversampling_setting = 3;
+ 191              		.loc 1 130 0
+ 192 00ee 264B     		ldr	r3, .L10+8
+ 193 00f0 4FF00302 		mov	r2, #3
+ 194 00f4 1A84     		strh	r2, [r3, #32]	@ movhi
+ 131:../src/drv_bmp085.c **** 
+ 132:../src/drv_bmp085.c ****     if (bmp085.chip_id == BMP085_CHIP_ID) {            /* get bitslice */
+ 195              		.loc 1 132 0
+ 196 00f6 244B     		ldr	r3, .L10+8
+ 197 00f8 DB7D     		ldrb	r3, [r3, #23]	@ zero_extendqisi2
+ 198 00fa 552B     		cmp	r3, #85
+ 199 00fc 35D1     		bne	.L8
+ 133:../src/drv_bmp085.c ****         i2cRead(BMP085_I2C_ADDR, BMP085_VERSION_REG, 1, &data); /* read Version reg */
+ 200              		.loc 1 133 0
+ 201 00fe 07F10F03 		add	r3, r7, #15
+ 202 0102 4FF07700 		mov	r0, #119
+ 203 0106 4FF0D101 		mov	r1, #209
+ 204 010a 4FF00102 		mov	r2, #1
+ 205 010e FFF7FEFF 		bl	i2cRead
+ 134:../src/drv_bmp085.c ****         bmp085.ml_version = BMP085_GET_BITSLICE(data, BMP085_ML_VERSION);        /* get ML Version 
+ 206              		.loc 1 134 0
+ 207 0112 FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 208 0114 03F00F03 		and	r3, r3, #15
+ 209 0118 DAB2     		uxtb	r2, r3
+ 210 011a 1B4B     		ldr	r3, .L10+8
+ 211 011c 1A76     		strb	r2, [r3, #24]
+ 135:../src/drv_bmp085.c ****         bmp085.al_version = BMP085_GET_BITSLICE(data, BMP085_AL_VERSION);        /* get AL Version 
+ 212              		.loc 1 135 0
+ 213 011e FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 214 0120 4FEA1313 		lsr	r3, r3, #4
+ 215 0124 DAB2     		uxtb	r2, r3
+ 216 0126 184B     		ldr	r3, .L10+8
+ 217 0128 5A76     		strb	r2, [r3, #25]
+ 136:../src/drv_bmp085.c ****         bmp085_get_cal_param(); /* readout bmp085 calibparam structure */
+ 218              		.loc 1 136 0
+ 219 012a 00F0E7F9 		bl	bmp085_get_cal_param
+ 137:../src/drv_bmp085.c ****         bmp085InitDone = true;
+ 220              		.loc 1 137 0
+ 221 012e 144B     		ldr	r3, .L10
+ 222 0130 4FF00102 		mov	r2, #1
+ 223 0134 1A70     		strb	r2, [r3, #0]
+ 138:../src/drv_bmp085.c ****         baro->ut_delay = 6000;
+ 224              		.loc 1 138 0
+ 225 0136 7B68     		ldr	r3, [r7, #4]
+ 226 0138 41F27072 		movw	r2, #6000
+ 227 013c 1A80     		strh	r2, [r3, #0]	@ movhi
+ 139:../src/drv_bmp085.c ****         baro->up_delay = 27000;
+ 228              		.loc 1 139 0
+ 229 013e 7B68     		ldr	r3, [r7, #4]
+ 230 0140 46F67812 		movw	r2, #27000
+ 231 0144 5A80     		strh	r2, [r3, #2]	@ movhi
+ 140:../src/drv_bmp085.c ****         baro->start_ut = bmp085_start_ut;
+ 232              		.loc 1 140 0
+ 233 0146 7B68     		ldr	r3, [r7, #4]
+ 234 0148 104A     		ldr	r2, .L10+12
+ 235 014a 5A60     		str	r2, [r3, #4]
+ 141:../src/drv_bmp085.c ****         baro->get_ut = bmp085_get_ut;
+ 236              		.loc 1 141 0
+ 237 014c 7B68     		ldr	r3, [r7, #4]
+ 238 014e 104A     		ldr	r2, .L10+16
+ 239 0150 9A60     		str	r2, [r3, #8]
+ 142:../src/drv_bmp085.c ****         baro->start_up = bmp085_start_up;
+ 240              		.loc 1 142 0
+ 241 0152 7B68     		ldr	r3, [r7, #4]
+ 242 0154 0F4A     		ldr	r2, .L10+20
+ 243 0156 DA60     		str	r2, [r3, #12]
+ 143:../src/drv_bmp085.c ****         baro->get_up = bmp085_get_up;
+ 244              		.loc 1 143 0
+ 245 0158 7B68     		ldr	r3, [r7, #4]
+ 246 015a 0F4A     		ldr	r2, .L10+24
+ 247 015c 1A61     		str	r2, [r3, #16]
+ 144:../src/drv_bmp085.c ****         baro->calculate = bmp085_calculate;
+ 248              		.loc 1 144 0
+ 249 015e 7B68     		ldr	r3, [r7, #4]
+ 250 0160 0E4A     		ldr	r2, .L10+28
+ 251 0162 5A61     		str	r2, [r3, #20]
+ 145:../src/drv_bmp085.c ****         return true;
+ 252              		.loc 1 145 0
+ 253 0164 4FF00103 		mov	r3, #1
+ 254 0168 05E0     		b	.L9
+ 255              	.L8:
+ 146:../src/drv_bmp085.c ****     }
+ 147:../src/drv_bmp085.c ****     BARO_OFF;
+ 256              		.loc 1 147 0
+ 257 016a 064B     		ldr	r3, .L10+4
+ 258 016c 4FF40052 		mov	r2, #8192
+ 259 0170 5A61     		str	r2, [r3, #20]
+ 148:../src/drv_bmp085.c ****     return false;
+ 260              		.loc 1 148 0
+ 261 0172 4FF00003 		mov	r3, #0
+ 262              	.L9:
+ 149:../src/drv_bmp085.c **** }
+ 263              		.loc 1 149 0
+ 264 0176 1846     		mov	r0, r3
+ 265 0178 07F12007 		add	r7, r7, #32
+ 266 017c BD46     		mov	sp, r7
+ 267 017e 80BD     		pop	{r7, pc}
+ 268              	.L11:
+ 269              		.align	2
+ 270              	.L10:
+ 271 0180 28000000 		.word	bmp085InitDone
+ 272 0184 00100140 		.word	1073811456
+ 273 0188 04000000 		.word	bmp085
+ 274 018c 00000000 		.word	bmp085_start_ut
+ 275 0190 00000000 		.word	bmp085_get_ut
+ 276 0194 00000000 		.word	bmp085_start_up
+ 277 0198 00000000 		.word	bmp085_get_up
+ 278 019c 00000000 		.word	bmp085_calculate
+ 279              		.cfi_endproc
+ 280              	.LFE30:
+ 282              		.align	2
+ 283              		.thumb
+ 284              		.thumb_func
+ 286              	bmp085_get_temperature:
+ 287              	.LFB31:
+ 150:../src/drv_bmp085.c **** 
+ 151:../src/drv_bmp085.c **** static int32_t bmp085_get_temperature(uint32_t ut)
+ 152:../src/drv_bmp085.c **** {
+ 288              		.loc 1 152 0
+ 289              		.cfi_startproc
+ 290              		@ args = 0, pretend = 0, frame = 24
+ 291              		@ frame_needed = 1, uses_anonymous_args = 0
+ 292              		@ link register save eliminated.
+ 293 01a0 80B4     		push	{r7}
+ 294              	.LCFI5:
+ 295              		.cfi_def_cfa_offset 4
+ 296              		.cfi_offset 7, -4
+ 297 01a2 87B0     		sub	sp, sp, #28
+ 298              	.LCFI6:
+ 299              		.cfi_def_cfa_offset 32
+ 300 01a4 00AF     		add	r7, sp, #0
+ 301              	.LCFI7:
+ 302              		.cfi_def_cfa_register 7
+ 303 01a6 7860     		str	r0, [r7, #4]
+ 153:../src/drv_bmp085.c ****     int32_t temperature;
+ 154:../src/drv_bmp085.c ****     int32_t x1, x2;
+ 155:../src/drv_bmp085.c **** 
+ 156:../src/drv_bmp085.c ****     x1 = (((int32_t)ut - (int32_t)bmp085.cal_param.ac6) * (int32_t)bmp085.cal_param.ac5) >> 15;
+ 304              		.loc 1 156 0
+ 305 01a8 7A68     		ldr	r2, [r7, #4]
+ 306 01aa 184B     		ldr	r3, .L14
+ 307 01ac 5B89     		ldrh	r3, [r3, #10]
+ 308 01ae D31A     		subs	r3, r2, r3
+ 309 01b0 164A     		ldr	r2, .L14
+ 310 01b2 1289     		ldrh	r2, [r2, #8]
+ 311 01b4 02FB03F3 		mul	r3, r2, r3
+ 312 01b8 4FEAE333 		asr	r3, r3, #15
+ 313 01bc 7B61     		str	r3, [r7, #20]
+ 157:../src/drv_bmp085.c ****     x2 = ((int32_t)bmp085.cal_param.mc << 11) / (x1 + bmp085.cal_param.md);
+ 314              		.loc 1 157 0
+ 315 01be 134B     		ldr	r3, .L14
+ 316 01c0 5B8A     		ldrh	r3, [r3, #18]
+ 317 01c2 1BB2     		sxth	r3, r3
+ 318 01c4 4FEAC322 		lsl	r2, r3, #11
+ 319 01c8 104B     		ldr	r3, .L14
+ 320 01ca 9B8A     		ldrh	r3, [r3, #20]
+ 321 01cc 19B2     		sxth	r1, r3
+ 322 01ce 7B69     		ldr	r3, [r7, #20]
+ 323 01d0 CB18     		adds	r3, r1, r3
+ 324 01d2 92FBF3F3 		sdiv	r3, r2, r3
+ 325 01d6 3B61     		str	r3, [r7, #16]
+ 158:../src/drv_bmp085.c ****     bmp085.param_b5 = x1 + x2;
+ 326              		.loc 1 158 0
+ 327 01d8 7A69     		ldr	r2, [r7, #20]
+ 328 01da 3B69     		ldr	r3, [r7, #16]
+ 329 01dc D218     		adds	r2, r2, r3
+ 330 01de 0B4B     		ldr	r3, .L14
+ 331 01e0 DA61     		str	r2, [r3, #28]
+ 159:../src/drv_bmp085.c ****     temperature = ((bmp085.param_b5 * 10 + 8) >> 4);  // temperature in 0.01°C (make same as MS5611
+ 332              		.loc 1 159 0
+ 333 01e2 0A4B     		ldr	r3, .L14
+ 334 01e4 DA69     		ldr	r2, [r3, #28]
+ 335 01e6 1346     		mov	r3, r2
+ 336 01e8 4FEA8303 		lsl	r3, r3, #2
+ 337 01ec 9B18     		adds	r3, r3, r2
+ 338 01ee 4FEA4303 		lsl	r3, r3, #1
+ 339 01f2 03F10803 		add	r3, r3, #8
+ 340 01f6 4FEA2313 		asr	r3, r3, #4
+ 341 01fa FB60     		str	r3, [r7, #12]
+ 160:../src/drv_bmp085.c **** 
+ 161:../src/drv_bmp085.c ****     return temperature;
+ 342              		.loc 1 161 0
+ 343 01fc FB68     		ldr	r3, [r7, #12]
+ 162:../src/drv_bmp085.c **** }
+ 344              		.loc 1 162 0
+ 345 01fe 1846     		mov	r0, r3
+ 346 0200 07F11C07 		add	r7, r7, #28
+ 347 0204 BD46     		mov	sp, r7
+ 348 0206 80BC     		pop	{r7}
+ 349 0208 7047     		bx	lr
+ 350              	.L15:
+ 351 020a 00BF     		.align	2
+ 352              	.L14:
+ 353 020c 04000000 		.word	bmp085
+ 354              		.cfi_endproc
+ 355              	.LFE31:
+ 357              		.align	2
+ 358              		.thumb
+ 359              		.thumb_func
+ 361              	bmp085_get_pressure:
+ 362              	.LFB32:
+ 163:../src/drv_bmp085.c **** 
+ 164:../src/drv_bmp085.c **** static int32_t bmp085_get_pressure(uint32_t up)
+ 165:../src/drv_bmp085.c **** {
+ 363              		.loc 1 165 0
+ 364              		.cfi_startproc
+ 365              		@ args = 0, pretend = 0, frame = 40
+ 366              		@ frame_needed = 1, uses_anonymous_args = 0
+ 367              		@ link register save eliminated.
+ 368 0210 80B4     		push	{r7}
+ 369              	.LCFI8:
+ 370              		.cfi_def_cfa_offset 4
+ 371              		.cfi_offset 7, -4
+ 372 0212 8BB0     		sub	sp, sp, #44
+ 373              	.LCFI9:
+ 374              		.cfi_def_cfa_offset 48
+ 375 0214 00AF     		add	r7, sp, #0
+ 376              	.LCFI10:
+ 377              		.cfi_def_cfa_register 7
+ 378 0216 7860     		str	r0, [r7, #4]
+ 166:../src/drv_bmp085.c ****     int32_t pressure, x1, x2, x3, b3, b6;
+ 167:../src/drv_bmp085.c ****     uint32_t b4, b7;
+ 168:../src/drv_bmp085.c **** 
+ 169:../src/drv_bmp085.c ****     b6 = bmp085.param_b5 - 4000;
+ 379              		.loc 1 169 0
+ 380 0218 534B     		ldr	r3, .L20
+ 381 021a DB69     		ldr	r3, [r3, #28]
+ 382 021c A3F57A63 		sub	r3, r3, #4000
+ 383 0220 3B62     		str	r3, [r7, #32]
+ 170:../src/drv_bmp085.c ****     // *****calculate B3************
+ 171:../src/drv_bmp085.c ****     x1 = (b6 * b6) >> 12;
+ 384              		.loc 1 171 0
+ 385 0222 3B6A     		ldr	r3, [r7, #32]
+ 386 0224 3A6A     		ldr	r2, [r7, #32]
+ 387 0226 02FB03F3 		mul	r3, r2, r3
+ 388 022a 4FEA2333 		asr	r3, r3, #12
+ 389 022e FB61     		str	r3, [r7, #28]
+ 172:../src/drv_bmp085.c ****     x1 *= bmp085.cal_param.b2;
+ 390              		.loc 1 172 0
+ 391 0230 4D4B     		ldr	r3, .L20
+ 392 0232 DB89     		ldrh	r3, [r3, #14]
+ 393 0234 1AB2     		sxth	r2, r3
+ 394 0236 FB69     		ldr	r3, [r7, #28]
+ 395 0238 02FB03F3 		mul	r3, r2, r3
+ 396 023c FB61     		str	r3, [r7, #28]
+ 173:../src/drv_bmp085.c ****     x1 >>= 11;
+ 397              		.loc 1 173 0
+ 398 023e FB69     		ldr	r3, [r7, #28]
+ 399 0240 4FEAE323 		asr	r3, r3, #11
+ 400 0244 FB61     		str	r3, [r7, #28]
+ 174:../src/drv_bmp085.c **** 
+ 175:../src/drv_bmp085.c ****     x2 = (bmp085.cal_param.ac2 * b6);
+ 401              		.loc 1 175 0
+ 402 0246 484B     		ldr	r3, .L20
+ 403 0248 5B88     		ldrh	r3, [r3, #2]
+ 404 024a 1BB2     		sxth	r3, r3
+ 405 024c 3A6A     		ldr	r2, [r7, #32]
+ 406 024e 02FB03F3 		mul	r3, r2, r3
+ 407 0252 BB61     		str	r3, [r7, #24]
+ 176:../src/drv_bmp085.c ****     x2 >>= 11;
+ 408              		.loc 1 176 0
+ 409 0254 BB69     		ldr	r3, [r7, #24]
+ 410 0256 4FEAE323 		asr	r3, r3, #11
+ 411 025a BB61     		str	r3, [r7, #24]
+ 177:../src/drv_bmp085.c **** 
+ 178:../src/drv_bmp085.c ****     x3 = x1 + x2;
+ 412              		.loc 1 178 0
+ 413 025c FA69     		ldr	r2, [r7, #28]
+ 414 025e BB69     		ldr	r3, [r7, #24]
+ 415 0260 D318     		adds	r3, r2, r3
+ 416 0262 7B61     		str	r3, [r7, #20]
+ 179:../src/drv_bmp085.c **** 
+ 180:../src/drv_bmp085.c ****     b3 = (((((int32_t)bmp085.cal_param.ac1) * 4 + x3) << bmp085.oversampling_setting) + 2) >> 2;
+ 417              		.loc 1 180 0
+ 418 0264 404B     		ldr	r3, .L20
+ 419 0266 1B88     		ldrh	r3, [r3, #0]
+ 420 0268 1BB2     		sxth	r3, r3
+ 421 026a 4FEA8302 		lsl	r2, r3, #2
+ 422 026e 7B69     		ldr	r3, [r7, #20]
+ 423 0270 D218     		adds	r2, r2, r3
+ 424 0272 3D4B     		ldr	r3, .L20
+ 425 0274 1B8C     		ldrh	r3, [r3, #32]
+ 426 0276 1BB2     		sxth	r3, r3
+ 427 0278 02FA03F3 		lsl	r3, r2, r3
+ 428 027c 03F10203 		add	r3, r3, #2
+ 429 0280 4FEAA303 		asr	r3, r3, #2
+ 430 0284 3B61     		str	r3, [r7, #16]
+ 181:../src/drv_bmp085.c **** 
+ 182:../src/drv_bmp085.c ****     // *****calculate B4************
+ 183:../src/drv_bmp085.c ****     x1 = (bmp085.cal_param.ac3 * b6) >> 13;
+ 431              		.loc 1 183 0
+ 432 0286 384B     		ldr	r3, .L20
+ 433 0288 9B88     		ldrh	r3, [r3, #4]
+ 434 028a 1BB2     		sxth	r3, r3
+ 435 028c 3A6A     		ldr	r2, [r7, #32]
+ 436 028e 02FB03F3 		mul	r3, r2, r3
+ 437 0292 4FEA6333 		asr	r3, r3, #13
+ 438 0296 FB61     		str	r3, [r7, #28]
+ 184:../src/drv_bmp085.c ****     x2 = (bmp085.cal_param.b1 * ((b6 * b6) >> 12) ) >> 16;
+ 439              		.loc 1 184 0
+ 440 0298 334B     		ldr	r3, .L20
+ 441 029a 9B89     		ldrh	r3, [r3, #12]
+ 442 029c 1BB2     		sxth	r3, r3
+ 443 029e 3A6A     		ldr	r2, [r7, #32]
+ 444 02a0 396A     		ldr	r1, [r7, #32]
+ 445 02a2 01FB02F2 		mul	r2, r1, r2
+ 446 02a6 4FEA2232 		asr	r2, r2, #12
+ 447 02aa 02FB03F3 		mul	r3, r2, r3
+ 448 02ae 4FEA2343 		asr	r3, r3, #16
+ 449 02b2 BB61     		str	r3, [r7, #24]
+ 185:../src/drv_bmp085.c ****     x3 = ((x1 + x2) + 2) >> 2;
+ 450              		.loc 1 185 0
+ 451 02b4 FA69     		ldr	r2, [r7, #28]
+ 452 02b6 BB69     		ldr	r3, [r7, #24]
+ 453 02b8 D318     		adds	r3, r2, r3
+ 454 02ba 03F10203 		add	r3, r3, #2
+ 455 02be 4FEAA303 		asr	r3, r3, #2
+ 456 02c2 7B61     		str	r3, [r7, #20]
+ 186:../src/drv_bmp085.c ****     b4 = (bmp085.cal_param.ac4 * (uint32_t) (x3 + 32768)) >> 15;
+ 457              		.loc 1 186 0
+ 458 02c4 284B     		ldr	r3, .L20
+ 459 02c6 DB88     		ldrh	r3, [r3, #6]
+ 460 02c8 7A69     		ldr	r2, [r7, #20]
+ 461 02ca 02F50042 		add	r2, r2, #32768
+ 462 02ce 02FB03F3 		mul	r3, r2, r3
+ 463 02d2 4FEAD333 		lsr	r3, r3, #15
+ 464 02d6 FB60     		str	r3, [r7, #12]
+ 187:../src/drv_bmp085.c ****      
+ 188:../src/drv_bmp085.c ****     b7 = ((uint32_t)(up - b3) * (50000 >> bmp085.oversampling_setting));
+ 465              		.loc 1 188 0
+ 466 02d8 3B69     		ldr	r3, [r7, #16]
+ 467 02da 7A68     		ldr	r2, [r7, #4]
+ 468 02dc D31A     		subs	r3, r2, r3
+ 469 02de 224A     		ldr	r2, .L20
+ 470 02e0 128C     		ldrh	r2, [r2, #32]
+ 471 02e2 12B2     		sxth	r2, r2
+ 472 02e4 4CF25031 		movw	r1, #50000
+ 473 02e8 41FA02F2 		asr	r2, r1, r2
+ 474 02ec 02FB03F3 		mul	r3, r2, r3
+ 475 02f0 BB60     		str	r3, [r7, #8]
+ 189:../src/drv_bmp085.c ****     if (b7 < 0x80000000) {
+ 476              		.loc 1 189 0
+ 477 02f2 BB68     		ldr	r3, [r7, #8]
+ 478 02f4 002B     		cmp	r3, #0
+ 479 02f6 07DB     		blt	.L17
+ 190:../src/drv_bmp085.c ****         pressure = (b7 << 1) / b4;
+ 480              		.loc 1 190 0
+ 481 02f8 BB68     		ldr	r3, [r7, #8]
+ 482 02fa 4FEA4302 		lsl	r2, r3, #1
+ 483 02fe FB68     		ldr	r3, [r7, #12]
+ 484 0300 B2FBF3F3 		udiv	r3, r2, r3
+ 485 0304 7B62     		str	r3, [r7, #36]
+ 486 0306 06E0     		b	.L18
+ 487              	.L17:
+ 191:../src/drv_bmp085.c ****     } else { 
+ 192:../src/drv_bmp085.c ****         pressure = (b7 / b4) << 1;
+ 488              		.loc 1 192 0
+ 489 0308 BA68     		ldr	r2, [r7, #8]
+ 490 030a FB68     		ldr	r3, [r7, #12]
+ 491 030c B2FBF3F3 		udiv	r3, r2, r3
+ 492 0310 4FEA4303 		lsl	r3, r3, #1
+ 493 0314 7B62     		str	r3, [r7, #36]
+ 494              	.L18:
+ 193:../src/drv_bmp085.c ****     }
+ 194:../src/drv_bmp085.c **** 
+ 195:../src/drv_bmp085.c ****     x1 = pressure >> 8;
+ 495              		.loc 1 195 0
+ 496 0316 7B6A     		ldr	r3, [r7, #36]
+ 497 0318 4FEA2323 		asr	r3, r3, #8
+ 498 031c FB61     		str	r3, [r7, #28]
+ 196:../src/drv_bmp085.c ****     x1 *= x1;
+ 499              		.loc 1 196 0
+ 500 031e FB69     		ldr	r3, [r7, #28]
+ 501 0320 FA69     		ldr	r2, [r7, #28]
+ 502 0322 02FB03F3 		mul	r3, r2, r3
+ 503 0326 FB61     		str	r3, [r7, #28]
+ 197:../src/drv_bmp085.c ****     x1 = (x1 * SMD500_PARAM_MG) >> 16;
+ 504              		.loc 1 197 0
+ 505 0328 FB69     		ldr	r3, [r7, #28]
+ 506 032a 40F6DE32 		movw	r2, #3038
+ 507 032e 02FB03F3 		mul	r3, r2, r3
+ 508 0332 4FEA2343 		asr	r3, r3, #16
+ 509 0336 FB61     		str	r3, [r7, #28]
+ 198:../src/drv_bmp085.c ****     x2 = (pressure * SMD500_PARAM_MH) >> 16;
+ 510              		.loc 1 198 0
+ 511 0338 7B6A     		ldr	r3, [r7, #36]
+ 512 033a 0C4A     		ldr	r2, .L20+4
+ 513 033c 02FB03F3 		mul	r3, r2, r3
+ 514 0340 4FEA2343 		asr	r3, r3, #16
+ 515 0344 BB61     		str	r3, [r7, #24]
+ 199:../src/drv_bmp085.c ****     pressure += (x1 + x2 + SMD500_PARAM_MI) >> 4;   // pressure in Pa
+ 516              		.loc 1 199 0
+ 517 0346 FA69     		ldr	r2, [r7, #28]
+ 518 0348 BB69     		ldr	r3, [r7, #24]
+ 519 034a D318     		adds	r3, r2, r3
+ 520 034c 03F6CF63 		addw	r3, r3, #3791
+ 521 0350 4FEA2313 		asr	r3, r3, #4
+ 522 0354 7A6A     		ldr	r2, [r7, #36]
+ 523 0356 D318     		adds	r3, r2, r3
+ 524 0358 7B62     		str	r3, [r7, #36]
+ 200:../src/drv_bmp085.c **** 
+ 201:../src/drv_bmp085.c ****     return pressure;
+ 525              		.loc 1 201 0
+ 526 035a 7B6A     		ldr	r3, [r7, #36]
+ 202:../src/drv_bmp085.c **** }
+ 527              		.loc 1 202 0
+ 528 035c 1846     		mov	r0, r3
+ 529 035e 07F12C07 		add	r7, r7, #44
+ 530 0362 BD46     		mov	sp, r7
+ 531 0364 80BC     		pop	{r7}
+ 532 0366 7047     		bx	lr
+ 533              	.L21:
+ 534              		.align	2
+ 535              	.L20:
+ 536 0368 04000000 		.word	bmp085
+ 537 036c 43E3FFFF 		.word	-7357
+ 538              		.cfi_endproc
+ 539              	.LFE32:
+ 541              		.align	2
+ 542              		.thumb
+ 543              		.thumb_func
+ 545              	bmp085_start_ut:
+ 546              	.LFB33:
+ 203:../src/drv_bmp085.c **** 
+ 204:../src/drv_bmp085.c **** static void bmp085_start_ut(void)
+ 205:../src/drv_bmp085.c **** {
+ 547              		.loc 1 205 0
+ 548              		.cfi_startproc
+ 549              		@ args = 0, pretend = 0, frame = 0
+ 550              		@ frame_needed = 1, uses_anonymous_args = 0
+ 551 0370 80B5     		push	{r7, lr}
+ 552              	.LCFI11:
+ 553              		.cfi_def_cfa_offset 8
+ 554              		.cfi_offset 7, -8
+ 555              		.cfi_offset 14, -4
+ 556 0372 00AF     		add	r7, sp, #0
+ 557              	.LCFI12:
+ 558              		.cfi_def_cfa_register 7
+ 206:../src/drv_bmp085.c ****     convDone = false;
+ 559              		.loc 1 206 0
+ 560 0374 064B     		ldr	r3, .L23
+ 561 0376 4FF00002 		mov	r2, #0
+ 562 037a 1A70     		strb	r2, [r3, #0]
+ 207:../src/drv_bmp085.c ****     i2cWrite(BMP085_I2C_ADDR, BMP085_CTRL_MEAS_REG, BMP085_T_MEASURE);
+ 563              		.loc 1 207 0
+ 564 037c 4FF07700 		mov	r0, #119
+ 565 0380 4FF0F401 		mov	r1, #244
+ 566 0384 4FF02E02 		mov	r2, #46
+ 567 0388 FFF7FEFF 		bl	i2cWrite
+ 208:../src/drv_bmp085.c **** }
+ 568              		.loc 1 208 0
+ 569 038c 80BD     		pop	{r7, pc}
+ 570              	.L24:
+ 571 038e 00BF     		.align	2
+ 572              	.L23:
+ 573 0390 00000000 		.word	convDone
+ 574              		.cfi_endproc
+ 575              	.LFE33:
+ 577              		.align	2
+ 578              		.thumb
+ 579              		.thumb_func
+ 581              	bmp085_get_ut:
+ 582              	.LFB34:
+ 209:../src/drv_bmp085.c **** 
+ 210:../src/drv_bmp085.c **** static void bmp085_get_ut(void)
+ 211:../src/drv_bmp085.c **** {
+ 583              		.loc 1 211 0
+ 584              		.cfi_startproc
+ 585              		@ args = 0, pretend = 0, frame = 8
+ 586              		@ frame_needed = 1, uses_anonymous_args = 0
+ 587 0394 80B5     		push	{r7, lr}
+ 588              	.LCFI13:
+ 589              		.cfi_def_cfa_offset 8
+ 590              		.cfi_offset 7, -8
+ 591              		.cfi_offset 14, -4
+ 592 0396 82B0     		sub	sp, sp, #8
+ 593              	.LCFI14:
+ 594              		.cfi_def_cfa_offset 16
+ 595 0398 00AF     		add	r7, sp, #0
+ 596              	.LCFI15:
+ 597              		.cfi_def_cfa_register 7
+ 212:../src/drv_bmp085.c ****     uint8_t data[2];    
+ 213:../src/drv_bmp085.c ****     uint16_t timeout = 10000;
+ 598              		.loc 1 213 0
+ 599 039a 42F21073 		movw	r3, #10000
+ 600 039e FB80     		strh	r3, [r7, #6]	@ movhi
+ 214:../src/drv_bmp085.c **** 
+ 215:../src/drv_bmp085.c ****     // wait in case of cockup
+ 216:../src/drv_bmp085.c ****     if (!convDone)
+ 601              		.loc 1 216 0
+ 602 03a0 124B     		ldr	r3, .L27
+ 603 03a2 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 604 03a4 83F00103 		eor	r3, r3, #1
+ 605 03a8 DBB2     		uxtb	r3, r3
+ 606 03aa 002B     		cmp	r3, #0
+ 607 03ac 06D0     		beq	.L26
+ 217:../src/drv_bmp085.c ****         convOverrun++;
+ 608              		.loc 1 217 0
+ 609 03ae 104B     		ldr	r3, .L27+4
+ 610 03b0 1B88     		ldrh	r3, [r3, #0]
+ 611 03b2 03F10103 		add	r3, r3, #1
+ 612 03b6 9AB2     		uxth	r2, r3
+ 613 03b8 0D4B     		ldr	r3, .L27+4
+ 614 03ba 1A80     		strh	r2, [r3, #0]	@ movhi
+ 615              	.L26:
+ 218:../src/drv_bmp085.c **** #if 0
+ 219:../src/drv_bmp085.c ****     while (!convDone && timeout-- > 0) {
+ 220:../src/drv_bmp085.c ****         __NOP();
+ 221:../src/drv_bmp085.c ****     }
+ 222:../src/drv_bmp085.c **** #endif
+ 223:../src/drv_bmp085.c ****     i2cRead(BMP085_I2C_ADDR, BMP085_ADC_OUT_MSB_REG, 2, data);
+ 616              		.loc 1 223 0
+ 617 03bc 07F10403 		add	r3, r7, #4
+ 618 03c0 4FF07700 		mov	r0, #119
+ 619 03c4 4FF0F601 		mov	r1, #246
+ 620 03c8 4FF00202 		mov	r2, #2
+ 621 03cc FFF7FEFF 		bl	i2cRead
+ 224:../src/drv_bmp085.c ****     bmp085_ut = (data[0] << 8) | data[1];
+ 622              		.loc 1 224 0
+ 623 03d0 3B79     		ldrb	r3, [r7, #4]	@ zero_extendqisi2
+ 624 03d2 4FEA0323 		lsl	r3, r3, #8
+ 625 03d6 9AB2     		uxth	r2, r3
+ 626 03d8 7B79     		ldrb	r3, [r7, #5]	@ zero_extendqisi2
+ 627 03da 1343     		orrs	r3, r3, r2
+ 628 03dc 9BB2     		uxth	r3, r3
+ 629 03de 9AB2     		uxth	r2, r3
+ 630 03e0 044B     		ldr	r3, .L27+8
+ 631 03e2 1A80     		strh	r2, [r3, #0]	@ movhi
+ 225:../src/drv_bmp085.c **** }
+ 632              		.loc 1 225 0
+ 633 03e4 07F10807 		add	r7, r7, #8
+ 634 03e8 BD46     		mov	sp, r7
+ 635 03ea 80BD     		pop	{r7, pc}
+ 636              	.L28:
+ 637              		.align	2
+ 638              	.L27:
+ 639 03ec 00000000 		.word	convDone
+ 640 03f0 02000000 		.word	convOverrun
+ 641 03f4 2A000000 		.word	bmp085_ut
+ 642              		.cfi_endproc
+ 643              	.LFE34:
+ 645              		.align	2
+ 646              		.thumb
+ 647              		.thumb_func
+ 649              	bmp085_start_up:
+ 650              	.LFB35:
+ 226:../src/drv_bmp085.c **** 
+ 227:../src/drv_bmp085.c **** static void bmp085_start_up(void)
+ 228:../src/drv_bmp085.c **** {
+ 651              		.loc 1 228 0
+ 652              		.cfi_startproc
+ 653              		@ args = 0, pretend = 0, frame = 8
+ 654              		@ frame_needed = 1, uses_anonymous_args = 0
+ 655 03f8 80B5     		push	{r7, lr}
+ 656              	.LCFI16:
+ 657              		.cfi_def_cfa_offset 8
+ 658              		.cfi_offset 7, -8
+ 659              		.cfi_offset 14, -4
+ 660 03fa 82B0     		sub	sp, sp, #8
+ 661              	.LCFI17:
+ 662              		.cfi_def_cfa_offset 16
+ 663 03fc 00AF     		add	r7, sp, #0
+ 664              	.LCFI18:
+ 665              		.cfi_def_cfa_register 7
+ 229:../src/drv_bmp085.c ****     uint8_t ctrl_reg_data;
+ 230:../src/drv_bmp085.c **** 
+ 231:../src/drv_bmp085.c ****     ctrl_reg_data = BMP085_P_MEASURE + (bmp085.oversampling_setting << 6);
+ 666              		.loc 1 231 0
+ 667 03fe 0C4B     		ldr	r3, .L30
+ 668 0400 1B8C     		ldrh	r3, [r3, #32]
+ 669 0402 DBB2     		uxtb	r3, r3
+ 670 0404 4FEA8313 		lsl	r3, r3, #6
+ 671 0408 DBB2     		uxtb	r3, r3
+ 672 040a 03F13403 		add	r3, r3, #52
+ 673 040e FB71     		strb	r3, [r7, #7]
+ 232:../src/drv_bmp085.c ****     convDone = false;
+ 674              		.loc 1 232 0
+ 675 0410 084B     		ldr	r3, .L30+4
+ 676 0412 4FF00002 		mov	r2, #0
+ 677 0416 1A70     		strb	r2, [r3, #0]
+ 233:../src/drv_bmp085.c ****     i2cWrite(BMP085_I2C_ADDR, BMP085_CTRL_MEAS_REG, ctrl_reg_data);
+ 678              		.loc 1 233 0
+ 679 0418 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 680 041a 4FF07700 		mov	r0, #119
+ 681 041e 4FF0F401 		mov	r1, #244
+ 682 0422 1A46     		mov	r2, r3
+ 683 0424 FFF7FEFF 		bl	i2cWrite
+ 234:../src/drv_bmp085.c **** }
+ 684              		.loc 1 234 0
+ 685 0428 07F10807 		add	r7, r7, #8
+ 686 042c BD46     		mov	sp, r7
+ 687 042e 80BD     		pop	{r7, pc}
+ 688              	.L31:
+ 689              		.align	2
+ 690              	.L30:
+ 691 0430 04000000 		.word	bmp085
+ 692 0434 00000000 		.word	convDone
+ 693              		.cfi_endproc
+ 694              	.LFE35:
+ 696              		.align	2
+ 697              		.thumb
+ 698              		.thumb_func
+ 700              	bmp085_get_up:
+ 701              	.LFB36:
+ 235:../src/drv_bmp085.c **** 
+ 236:../src/drv_bmp085.c **** /** read out up for pressure conversion
+ 237:../src/drv_bmp085.c ****   depending on the oversampling ratio setting up can be 16 to 19 bit
+ 238:../src/drv_bmp085.c ****    \return up parameter that represents the uncompensated pressure value
+ 239:../src/drv_bmp085.c **** */
+ 240:../src/drv_bmp085.c **** static void bmp085_get_up(void)
+ 241:../src/drv_bmp085.c **** {
+ 702              		.loc 1 241 0
+ 703              		.cfi_startproc
+ 704              		@ args = 0, pretend = 0, frame = 8
+ 705              		@ frame_needed = 1, uses_anonymous_args = 0
+ 706 0438 80B5     		push	{r7, lr}
+ 707              	.LCFI19:
+ 708              		.cfi_def_cfa_offset 8
+ 709              		.cfi_offset 7, -8
+ 710              		.cfi_offset 14, -4
+ 711 043a 82B0     		sub	sp, sp, #8
+ 712              	.LCFI20:
+ 713              		.cfi_def_cfa_offset 16
+ 714 043c 00AF     		add	r7, sp, #0
+ 715              	.LCFI21:
+ 716              		.cfi_def_cfa_register 7
+ 242:../src/drv_bmp085.c ****     uint8_t data[3];
+ 243:../src/drv_bmp085.c ****     uint16_t timeout = 10000;
+ 717              		.loc 1 243 0
+ 718 043e 42F21073 		movw	r3, #10000
+ 719 0442 FB80     		strh	r3, [r7, #6]	@ movhi
+ 244:../src/drv_bmp085.c ****     
+ 245:../src/drv_bmp085.c ****     // wait in case of cockup
+ 246:../src/drv_bmp085.c ****     if (!convDone)
+ 720              		.loc 1 246 0
+ 721 0444 164B     		ldr	r3, .L34
+ 722 0446 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 723 0448 83F00103 		eor	r3, r3, #1
+ 724 044c DBB2     		uxtb	r3, r3
+ 725 044e 002B     		cmp	r3, #0
+ 726 0450 06D0     		beq	.L33
+ 247:../src/drv_bmp085.c ****         convOverrun++;
+ 727              		.loc 1 247 0
+ 728 0452 144B     		ldr	r3, .L34+4
+ 729 0454 1B88     		ldrh	r3, [r3, #0]
+ 730 0456 03F10103 		add	r3, r3, #1
+ 731 045a 9AB2     		uxth	r2, r3
+ 732 045c 114B     		ldr	r3, .L34+4
+ 733 045e 1A80     		strh	r2, [r3, #0]	@ movhi
+ 734              	.L33:
+ 248:../src/drv_bmp085.c **** #if 0
+ 249:../src/drv_bmp085.c ****     while (!convDone && timeout-- > 0) {
+ 250:../src/drv_bmp085.c ****         __NOP();
+ 251:../src/drv_bmp085.c ****     }
+ 252:../src/drv_bmp085.c **** #endif
+ 253:../src/drv_bmp085.c ****     i2cRead(BMP085_I2C_ADDR, BMP085_ADC_OUT_MSB_REG, 3, data);
+ 735              		.loc 1 253 0
+ 736 0460 3B46     		mov	r3, r7
+ 737 0462 4FF07700 		mov	r0, #119
+ 738 0466 4FF0F601 		mov	r1, #246
+ 739 046a 4FF00302 		mov	r2, #3
+ 740 046e FFF7FEFF 		bl	i2cRead
+ 254:../src/drv_bmp085.c ****     bmp085_up = (((uint32_t) data[0] << 16) | ((uint32_t) data[1] << 8) | (uint32_t) data[2]) >> (8
+ 741              		.loc 1 254 0
+ 742 0472 3B78     		ldrb	r3, [r7, #0]	@ zero_extendqisi2
+ 743 0474 4FEA0342 		lsl	r2, r3, #16
+ 744 0478 7B78     		ldrb	r3, [r7, #1]	@ zero_extendqisi2
+ 745 047a 4FEA0323 		lsl	r3, r3, #8
+ 746 047e 1A43     		orrs	r2, r2, r3
+ 747 0480 BB78     		ldrb	r3, [r7, #2]	@ zero_extendqisi2
+ 748 0482 1A43     		orrs	r2, r2, r3
+ 749 0484 084B     		ldr	r3, .L34+8
+ 750 0486 1B8C     		ldrh	r3, [r3, #32]
+ 751 0488 1BB2     		sxth	r3, r3
+ 752 048a C3F10803 		rsb	r3, r3, #8
+ 753 048e 22FA03F2 		lsr	r2, r2, r3
+ 754 0492 064B     		ldr	r3, .L34+12
+ 755 0494 1A60     		str	r2, [r3, #0]
+ 255:../src/drv_bmp085.c **** }
+ 756              		.loc 1 255 0
+ 757 0496 07F10807 		add	r7, r7, #8
+ 758 049a BD46     		mov	sp, r7
+ 759 049c 80BD     		pop	{r7, pc}
+ 760              	.L35:
+ 761 049e 00BF     		.align	2
+ 762              	.L34:
+ 763 04a0 00000000 		.word	convDone
+ 764 04a4 02000000 		.word	convOverrun
+ 765 04a8 04000000 		.word	bmp085
+ 766 04ac 2C000000 		.word	bmp085_up
+ 767              		.cfi_endproc
+ 768              	.LFE36:
+ 770              		.align	2
+ 771              		.thumb
+ 772              		.thumb_func
+ 774              	bmp085_calculate:
+ 775              	.LFB37:
+ 256:../src/drv_bmp085.c **** 
+ 257:../src/drv_bmp085.c **** static void bmp085_calculate(int32_t *pressure, int32_t *temperature)
+ 258:../src/drv_bmp085.c **** {
+ 776              		.loc 1 258 0
+ 777              		.cfi_startproc
+ 778              		@ args = 0, pretend = 0, frame = 16
+ 779              		@ frame_needed = 1, uses_anonymous_args = 0
+ 780 04b0 80B5     		push	{r7, lr}
+ 781              	.LCFI22:
+ 782              		.cfi_def_cfa_offset 8
+ 783              		.cfi_offset 7, -8
+ 784              		.cfi_offset 14, -4
+ 785 04b2 84B0     		sub	sp, sp, #16
+ 786              	.LCFI23:
+ 787              		.cfi_def_cfa_offset 24
+ 788 04b4 00AF     		add	r7, sp, #0
+ 789              	.LCFI24:
+ 790              		.cfi_def_cfa_register 7
+ 791 04b6 7860     		str	r0, [r7, #4]
+ 792 04b8 3960     		str	r1, [r7, #0]
+ 259:../src/drv_bmp085.c ****     int32_t temp, press;
+ 260:../src/drv_bmp085.c ****     temp = bmp085_get_temperature(bmp085_ut);
+ 793              		.loc 1 260 0
+ 794 04ba 0E4B     		ldr	r3, .L39
+ 795 04bc 1B88     		ldrh	r3, [r3, #0]
+ 796 04be 1846     		mov	r0, r3
+ 797 04c0 FFF76EFE 		bl	bmp085_get_temperature
+ 798 04c4 F860     		str	r0, [r7, #12]
+ 261:../src/drv_bmp085.c ****     press = bmp085_get_pressure(bmp085_up);
+ 799              		.loc 1 261 0
+ 800 04c6 0C4B     		ldr	r3, .L39+4
+ 801 04c8 1B68     		ldr	r3, [r3, #0]
+ 802 04ca 1846     		mov	r0, r3
+ 803 04cc FFF7A0FE 		bl	bmp085_get_pressure
+ 804 04d0 B860     		str	r0, [r7, #8]
+ 262:../src/drv_bmp085.c ****     if (pressure)
+ 805              		.loc 1 262 0
+ 806 04d2 7B68     		ldr	r3, [r7, #4]
+ 807 04d4 002B     		cmp	r3, #0
+ 808 04d6 02D0     		beq	.L37
+ 263:../src/drv_bmp085.c ****         *pressure = press;
+ 809              		.loc 1 263 0
+ 810 04d8 7B68     		ldr	r3, [r7, #4]
+ 811 04da BA68     		ldr	r2, [r7, #8]
+ 812 04dc 1A60     		str	r2, [r3, #0]
+ 813              	.L37:
+ 264:../src/drv_bmp085.c ****     if (temperature)
+ 814              		.loc 1 264 0
+ 815 04de 3B68     		ldr	r3, [r7, #0]
+ 816 04e0 002B     		cmp	r3, #0
+ 817 04e2 02D0     		beq	.L36
+ 265:../src/drv_bmp085.c ****         *temperature = temp;
+ 818              		.loc 1 265 0
+ 819 04e4 3B68     		ldr	r3, [r7, #0]
+ 820 04e6 FA68     		ldr	r2, [r7, #12]
+ 821 04e8 1A60     		str	r2, [r3, #0]
+ 822              	.L36:
+ 266:../src/drv_bmp085.c **** }
+ 823              		.loc 1 266 0
+ 824 04ea 07F11007 		add	r7, r7, #16
+ 825 04ee BD46     		mov	sp, r7
+ 826 04f0 80BD     		pop	{r7, pc}
+ 827              	.L40:
+ 828 04f2 00BF     		.align	2
+ 829              	.L39:
+ 830 04f4 2A000000 		.word	bmp085_ut
+ 831 04f8 2C000000 		.word	bmp085_up
+ 832              		.cfi_endproc
+ 833              	.LFE37:
+ 835              		.align	2
+ 836              		.thumb
+ 837              		.thumb_func
+ 839              	bmp085_get_cal_param:
+ 840              	.LFB38:
+ 267:../src/drv_bmp085.c **** 
+ 268:../src/drv_bmp085.c **** static void bmp085_get_cal_param(void)
+ 269:../src/drv_bmp085.c **** {
+ 841              		.loc 1 269 0
+ 842              		.cfi_startproc
+ 843              		@ args = 0, pretend = 0, frame = 24
+ 844              		@ frame_needed = 1, uses_anonymous_args = 0
+ 845 04fc 80B5     		push	{r7, lr}
+ 846              	.LCFI25:
+ 847              		.cfi_def_cfa_offset 8
+ 848              		.cfi_offset 7, -8
+ 849              		.cfi_offset 14, -4
+ 850 04fe 86B0     		sub	sp, sp, #24
+ 851              	.LCFI26:
+ 852              		.cfi_def_cfa_offset 32
+ 853 0500 00AF     		add	r7, sp, #0
+ 854              	.LCFI27:
+ 855              		.cfi_def_cfa_register 7
+ 270:../src/drv_bmp085.c ****     uint8_t data[22];
+ 271:../src/drv_bmp085.c ****     i2cRead(BMP085_I2C_ADDR, BMP085_PROM_START__ADDR, BMP085_PROM_DATA__LEN, data);
+ 856              		.loc 1 271 0
+ 857 0502 3B46     		mov	r3, r7
+ 858 0504 4FF07700 		mov	r0, #119
+ 859 0508 4FF0AA01 		mov	r1, #170
+ 860 050c 4FF01602 		mov	r2, #22
+ 861 0510 FFF7FEFF 		bl	i2cRead
+ 272:../src/drv_bmp085.c **** 
+ 273:../src/drv_bmp085.c ****     /*parameters AC1-AC6*/
+ 274:../src/drv_bmp085.c ****     bmp085.cal_param.ac1 = (data[0] << 8) | data[1];
+ 862              		.loc 1 274 0
+ 863 0514 3B78     		ldrb	r3, [r7, #0]	@ zero_extendqisi2
+ 864 0516 4FEA0323 		lsl	r3, r3, #8
+ 865 051a 9AB2     		uxth	r2, r3
+ 866 051c 7B78     		ldrb	r3, [r7, #1]	@ zero_extendqisi2
+ 867 051e 1343     		orrs	r3, r3, r2
+ 868 0520 9AB2     		uxth	r2, r3
+ 869 0522 314B     		ldr	r3, .L42
+ 870 0524 1A80     		strh	r2, [r3, #0]	@ movhi
+ 275:../src/drv_bmp085.c ****     bmp085.cal_param.ac2 = (data[2] << 8) | data[3];
+ 871              		.loc 1 275 0
+ 872 0526 BB78     		ldrb	r3, [r7, #2]	@ zero_extendqisi2
+ 873 0528 4FEA0323 		lsl	r3, r3, #8
+ 874 052c 9AB2     		uxth	r2, r3
+ 875 052e FB78     		ldrb	r3, [r7, #3]	@ zero_extendqisi2
+ 876 0530 1343     		orrs	r3, r3, r2
+ 877 0532 9AB2     		uxth	r2, r3
+ 878 0534 2C4B     		ldr	r3, .L42
+ 879 0536 5A80     		strh	r2, [r3, #2]	@ movhi
+ 276:../src/drv_bmp085.c ****     bmp085.cal_param.ac3 = (data[4] << 8) | data[5];
+ 880              		.loc 1 276 0
+ 881 0538 3B79     		ldrb	r3, [r7, #4]	@ zero_extendqisi2
+ 882 053a 4FEA0323 		lsl	r3, r3, #8
+ 883 053e 9AB2     		uxth	r2, r3
+ 884 0540 7B79     		ldrb	r3, [r7, #5]	@ zero_extendqisi2
+ 885 0542 1343     		orrs	r3, r3, r2
+ 886 0544 9AB2     		uxth	r2, r3
+ 887 0546 284B     		ldr	r3, .L42
+ 888 0548 9A80     		strh	r2, [r3, #4]	@ movhi
+ 277:../src/drv_bmp085.c ****     bmp085.cal_param.ac4 = (data[6] << 8) | data[7];
+ 889              		.loc 1 277 0
+ 890 054a BB79     		ldrb	r3, [r7, #6]	@ zero_extendqisi2
+ 891 054c 4FEA0323 		lsl	r3, r3, #8
+ 892 0550 9AB2     		uxth	r2, r3
+ 893 0552 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 894 0554 1343     		orrs	r3, r3, r2
+ 895 0556 9BB2     		uxth	r3, r3
+ 896 0558 9AB2     		uxth	r2, r3
+ 897 055a 234B     		ldr	r3, .L42
+ 898 055c DA80     		strh	r2, [r3, #6]	@ movhi
+ 278:../src/drv_bmp085.c ****     bmp085.cal_param.ac5 = (data[8] << 8) | data[9];
+ 899              		.loc 1 278 0
+ 900 055e 3B7A     		ldrb	r3, [r7, #8]	@ zero_extendqisi2
+ 901 0560 4FEA0323 		lsl	r3, r3, #8
+ 902 0564 9AB2     		uxth	r2, r3
+ 903 0566 7B7A     		ldrb	r3, [r7, #9]	@ zero_extendqisi2
+ 904 0568 1343     		orrs	r3, r3, r2
+ 905 056a 9BB2     		uxth	r3, r3
+ 906 056c 9AB2     		uxth	r2, r3
+ 907 056e 1E4B     		ldr	r3, .L42
+ 908 0570 1A81     		strh	r2, [r3, #8]	@ movhi
+ 279:../src/drv_bmp085.c ****     bmp085.cal_param.ac6 = (data[10] << 8) | data[11];
+ 909              		.loc 1 279 0
+ 910 0572 BB7A     		ldrb	r3, [r7, #10]	@ zero_extendqisi2
+ 911 0574 4FEA0323 		lsl	r3, r3, #8
+ 912 0578 9AB2     		uxth	r2, r3
+ 913 057a FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 914 057c 1343     		orrs	r3, r3, r2
+ 915 057e 9BB2     		uxth	r3, r3
+ 916 0580 9AB2     		uxth	r2, r3
+ 917 0582 194B     		ldr	r3, .L42
+ 918 0584 5A81     		strh	r2, [r3, #10]	@ movhi
+ 280:../src/drv_bmp085.c **** 
+ 281:../src/drv_bmp085.c ****     /*parameters B1,B2*/
+ 282:../src/drv_bmp085.c ****     bmp085.cal_param.b1 = (data[12] << 8) | data[13];
+ 919              		.loc 1 282 0
+ 920 0586 3B7B     		ldrb	r3, [r7, #12]	@ zero_extendqisi2
+ 921 0588 4FEA0323 		lsl	r3, r3, #8
+ 922 058c 9AB2     		uxth	r2, r3
+ 923 058e 7B7B     		ldrb	r3, [r7, #13]	@ zero_extendqisi2
+ 924 0590 1343     		orrs	r3, r3, r2
+ 925 0592 9AB2     		uxth	r2, r3
+ 926 0594 144B     		ldr	r3, .L42
+ 927 0596 9A81     		strh	r2, [r3, #12]	@ movhi
+ 283:../src/drv_bmp085.c ****     bmp085.cal_param.b2 = (data[14] << 8) | data[15];
+ 928              		.loc 1 283 0
+ 929 0598 BB7B     		ldrb	r3, [r7, #14]	@ zero_extendqisi2
+ 930 059a 4FEA0323 		lsl	r3, r3, #8
+ 931 059e 9AB2     		uxth	r2, r3
+ 932 05a0 FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 933 05a2 1343     		orrs	r3, r3, r2
+ 934 05a4 9AB2     		uxth	r2, r3
+ 935 05a6 104B     		ldr	r3, .L42
+ 936 05a8 DA81     		strh	r2, [r3, #14]	@ movhi
+ 284:../src/drv_bmp085.c **** 
+ 285:../src/drv_bmp085.c ****     /*parameters MB,MC,MD*/
+ 286:../src/drv_bmp085.c ****     bmp085.cal_param.mb = (data[16] << 8) | data[17];
+ 937              		.loc 1 286 0
+ 938 05aa 3B7C     		ldrb	r3, [r7, #16]	@ zero_extendqisi2
+ 939 05ac 4FEA0323 		lsl	r3, r3, #8
+ 940 05b0 9AB2     		uxth	r2, r3
+ 941 05b2 7B7C     		ldrb	r3, [r7, #17]	@ zero_extendqisi2
+ 942 05b4 1343     		orrs	r3, r3, r2
+ 943 05b6 9AB2     		uxth	r2, r3
+ 944 05b8 0B4B     		ldr	r3, .L42
+ 945 05ba 1A82     		strh	r2, [r3, #16]	@ movhi
+ 287:../src/drv_bmp085.c ****     bmp085.cal_param.mc = (data[18] << 8) | data[19];
+ 946              		.loc 1 287 0
+ 947 05bc BB7C     		ldrb	r3, [r7, #18]	@ zero_extendqisi2
+ 948 05be 4FEA0323 		lsl	r3, r3, #8
+ 949 05c2 9AB2     		uxth	r2, r3
+ 950 05c4 FB7C     		ldrb	r3, [r7, #19]	@ zero_extendqisi2
+ 951 05c6 1343     		orrs	r3, r3, r2
+ 952 05c8 9AB2     		uxth	r2, r3
+ 953 05ca 074B     		ldr	r3, .L42
+ 954 05cc 5A82     		strh	r2, [r3, #18]	@ movhi
+ 288:../src/drv_bmp085.c ****     bmp085.cal_param.md = (data[20] << 8) | data[21];
+ 955              		.loc 1 288 0
+ 956 05ce 3B7D     		ldrb	r3, [r7, #20]	@ zero_extendqisi2
+ 957 05d0 4FEA0323 		lsl	r3, r3, #8
+ 958 05d4 9AB2     		uxth	r2, r3
+ 959 05d6 7B7D     		ldrb	r3, [r7, #21]	@ zero_extendqisi2
+ 960 05d8 1343     		orrs	r3, r3, r2
+ 961 05da 9AB2     		uxth	r2, r3
+ 962 05dc 024B     		ldr	r3, .L42
+ 963 05de 9A82     		strh	r2, [r3, #20]	@ movhi
+ 289:../src/drv_bmp085.c **** }
+ 964              		.loc 1 289 0
+ 965 05e0 07F11807 		add	r7, r7, #24
+ 966 05e4 BD46     		mov	sp, r7
+ 967 05e6 80BD     		pop	{r7, pc}
+ 968              	.L43:
+ 969              		.align	2
+ 970              	.L42:
+ 971 05e8 04000000 		.word	bmp085
+ 972              		.cfi_endproc
+ 973              	.LFE38:
+ 975              	.Letext0:
+ 976              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 977              		.file 3 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/stm32f10x.h"
+ 978              		.file 4 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/stm32f10x_exti.h"
+ 979              		.file 5 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/stm32f10x_gpio.h"
+ 980              		.file 6 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/misc.h"
+ 981              		.file 7 "../src/board.h"
+ 982              		.file 8 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 drv_bmp085.c
+     /tmp/ccCc9Ajc.s:19     .bss:00000000 convDone
+     /tmp/ccCc9Ajc.s:20     .bss:00000000 $d
+     /tmp/ccCc9Ajc.s:22     .bss:00000002 convOverrun
+     /tmp/ccCc9Ajc.s:25     .text:00000000 $t
+     /tmp/ccCc9Ajc.s:30     .text:00000000 EXTI15_10_IRQHandler
+     /tmp/ccCc9Ajc.s:64     .text:00000024 $d
+     /tmp/ccCc9Ajc.s:70     .bss:00000004 bmp085
+     /tmp/ccCc9Ajc.s:72     .bss:00000028 bmp085InitDone
+     /tmp/ccCc9Ajc.s:75     .bss:0000002a bmp085_ut
+     /tmp/ccCc9Ajc.s:78     .bss:0000002c bmp085_up
+     /tmp/ccCc9Ajc.s:81     .text:00000028 $t
+     /tmp/ccCc9Ajc.s:86     .text:00000028 bmp085Detect
+     /tmp/ccCc9Ajc.s:839    .text:000004fc bmp085_get_cal_param
+     /tmp/ccCc9Ajc.s:271    .text:00000180 $d
+     /tmp/ccCc9Ajc.s:545    .text:00000370 bmp085_start_ut
+     /tmp/ccCc9Ajc.s:581    .text:00000394 bmp085_get_ut
+     /tmp/ccCc9Ajc.s:649    .text:000003f8 bmp085_start_up
+     /tmp/ccCc9Ajc.s:700    .text:00000438 bmp085_get_up
+     /tmp/ccCc9Ajc.s:774    .text:000004b0 bmp085_calculate
+     /tmp/ccCc9Ajc.s:282    .text:000001a0 $t
+     /tmp/ccCc9Ajc.s:286    .text:000001a0 bmp085_get_temperature
+     /tmp/ccCc9Ajc.s:353    .text:0000020c $d
+     /tmp/ccCc9Ajc.s:357    .text:00000210 $t
+     /tmp/ccCc9Ajc.s:361    .text:00000210 bmp085_get_pressure
+     /tmp/ccCc9Ajc.s:536    .text:00000368 $d
+     /tmp/ccCc9Ajc.s:541    .text:00000370 $t
+     /tmp/ccCc9Ajc.s:573    .text:00000390 $d
+     /tmp/ccCc9Ajc.s:577    .text:00000394 $t
+     /tmp/ccCc9Ajc.s:639    .text:000003ec $d
+     /tmp/ccCc9Ajc.s:645    .text:000003f8 $t
+     /tmp/ccCc9Ajc.s:691    .text:00000430 $d
+     /tmp/ccCc9Ajc.s:696    .text:00000438 $t
+     /tmp/ccCc9Ajc.s:763    .text:000004a0 $d
+     /tmp/ccCc9Ajc.s:770    .text:000004b0 $t
+     /tmp/ccCc9Ajc.s:830    .text:000004f4 $d
+     /tmp/ccCc9Ajc.s:835    .text:000004fc $t
+     /tmp/ccCc9Ajc.s:971    .text:000005e8 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+
+UNDEFINED SYMBOLS
+EXTI_GetITStatus
+EXTI_ClearITPendingBit
+GPIO_Init
+GPIO_EXTILineConfig
+EXTI_Init
+NVIC_Init
+delay
+i2cRead
+i2cWrite

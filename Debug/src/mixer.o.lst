@@ -1,0 +1,2711 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"mixer.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.bss
+  19              	numberMotor:
+  20 0000 00       		.space	1
+  21              		.global	useServo
+  24              	useServo:
+  25 0001 00       		.space	1
+  26              		.comm	motor,24,4
+  27              		.global	servo
+  28              		.data
+  29              		.align	2
+  32              	servo:
+  33 0000 DC05     		.short	1500
+  34 0002 DC05     		.short	1500
+  35 0004 DC05     		.short	1500
+  36 0006 DC05     		.short	1500
+  37 0008 DC05     		.short	1500
+  38 000a DC05     		.short	1500
+  39 000c DC05     		.short	1500
+  40 000e DC05     		.short	1500
+  41              		.bss
+  42 0002 0000     		.align	2
+  43              	currentMixer:
+  44 0004 00000000 		.space	192
+  44      00000000 
+  44      00000000 
+  44      00000000 
+  44      00000000 
+  45              		.align	2
+  46              	currentServo:
+  47 00c4 00000000 		.space	64
+  47      00000000 
+  47      00000000 
+  47      00000000 
+  47      00000000 
+  48              		.section	.rodata
+  49              		.align	2
+  52              	mixerTri:
+  53 0000 0000803F 		.word	1065353216
+  54 0004 00000000 		.word	0
+  55 0008 A8AAAA3F 		.word	1068149416
+  56 000c 00000000 		.word	0
+  57 0010 0000803F 		.word	1065353216
+  58 0014 000080BF 		.word	-1082130432
+  59 0018 B0AA2ABF 		.word	-1087722832
+  60 001c 00000000 		.word	0
+  61 0020 0000803F 		.word	1065353216
+  62 0024 0000803F 		.word	1065353216
+  63 0028 B0AA2ABF 		.word	-1087722832
+  64 002c 00000000 		.word	0
+  65              		.align	2
+  68              	mixerQuadP:
+  69 0030 0000803F 		.word	1065353216
+  70 0034 00000000 		.word	0
+  71 0038 0000803F 		.word	1065353216
+  72 003c 000080BF 		.word	-1082130432
+  73 0040 0000803F 		.word	1065353216
+  74 0044 000080BF 		.word	-1082130432
+  75 0048 00000000 		.word	0
+  76 004c 0000803F 		.word	1065353216
+  77 0050 0000803F 		.word	1065353216
+  78 0054 0000803F 		.word	1065353216
+  79 0058 00000000 		.word	0
+  80 005c 0000803F 		.word	1065353216
+  81 0060 0000803F 		.word	1065353216
+  82 0064 00000000 		.word	0
+  83 0068 000080BF 		.word	-1082130432
+  84 006c 000080BF 		.word	-1082130432
+  85              		.align	2
+  88              	mixerQuadX:
+  89 0070 0000803F 		.word	1065353216
+  90 0074 000080BF 		.word	-1082130432
+  91 0078 0000803F 		.word	1065353216
+  92 007c 000080BF 		.word	-1082130432
+  93 0080 0000803F 		.word	1065353216
+  94 0084 000080BF 		.word	-1082130432
+  95 0088 000080BF 		.word	-1082130432
+  96 008c 0000803F 		.word	1065353216
+  97 0090 0000803F 		.word	1065353216
+  98 0094 0000803F 		.word	1065353216
+  99 0098 0000803F 		.word	1065353216
+ 100 009c 0000803F 		.word	1065353216
+ 101 00a0 0000803F 		.word	1065353216
+ 102 00a4 0000803F 		.word	1065353216
+ 103 00a8 000080BF 		.word	-1082130432
+ 104 00ac 000080BF 		.word	-1082130432
+ 105              		.align	2
+ 108              	mixerBi:
+ 109 00b0 0000803F 		.word	1065353216
+ 110 00b4 0000803F 		.word	1065353216
+ 111 00b8 00000000 		.word	0
+ 112 00bc 00000000 		.word	0
+ 113 00c0 0000803F 		.word	1065353216
+ 114 00c4 000080BF 		.word	-1082130432
+ 115 00c8 00000000 		.word	0
+ 116 00cc 00000000 		.word	0
+ 117              		.align	2
+ 120              	mixerY6:
+ 121 00d0 0000803F 		.word	1065353216
+ 122 00d4 00000000 		.word	0
+ 123 00d8 A8AAAA3F 		.word	1068149416
+ 124 00dc 0000803F 		.word	1065353216
+ 125 00e0 0000803F 		.word	1065353216
+ 126 00e4 000080BF 		.word	-1082130432
+ 127 00e8 B0AA2ABF 		.word	-1087722832
+ 128 00ec 000080BF 		.word	-1082130432
+ 129 00f0 0000803F 		.word	1065353216
+ 130 00f4 0000803F 		.word	1065353216
+ 131 00f8 B0AA2ABF 		.word	-1087722832
+ 132 00fc 000080BF 		.word	-1082130432
+ 133 0100 0000803F 		.word	1065353216
+ 134 0104 00000000 		.word	0
+ 135 0108 A8AAAA3F 		.word	1068149416
+ 136 010c 000080BF 		.word	-1082130432
+ 137 0110 0000803F 		.word	1065353216
+ 138 0114 000080BF 		.word	-1082130432
+ 139 0118 B0AA2ABF 		.word	-1087722832
+ 140 011c 0000803F 		.word	1065353216
+ 141 0120 0000803F 		.word	1065353216
+ 142 0124 0000803F 		.word	1065353216
+ 143 0128 B0AA2ABF 		.word	-1087722832
+ 144 012c 0000803F 		.word	1065353216
+ 145              		.align	2
+ 148              	mixerHex6P:
+ 149 0130 0000803F 		.word	1065353216
+ 150 0134 000080BF 		.word	-1082130432
+ 151 0138 D0B35D3F 		.word	1063105488
+ 152 013c 0000803F 		.word	1065353216
+ 153 0140 0000803F 		.word	1065353216
+ 154 0144 000080BF 		.word	-1082130432
+ 155 0148 D0B35DBF 		.word	-1084378160
+ 156 014c 000080BF 		.word	-1082130432
+ 157 0150 0000803F 		.word	1065353216
+ 158 0154 0000803F 		.word	1065353216
+ 159 0158 D0B35D3F 		.word	1063105488
+ 160 015c 0000803F 		.word	1065353216
+ 161 0160 0000803F 		.word	1065353216
+ 162 0164 0000803F 		.word	1065353216
+ 163 0168 D0B35DBF 		.word	-1084378160
+ 164 016c 000080BF 		.word	-1082130432
+ 165 0170 0000803F 		.word	1065353216
+ 166 0174 00000000 		.word	0
+ 167 0178 D0B35DBF 		.word	-1084378160
+ 168 017c 0000803F 		.word	1065353216
+ 169 0180 0000803F 		.word	1065353216
+ 170 0184 00000000 		.word	0
+ 171 0188 D0B35D3F 		.word	1063105488
+ 172 018c 000080BF 		.word	-1082130432
+ 173              		.align	2
+ 176              	mixerY4:
+ 177 0190 0000803F 		.word	1065353216
+ 178 0194 00000000 		.word	0
+ 179 0198 0000803F 		.word	1065353216
+ 180 019c 000080BF 		.word	-1082130432
+ 181 01a0 0000803F 		.word	1065353216
+ 182 01a4 000080BF 		.word	-1082130432
+ 183 01a8 000080BF 		.word	-1082130432
+ 184 01ac 00000000 		.word	0
+ 185 01b0 0000803F 		.word	1065353216
+ 186 01b4 00000000 		.word	0
+ 187 01b8 0000803F 		.word	1065353216
+ 188 01bc 0000803F 		.word	1065353216
+ 189 01c0 0000803F 		.word	1065353216
+ 190 01c4 0000803F 		.word	1065353216
+ 191 01c8 000080BF 		.word	-1082130432
+ 192 01cc 00000000 		.word	0
+ 193              		.align	2
+ 196              	mixerHex6X:
+ 197 01d0 0000803F 		.word	1065353216
+ 198 01d4 D0B35DBF 		.word	-1084378160
+ 199 01d8 0000803F 		.word	1065353216
+ 200 01dc 0000803F 		.word	1065353216
+ 201 01e0 0000803F 		.word	1065353216
+ 202 01e4 D0B35DBF 		.word	-1084378160
+ 203 01e8 000080BF 		.word	-1082130432
+ 204 01ec 0000803F 		.word	1065353216
+ 205 01f0 0000803F 		.word	1065353216
+ 206 01f4 D0B35D3F 		.word	1063105488
+ 207 01f8 0000803F 		.word	1065353216
+ 208 01fc 000080BF 		.word	-1082130432
+ 209 0200 0000803F 		.word	1065353216
+ 210 0204 D0B35D3F 		.word	1063105488
+ 211 0208 000080BF 		.word	-1082130432
+ 212 020c 000080BF 		.word	-1082130432
+ 213 0210 0000803F 		.word	1065353216
+ 214 0214 D0B35DBF 		.word	-1084378160
+ 215 0218 00000000 		.word	0
+ 216 021c 000080BF 		.word	-1082130432
+ 217 0220 0000803F 		.word	1065353216
+ 218 0224 D0B35D3F 		.word	1063105488
+ 219 0228 00000000 		.word	0
+ 220 022c 0000803F 		.word	1065353216
+ 221              		.align	2
+ 224              	mixerOctoX8:
+ 225 0230 0000803F 		.word	1065353216
+ 226 0234 000080BF 		.word	-1082130432
+ 227 0238 0000803F 		.word	1065353216
+ 228 023c 000080BF 		.word	-1082130432
+ 229 0240 0000803F 		.word	1065353216
+ 230 0244 000080BF 		.word	-1082130432
+ 231 0248 000080BF 		.word	-1082130432
+ 232 024c 0000803F 		.word	1065353216
+ 233 0250 0000803F 		.word	1065353216
+ 234 0254 0000803F 		.word	1065353216
+ 235 0258 0000803F 		.word	1065353216
+ 236 025c 0000803F 		.word	1065353216
+ 237 0260 0000803F 		.word	1065353216
+ 238 0264 0000803F 		.word	1065353216
+ 239 0268 000080BF 		.word	-1082130432
+ 240 026c 000080BF 		.word	-1082130432
+ 241 0270 0000803F 		.word	1065353216
+ 242 0274 000080BF 		.word	-1082130432
+ 243 0278 0000803F 		.word	1065353216
+ 244 027c 0000803F 		.word	1065353216
+ 245 0280 0000803F 		.word	1065353216
+ 246 0284 000080BF 		.word	-1082130432
+ 247 0288 000080BF 		.word	-1082130432
+ 248 028c 000080BF 		.word	-1082130432
+ 249 0290 0000803F 		.word	1065353216
+ 250 0294 0000803F 		.word	1065353216
+ 251 0298 0000803F 		.word	1065353216
+ 252 029c 000080BF 		.word	-1082130432
+ 253 02a0 0000803F 		.word	1065353216
+ 254 02a4 0000803F 		.word	1065353216
+ 255 02a8 000080BF 		.word	-1082130432
+ 256 02ac 0000803F 		.word	1065353216
+ 257              		.align	2
+ 260              	mixerOctoFlatP:
+ 261 02b0 0000803F 		.word	1065353216
+ 262 02b4 F704353F 		.word	1060439287
+ 263 02b8 F70435BF 		.word	-1087044361
+ 264 02bc 0000803F 		.word	1065353216
+ 265 02c0 0000803F 		.word	1065353216
+ 266 02c4 F70435BF 		.word	-1087044361
+ 267 02c8 F70435BF 		.word	-1087044361
+ 268 02cc 0000803F 		.word	1065353216
+ 269 02d0 0000803F 		.word	1065353216
+ 270 02d4 F70435BF 		.word	-1087044361
+ 271 02d8 F704353F 		.word	1060439287
+ 272 02dc 0000803F 		.word	1065353216
+ 273 02e0 0000803F 		.word	1065353216
+ 274 02e4 F704353F 		.word	1060439287
+ 275 02e8 F704353F 		.word	1060439287
+ 276 02ec 0000803F 		.word	1065353216
+ 277 02f0 0000803F 		.word	1065353216
+ 278 02f4 00000000 		.word	0
+ 279 02f8 000080BF 		.word	-1082130432
+ 280 02fc 000080BF 		.word	-1082130432
+ 281 0300 0000803F 		.word	1065353216
+ 282 0304 000080BF 		.word	-1082130432
+ 283 0308 00000000 		.word	0
+ 284 030c 000080BF 		.word	-1082130432
+ 285 0310 0000803F 		.word	1065353216
+ 286 0314 00000000 		.word	0
+ 287 0318 0000803F 		.word	1065353216
+ 288 031c 000080BF 		.word	-1082130432
+ 289 0320 0000803F 		.word	1065353216
+ 290 0324 0000803F 		.word	1065353216
+ 291 0328 00000000 		.word	0
+ 292 032c 000080BF 		.word	-1082130432
+ 293              		.align	2
+ 296              	mixerOctoFlatX:
+ 297 0330 0000803F 		.word	1065353216
+ 298 0334 0000803F 		.word	1065353216
+ 299 0338 000000BF 		.word	-1090519040
+ 300 033c 0000803F 		.word	1065353216
+ 301 0340 0000803F 		.word	1065353216
+ 302 0344 000000BF 		.word	-1090519040
+ 303 0348 000080BF 		.word	-1082130432
+ 304 034c 0000803F 		.word	1065353216
+ 305 0350 0000803F 		.word	1065353216
+ 306 0354 000080BF 		.word	-1082130432
+ 307 0358 0000003F 		.word	1056964608
+ 308 035c 0000803F 		.word	1065353216
+ 309 0360 0000803F 		.word	1065353216
+ 310 0364 0000003F 		.word	1056964608
+ 311 0368 0000803F 		.word	1065353216
+ 312 036c 0000803F 		.word	1065353216
+ 313 0370 0000803F 		.word	1065353216
+ 314 0374 0000003F 		.word	1056964608
+ 315 0378 000080BF 		.word	-1082130432
+ 316 037c 000080BF 		.word	-1082130432
+ 317 0380 0000803F 		.word	1065353216
+ 318 0384 000080BF 		.word	-1082130432
+ 319 0388 000000BF 		.word	-1090519040
+ 320 038c 000080BF 		.word	-1082130432
+ 321 0390 0000803F 		.word	1065353216
+ 322 0394 000000BF 		.word	-1090519040
+ 323 0398 0000803F 		.word	1065353216
+ 324 039c 000080BF 		.word	-1082130432
+ 325 03a0 0000803F 		.word	1065353216
+ 326 03a4 0000803F 		.word	1065353216
+ 327 03a8 0000003F 		.word	1056964608
+ 328 03ac 000080BF 		.word	-1082130432
+ 329              		.align	2
+ 332              	mixerVtail4:
+ 333 03b0 0000803F 		.word	1065353216
+ 334 03b4 00000000 		.word	0
+ 335 03b8 0000803F 		.word	1065353216
+ 336 03bc 0000803F 		.word	1065353216
+ 337 03c0 0000803F 		.word	1065353216
+ 338 03c4 000080BF 		.word	-1082130432
+ 339 03c8 000080BF 		.word	-1082130432
+ 340 03cc 00000000 		.word	0
+ 341 03d0 0000803F 		.word	1065353216
+ 342 03d4 00000000 		.word	0
+ 343 03d8 0000803F 		.word	1065353216
+ 344 03dc 000080BF 		.word	-1082130432
+ 345 03e0 0000803F 		.word	1065353216
+ 346 03e4 0000803F 		.word	1065353216
+ 347 03e8 000080BF 		.word	-1082130432
+ 348 03ec 00000080 		.word	-2147483648
+ 349              		.global	mixers
+ 350              		.align	2
+ 353              	mixers:
+ 354 03f0 00       		.byte	0
+ 355 03f1 00       		.byte	0
+ 356 03f2 0000     		.space	2
+ 357 03f4 00000000 		.word	0
+ 358 03f8 03       		.byte	3
+ 359 03f9 01       		.byte	1
+ 360 03fa 0000     		.space	2
+ 361 03fc 00000000 		.word	mixerTri
+ 362 0400 04       		.byte	4
+ 363 0401 00       		.byte	0
+ 364 0402 0000     		.space	2
+ 365 0404 30000000 		.word	mixerQuadP
+ 366 0408 04       		.byte	4
+ 367 0409 00       		.byte	0
+ 368 040a 0000     		.space	2
+ 369 040c 70000000 		.word	mixerQuadX
+ 370 0410 02       		.byte	2
+ 371 0411 01       		.byte	1
+ 372 0412 0000     		.space	2
+ 373 0414 B0000000 		.word	mixerBi
+ 374 0418 00       		.byte	0
+ 375 0419 01       		.byte	1
+ 376 041a 0000     		.space	2
+ 377 041c 00000000 		.word	0
+ 378 0420 06       		.byte	6
+ 379 0421 00       		.byte	0
+ 380 0422 0000     		.space	2
+ 381 0424 D0000000 		.word	mixerY6
+ 382 0428 06       		.byte	6
+ 383 0429 00       		.byte	0
+ 384 042a 0000     		.space	2
+ 385 042c 30010000 		.word	mixerHex6P
+ 386 0430 01       		.byte	1
+ 387 0431 01       		.byte	1
+ 388 0432 0000     		.space	2
+ 389 0434 00000000 		.word	0
+ 390 0438 04       		.byte	4
+ 391 0439 00       		.byte	0
+ 392 043a 0000     		.space	2
+ 393 043c 90010000 		.word	mixerY4
+ 394 0440 06       		.byte	6
+ 395 0441 00       		.byte	0
+ 396 0442 0000     		.space	2
+ 397 0444 D0010000 		.word	mixerHex6X
+ 398 0448 08       		.byte	8
+ 399 0449 00       		.byte	0
+ 400 044a 0000     		.space	2
+ 401 044c 30020000 		.word	mixerOctoX8
+ 402 0450 08       		.byte	8
+ 403 0451 00       		.byte	0
+ 404 0452 0000     		.space	2
+ 405 0454 B0020000 		.word	mixerOctoFlatP
+ 406 0458 08       		.byte	8
+ 407 0459 00       		.byte	0
+ 408 045a 0000     		.space	2
+ 409 045c 30030000 		.word	mixerOctoFlatX
+ 410 0460 01       		.byte	1
+ 411 0461 01       		.byte	1
+ 412 0462 0000     		.space	2
+ 413 0464 00000000 		.word	0
+ 414 0468 00       		.byte	0
+ 415 0469 01       		.byte	1
+ 416 046a 0000     		.space	2
+ 417 046c 00000000 		.word	0
+ 418 0470 00       		.byte	0
+ 419 0471 01       		.byte	1
+ 420 0472 0000     		.space	2
+ 421 0474 00000000 		.word	0
+ 422 0478 04       		.byte	4
+ 423 0479 00       		.byte	0
+ 424 047a 0000     		.space	2
+ 425 047c B0030000 		.word	mixerVtail4
+ 426 0480 00       		.byte	0
+ 427 0481 00       		.byte	0
+ 428 0482 0000     		.space	2
+ 429 0484 00000000 		.word	0
+ 430              		.align	2
+ 433              	servoInit:
+ 434 0488 01       		.byte	1
+ 435 0489 00       		.space	1
+ 436 048a DC05     		.short	1500
+ 437 048c FC03     		.short	1020
+ 438 048e D007     		.short	2000
+ 439              		.global	__aeabi_fcmpeq
+ 440              		.text
+ 441              		.align	2
+ 442              		.global	mixerInit
+ 443              		.thumb
+ 444              		.thumb_func
+ 446              	mixerInit:
+ 447              	.LFB29:
+ 448              		.file 1 "../src/mixer.c"
+   1:../src/mixer.c **** #include "board.h"
+   2:../src/mixer.c **** #include "mw.h"
+   3:../src/mixer.c **** 
+   4:../src/mixer.c **** static uint8_t numberMotor = 0;
+   5:../src/mixer.c **** uint8_t useServo = 0;
+   6:../src/mixer.c **** int16_t motor[MAX_MOTORS];
+   7:../src/mixer.c **** int16_t servo[8] = { 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500 };
+   8:../src/mixer.c **** 
+   9:../src/mixer.c **** static motorMixer_t currentMixer[MAX_MOTORS];
+  10:../src/mixer.c **** static servoParam_t currentServo[MAX_SERVOS];
+  11:../src/mixer.c **** 
+  12:../src/mixer.c **** static const motorMixer_t mixerTri[] = {
+  13:../src/mixer.c ****     { 1.0f,  0.0f,  1.333333f,  0.0f },     // REAR
+  14:../src/mixer.c ****     { 1.0f, -1.0f, -0.666667f,  0.0f },     // RIGHT
+  15:../src/mixer.c ****     { 1.0f,  1.0f, -0.666667f,  0.0f },     // LEFT
+  16:../src/mixer.c **** };
+  17:../src/mixer.c **** 
+  18:../src/mixer.c **** static const motorMixer_t mixerQuadP[] = {
+  19:../src/mixer.c ****     { 1.0f,  0.0f,  1.0f, -1.0f },          // REAR
+  20:../src/mixer.c ****     { 1.0f, -1.0f,  0.0f,  1.0f },          // RIGHT
+  21:../src/mixer.c ****     { 1.0f,  1.0f,  0.0f,  1.0f },          // LEFT
+  22:../src/mixer.c ****     { 1.0f,  0.0f, -1.0f, -1.0f },          // FRONT
+  23:../src/mixer.c **** };
+  24:../src/mixer.c **** 
+  25:../src/mixer.c **** static const motorMixer_t mixerQuadX[] = {
+  26:../src/mixer.c ****     { 1.0f, -1.0f,  1.0f, -1.0f },          // REAR_R
+  27:../src/mixer.c ****     { 1.0f, -1.0f, -1.0f,  1.0f },          // FRONT_R
+  28:../src/mixer.c ****     { 1.0f,  1.0f,  1.0f,  1.0f },          // REAR_L
+  29:../src/mixer.c ****     { 1.0f,  1.0f, -1.0f, -1.0f },          // FRONT_L
+  30:../src/mixer.c **** };
+  31:../src/mixer.c **** 
+  32:../src/mixer.c **** static const motorMixer_t mixerBi[] = {
+  33:../src/mixer.c ****     { 1.0f,  1.0f,  0.0f,  0.0f },          // LEFT
+  34:../src/mixer.c ****     { 1.0f, -1.0f,  0.0f,  0.0f },          // RIGHT
+  35:../src/mixer.c **** };
+  36:../src/mixer.c **** 
+  37:../src/mixer.c **** static const motorMixer_t mixerY6[] = {
+  38:../src/mixer.c ****     { 1.0f,  0.0f,  1.333333f,  1.0f },     // REAR
+  39:../src/mixer.c ****     { 1.0f, -1.0f, -0.666667f, -1.0f },     // RIGHT
+  40:../src/mixer.c ****     { 1.0f,  1.0f, -0.666667f, -1.0f },     // LEFT
+  41:../src/mixer.c ****     { 1.0f,  0.0f,  1.333333f, -1.0f },     // UNDER_REAR
+  42:../src/mixer.c ****     { 1.0f, -1.0f, -0.666667f,  1.0f },     // UNDER_RIGHT
+  43:../src/mixer.c ****     { 1.0f,  1.0f, -0.666667f,  1.0f },     // UNDER_LEFT
+  44:../src/mixer.c **** };
+  45:../src/mixer.c **** 
+  46:../src/mixer.c **** static const motorMixer_t mixerHex6P[] = {
+  47:../src/mixer.c ****     { 1.0f, -1.0f,  0.866025f,  1.0f },     // REAR_R
+  48:../src/mixer.c ****     { 1.0f, -1.0f, -0.866025f, -1.0f },     // FRONT_R
+  49:../src/mixer.c ****     { 1.0f,  1.0f,  0.866025f,  1.0f },     // REAR_L
+  50:../src/mixer.c ****     { 1.0f,  1.0f, -0.866025f, -1.0f },     // FRONT_L
+  51:../src/mixer.c ****     { 1.0f,  0.0f, -0.866025f,  1.0f },     // FRONT
+  52:../src/mixer.c ****     { 1.0f,  0.0f,  0.866025f, -1.0f },     // REAR
+  53:../src/mixer.c **** };
+  54:../src/mixer.c **** 
+  55:../src/mixer.c **** static const motorMixer_t mixerY4[] = {
+  56:../src/mixer.c ****     { 1.0f,  0.0f,  1.0f, -1.0f },          // REAR_TOP CW
+  57:../src/mixer.c ****     { 1.0f, -1.0f, -1.0f,  0.0f },          // FRONT_R CCW
+  58:../src/mixer.c ****     { 1.0f,  0.0f,  1.0f,  1.0f },          // REAR_BOTTOM CCW
+  59:../src/mixer.c ****     { 1.0f,  1.0f, -1.0f,  0.0f },          // FRONT_L CW
+  60:../src/mixer.c **** };
+  61:../src/mixer.c **** 
+  62:../src/mixer.c **** static const motorMixer_t mixerHex6X[] = {
+  63:../src/mixer.c ****     { 1.0f, -0.866025f,  1.0f,  1.0f },     // REAR_R
+  64:../src/mixer.c ****     { 1.0f, -0.866025f, -1.0f,  1.0f },     // FRONT_R
+  65:../src/mixer.c ****     { 1.0f,  0.866025f,  1.0f, -1.0f },     // REAR_L
+  66:../src/mixer.c ****     { 1.0f,  0.866025f, -1.0f, -1.0f },     // FRONT_L
+  67:../src/mixer.c ****     { 1.0f, -0.866025f,  0.0f, -1.0f },     // RIGHT
+  68:../src/mixer.c ****     { 1.0f,  0.866025f,  0.0f,  1.0f },     // LEFT
+  69:../src/mixer.c **** };
+  70:../src/mixer.c **** 
+  71:../src/mixer.c **** static const motorMixer_t mixerOctoX8[] = {
+  72:../src/mixer.c ****     { 1.0f, -1.0f,  1.0f, -1.0f },          // REAR_R
+  73:../src/mixer.c ****     { 1.0f, -1.0f, -1.0f,  1.0f },          // FRONT_R
+  74:../src/mixer.c ****     { 1.0f,  1.0f,  1.0f,  1.0f },          // REAR_L
+  75:../src/mixer.c ****     { 1.0f,  1.0f, -1.0f, -1.0f },          // FRONT_L
+  76:../src/mixer.c ****     { 1.0f, -1.0f,  1.0f,  1.0f },          // UNDER_REAR_R
+  77:../src/mixer.c ****     { 1.0f, -1.0f, -1.0f, -1.0f },          // UNDER_FRONT_R
+  78:../src/mixer.c ****     { 1.0f,  1.0f,  1.0f, -1.0f },          // UNDER_REAR_L
+  79:../src/mixer.c ****     { 1.0f,  1.0f, -1.0f,  1.0f },          // UNDER_FRONT_L
+  80:../src/mixer.c **** };
+  81:../src/mixer.c **** 
+  82:../src/mixer.c **** static const motorMixer_t mixerOctoFlatP[] = {
+  83:../src/mixer.c ****     { 1.0f,  0.707107f, -0.707107f,  1.0f },    // FRONT_L
+  84:../src/mixer.c ****     { 1.0f, -0.707107f, -0.707107f,  1.0f },    // FRONT_R
+  85:../src/mixer.c ****     { 1.0f, -0.707107f,  0.707107f,  1.0f },    // REAR_R
+  86:../src/mixer.c ****     { 1.0f,  0.707107f,  0.707107f,  1.0f },    // REAR_L
+  87:../src/mixer.c ****     { 1.0f,  0.0f, -1.0f, -1.0f },              // FRONT
+  88:../src/mixer.c ****     { 1.0f, -1.0f,  0.0f, -1.0f },              // RIGHT
+  89:../src/mixer.c ****     { 1.0f,  0.0f,  1.0f, -1.0f },              // REAR
+  90:../src/mixer.c ****     { 1.0f,  1.0f,  0.0f, -1.0f },              // LEFT
+  91:../src/mixer.c **** };
+  92:../src/mixer.c **** 
+  93:../src/mixer.c **** static const motorMixer_t mixerOctoFlatX[] = {
+  94:../src/mixer.c ****     { 1.0f,  1.0f, -0.5f,  1.0f },          // MIDFRONT_L
+  95:../src/mixer.c ****     { 1.0f, -0.5f, -1.0f,  1.0f },          // FRONT_R
+  96:../src/mixer.c ****     { 1.0f, -1.0f,  0.5f,  1.0f },          // MIDREAR_R
+  97:../src/mixer.c ****     { 1.0f,  0.5f,  1.0f,  1.0f },          // REAR_L
+  98:../src/mixer.c ****     { 1.0f,  0.5f, -1.0f, -1.0f },          // FRONT_L
+  99:../src/mixer.c ****     { 1.0f, -1.0f, -0.5f, -1.0f },          // MIDFRONT_R
+ 100:../src/mixer.c ****     { 1.0f, -0.5f,  1.0f, -1.0f },          // REAR_R
+ 101:../src/mixer.c ****     { 1.0f,  1.0f,  0.5f, -1.0f },          // MIDREAR_L
+ 102:../src/mixer.c **** };
+ 103:../src/mixer.c **** 
+ 104:../src/mixer.c **** static const motorMixer_t mixerVtail4[] = {
+ 105:../src/mixer.c ****     { 1.0f,  0.0f,  1.0f,  1.0f },          // REAR_R
+ 106:../src/mixer.c ****     { 1.0f, -1.0f, -1.0f,  0.0f },          // FRONT_R
+ 107:../src/mixer.c ****     { 1.0f,  0.0f,  1.0f, -1.0f },          // REAR_L
+ 108:../src/mixer.c ****     { 1.0f,  1.0f, -1.0f, -0.0f },          // FRONT_L
+ 109:../src/mixer.c **** };
+ 110:../src/mixer.c **** 
+ 111:../src/mixer.c **** // Keep this synced with MultiType struct in mw.h!
+ 112:../src/mixer.c **** const mixer_t mixers[] = {
+ 113:../src/mixer.c **** //    Mo Se Mixtable
+ 114:../src/mixer.c ****     { 0, 0, NULL },                // entry 0
+ 115:../src/mixer.c ****     { 3, 1, mixerTri },            // MULTITYPE_TRI
+ 116:../src/mixer.c ****     { 4, 0, mixerQuadP },          // MULTITYPE_QUADP
+ 117:../src/mixer.c ****     { 4, 0, mixerQuadX },          // MULTITYPE_QUADX
+ 118:../src/mixer.c ****     { 2, 1, mixerBi },             // MULTITYPE_BI
+ 119:../src/mixer.c ****     { 0, 1, NULL },                // * MULTITYPE_GIMBAL
+ 120:../src/mixer.c ****     { 6, 0, mixerY6 },             // MULTITYPE_Y6
+ 121:../src/mixer.c ****     { 6, 0, mixerHex6P },          // MULTITYPE_HEX6
+ 122:../src/mixer.c ****     { 1, 1, NULL },                // * MULTITYPE_FLYING_WING
+ 123:../src/mixer.c ****     { 4, 0, mixerY4 },             // MULTITYPE_Y4
+ 124:../src/mixer.c ****     { 6, 0, mixerHex6X },          // MULTITYPE_HEX6X
+ 125:../src/mixer.c ****     { 8, 0, mixerOctoX8 },         // MULTITYPE_OCTOX8
+ 126:../src/mixer.c ****     { 8, 0, mixerOctoFlatP },      // MULTITYPE_OCTOFLATP
+ 127:../src/mixer.c ****     { 8, 0, mixerOctoFlatX },      // MULTITYPE_OCTOFLATX
+ 128:../src/mixer.c ****     { 1, 1, NULL },                // * MULTITYPE_AIRPLANE
+ 129:../src/mixer.c ****     { 0, 1, NULL },                // * MULTITYPE_HELI_120_CCPM
+ 130:../src/mixer.c ****     { 0, 1, NULL },                // * MULTITYPE_HELI_90_DEG
+ 131:../src/mixer.c ****     { 4, 0, mixerVtail4 },         // MULTITYPE_VTAIL4
+ 132:../src/mixer.c ****     { 0, 0, NULL },                // MULTITYPE_CUSTOM
+ 133:../src/mixer.c **** };
+ 134:../src/mixer.c **** 
+ 135:../src/mixer.c **** static const servoParam_t servoInit = {
+ 136:../src/mixer.c ****     SERVO_NORMAL,           // direction
+ 137:../src/mixer.c ****     1500,                   // middle
+ 138:../src/mixer.c ****     1020,                   // min
+ 139:../src/mixer.c ****     2000,                   // max
+ 140:../src/mixer.c **** };
+ 141:../src/mixer.c **** 
+ 142:../src/mixer.c **** void mixerInit(void)
+ 143:../src/mixer.c **** {
+ 449              		.loc 1 143 0
+ 450              		.cfi_startproc
+ 451              		@ args = 0, pretend = 0, frame = 8
+ 452              		@ frame_needed = 1, uses_anonymous_args = 0
+ 453 0000 90B5     		push	{r4, r7, lr}
+ 454              	.LCFI0:
+ 455              		.cfi_def_cfa_offset 12
+ 456              		.cfi_offset 4, -12
+ 457              		.cfi_offset 7, -8
+ 458              		.cfi_offset 14, -4
+ 459 0002 83B0     		sub	sp, sp, #12
+ 460              	.LCFI1:
+ 461              		.cfi_def_cfa_offset 24
+ 462 0004 00AF     		add	r7, sp, #0
+ 463              	.LCFI2:
+ 464              		.cfi_def_cfa_register 7
+ 144:../src/mixer.c ****     int i;
+ 145:../src/mixer.c **** 
+ 146:../src/mixer.c ****     // enable servos for mixes that require them. note, this shifts motor counts.
+ 147:../src/mixer.c ****     useServo = mixers[mcfg.mixerConfiguration].useServo;
+ 465              		.loc 1 147 0
+ 466 0006 414B     		ldr	r3, .L13
+ 467 0008 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 468 000a 414A     		ldr	r2, .L13+4
+ 469 000c 4FEAC303 		lsl	r3, r3, #3
+ 470 0010 D318     		adds	r3, r2, r3
+ 471 0012 5A78     		ldrb	r2, [r3, #1]	@ zero_extendqisi2
+ 472 0014 3F4B     		ldr	r3, .L13+8
+ 473 0016 1A70     		strb	r2, [r3, #0]
+ 148:../src/mixer.c ****     // if we want camstab/trig, that also enables servos, even if mixer doesn't
+ 149:../src/mixer.c ****     if (feature(FEATURE_SERVO_TILT))
+ 474              		.loc 1 149 0
+ 475 0018 4FF02000 		mov	r0, #32
+ 476 001c FFF7FEFF 		bl	feature
+ 477 0020 0346     		mov	r3, r0
+ 478 0022 002B     		cmp	r3, #0
+ 479 0024 03D0     		beq	.L2
+ 150:../src/mixer.c ****         useServo = 1;
+ 480              		.loc 1 150 0
+ 481 0026 3B4B     		ldr	r3, .L13+8
+ 482 0028 4FF00102 		mov	r2, #1
+ 483 002c 1A70     		strb	r2, [r3, #0]
+ 484              	.L2:
+ 151:../src/mixer.c **** 
+ 152:../src/mixer.c ****     if (mcfg.mixerConfiguration == MULTITYPE_CUSTOM) {
+ 485              		.loc 1 152 0
+ 486 002e 374B     		ldr	r3, .L13
+ 487 0030 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 488 0032 122B     		cmp	r3, #18
+ 489 0034 31D1     		bne	.L3
+ 153:../src/mixer.c ****         // load custom mixer into currentMixer
+ 154:../src/mixer.c ****         for (i = 0; i < MAX_MOTORS; i++) {
+ 490              		.loc 1 154 0
+ 491 0036 4FF00003 		mov	r3, #0
+ 492 003a 7B60     		str	r3, [r7, #4]
+ 493 003c 29E0     		b	.L4
+ 494              	.L8:
+ 155:../src/mixer.c ****             // check if done
+ 156:../src/mixer.c ****             if (mcfg.customMixer[i].throttle == 0.0f)
+ 495              		.loc 1 156 0
+ 496 003e 334A     		ldr	r2, .L13
+ 497 0040 7B68     		ldr	r3, [r7, #4]
+ 498 0042 03F10103 		add	r3, r3, #1
+ 499 0046 4FEA0313 		lsl	r3, r3, #4
+ 500 004a D318     		adds	r3, r2, r3
+ 501 004c 1B68     		ldr	r3, [r3, #0]	@ float
+ 502 004e 1846     		mov	r0, r3
+ 503 0050 3349     		ldr	r1, .L13+20	@ float
+ 504 0052 FFF7FEFF 		bl	__aeabi_fcmpeq
+ 505 0056 0346     		mov	r3, r0
+ 506 0058 002B     		cmp	r3, #0
+ 507 005a 52D1     		bne	.L12
+ 157:../src/mixer.c ****                 break;
+ 158:../src/mixer.c ****             currentMixer[i] = mcfg.customMixer[i];
+ 508              		.loc 1 158 0
+ 509 005c 2E4A     		ldr	r2, .L13+12
+ 510 005e 7B68     		ldr	r3, [r7, #4]
+ 511 0060 4FEA0313 		lsl	r3, r3, #4
+ 512 0064 D218     		adds	r2, r2, r3
+ 513 0066 2949     		ldr	r1, .L13
+ 514 0068 7B68     		ldr	r3, [r7, #4]
+ 515 006a 03F10103 		add	r3, r3, #1
+ 516 006e 4FEA0313 		lsl	r3, r3, #4
+ 517 0072 CB18     		adds	r3, r1, r3
+ 518 0074 1446     		mov	r4, r2
+ 519 0076 0FCB     		ldmia	r3, {r0, r1, r2, r3}
+ 520 0078 84E80F00 		stmia	r4, {r0, r1, r2, r3}
+ 159:../src/mixer.c ****             numberMotor++;
+ 521              		.loc 1 159 0
+ 522 007c 274B     		ldr	r3, .L13+16
+ 523 007e 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 524 0080 03F10103 		add	r3, r3, #1
+ 525 0084 DAB2     		uxtb	r2, r3
+ 526 0086 254B     		ldr	r3, .L13+16
+ 527 0088 1A70     		strb	r2, [r3, #0]
+ 154:../src/mixer.c ****         for (i = 0; i < MAX_MOTORS; i++) {
+ 528              		.loc 1 154 0
+ 529 008a 7B68     		ldr	r3, [r7, #4]
+ 530 008c 03F10103 		add	r3, r3, #1
+ 531 0090 7B60     		str	r3, [r7, #4]
+ 532              	.L4:
+ 154:../src/mixer.c ****         for (i = 0; i < MAX_MOTORS; i++) {
+ 533              		.loc 1 154 0 is_stmt 0 discriminator 1
+ 534 0092 7B68     		ldr	r3, [r7, #4]
+ 535 0094 0B2B     		cmp	r3, #11
+ 536 0096 D2DD     		ble	.L8
+ 154:../src/mixer.c ****         for (i = 0; i < MAX_MOTORS; i++) {
+ 537              		.loc 1 154 0
+ 538 0098 34E0     		b	.L1
+ 539              	.L3:
+ 160:../src/mixer.c ****         }
+ 161:../src/mixer.c ****     } else {
+ 162:../src/mixer.c ****         numberMotor = mixers[mcfg.mixerConfiguration].numberMotor;
+ 540              		.loc 1 162 0 is_stmt 1
+ 541 009a 1C4B     		ldr	r3, .L13
+ 542 009c 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 543 009e 1A46     		mov	r2, r3
+ 544 00a0 1B4B     		ldr	r3, .L13+4
+ 545 00a2 13F83220 		ldrb	r2, [r3, r2, lsl #3]	@ zero_extendqisi2
+ 546 00a6 1D4B     		ldr	r3, .L13+16
+ 547 00a8 1A70     		strb	r2, [r3, #0]
+ 163:../src/mixer.c ****         // copy motor-based mixers
+ 164:../src/mixer.c ****         if (mixers[mcfg.mixerConfiguration].motor) {
+ 548              		.loc 1 164 0
+ 549 00aa 184B     		ldr	r3, .L13
+ 550 00ac 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 551 00ae 184A     		ldr	r2, .L13+4
+ 552 00b0 4FEAC303 		lsl	r3, r3, #3
+ 553 00b4 D318     		adds	r3, r2, r3
+ 554 00b6 5B68     		ldr	r3, [r3, #4]
+ 555 00b8 002B     		cmp	r3, #0
+ 556 00ba 23D0     		beq	.L1
+ 165:../src/mixer.c ****             for (i = 0; i < numberMotor; i++)
+ 557              		.loc 1 165 0
+ 558 00bc 4FF00003 		mov	r3, #0
+ 559 00c0 7B60     		str	r3, [r7, #4]
+ 560 00c2 17E0     		b	.L10
+ 561              	.L11:
+ 166:../src/mixer.c ****                 currentMixer[i] = mixers[mcfg.mixerConfiguration].motor[i];
+ 562              		.loc 1 166 0 discriminator 2
+ 563 00c4 114B     		ldr	r3, .L13
+ 564 00c6 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 565 00c8 114A     		ldr	r2, .L13+4
+ 566 00ca 4FEAC303 		lsl	r3, r3, #3
+ 567 00ce D318     		adds	r3, r2, r3
+ 568 00d0 5A68     		ldr	r2, [r3, #4]
+ 569 00d2 7B68     		ldr	r3, [r7, #4]
+ 570 00d4 4FEA0313 		lsl	r3, r3, #4
+ 571 00d8 D318     		adds	r3, r2, r3
+ 572 00da 0F49     		ldr	r1, .L13+12
+ 573 00dc 7A68     		ldr	r2, [r7, #4]
+ 574 00de 4FEA0212 		lsl	r2, r2, #4
+ 575 00e2 8A18     		adds	r2, r1, r2
+ 576 00e4 1446     		mov	r4, r2
+ 577 00e6 0FCB     		ldmia	r3, {r0, r1, r2, r3}
+ 578 00e8 84E80F00 		stmia	r4, {r0, r1, r2, r3}
+ 165:../src/mixer.c ****             for (i = 0; i < numberMotor; i++)
+ 579              		.loc 1 165 0 discriminator 2
+ 580 00ec 7B68     		ldr	r3, [r7, #4]
+ 581 00ee 03F10103 		add	r3, r3, #1
+ 582 00f2 7B60     		str	r3, [r7, #4]
+ 583              	.L10:
+ 165:../src/mixer.c ****             for (i = 0; i < numberMotor; i++)
+ 584              		.loc 1 165 0 is_stmt 0 discriminator 1
+ 585 00f4 094B     		ldr	r3, .L13+16
+ 586 00f6 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 587 00f8 1A46     		mov	r2, r3
+ 588 00fa 7B68     		ldr	r3, [r7, #4]
+ 589 00fc 9A42     		cmp	r2, r3
+ 590 00fe E1DC     		bgt	.L11
+ 591 0100 00E0     		b	.L1
+ 592              	.L12:
+ 157:../src/mixer.c ****                 break;
+ 593              		.loc 1 157 0 is_stmt 1
+ 594 0102 00BF     		nop
+ 595              	.L1:
+ 167:../src/mixer.c ****         }
+ 168:../src/mixer.c ****     }
+ 169:../src/mixer.c **** }
+ 596              		.loc 1 169 0
+ 597 0104 07F10C07 		add	r7, r7, #12
+ 598 0108 BD46     		mov	sp, r7
+ 599 010a 90BD     		pop	{r4, r7, pc}
+ 600              	.L14:
+ 601              		.align	2
+ 602              	.L13:
+ 603 010c 00000000 		.word	mcfg
+ 604 0110 00000000 		.word	mixers
+ 605 0114 00000000 		.word	useServo
+ 606 0118 04000000 		.word	currentMixer
+ 607 011c 00000000 		.word	numberMotor
+ 608 0120 00000000 		.word	0
+ 609              		.cfi_endproc
+ 610              	.LFE29:
+ 612              		.align	2
+ 613              		.global	mixerLoadMix
+ 614              		.thumb
+ 615              		.thumb_func
+ 617              	mixerLoadMix:
+ 618              	.LFB30:
+ 170:../src/mixer.c **** 
+ 171:../src/mixer.c **** void mixerLoadMix(int index)
+ 172:../src/mixer.c **** {
+ 619              		.loc 1 172 0
+ 620              		.cfi_startproc
+ 621              		@ args = 0, pretend = 0, frame = 16
+ 622              		@ frame_needed = 1, uses_anonymous_args = 0
+ 623              		@ link register save eliminated.
+ 624 0124 90B4     		push	{r4, r7}
+ 625              	.LCFI3:
+ 626              		.cfi_def_cfa_offset 8
+ 627              		.cfi_offset 4, -8
+ 628              		.cfi_offset 7, -4
+ 629 0126 84B0     		sub	sp, sp, #16
+ 630              	.LCFI4:
+ 631              		.cfi_def_cfa_offset 24
+ 632 0128 00AF     		add	r7, sp, #0
+ 633              	.LCFI5:
+ 634              		.cfi_def_cfa_register 7
+ 635 012a 7860     		str	r0, [r7, #4]
+ 173:../src/mixer.c ****     int i;
+ 174:../src/mixer.c **** 
+ 175:../src/mixer.c ****     // we're 1-based
+ 176:../src/mixer.c ****     index++;
+ 636              		.loc 1 176 0
+ 637 012c 7B68     		ldr	r3, [r7, #4]
+ 638 012e 03F10103 		add	r3, r3, #1
+ 639 0132 7B60     		str	r3, [r7, #4]
+ 177:../src/mixer.c ****     // clear existing
+ 178:../src/mixer.c ****     for (i = 0; i < MAX_MOTORS; i++)
+ 640              		.loc 1 178 0
+ 641 0134 4FF00003 		mov	r3, #0
+ 642 0138 FB60     		str	r3, [r7, #12]
+ 643 013a 0CE0     		b	.L16
+ 644              	.L17:
+ 179:../src/mixer.c ****         mcfg.customMixer[i].throttle = 0.0f;
+ 645              		.loc 1 179 0 discriminator 2
+ 646 013c 204A     		ldr	r2, .L21
+ 647 013e FB68     		ldr	r3, [r7, #12]
+ 648 0140 03F10103 		add	r3, r3, #1
+ 649 0144 4FEA0313 		lsl	r3, r3, #4
+ 650 0148 D318     		adds	r3, r2, r3
+ 651 014a 1F4A     		ldr	r2, .L21+8	@ float
+ 652 014c 1A60     		str	r2, [r3, #0]	@ float
+ 178:../src/mixer.c ****     for (i = 0; i < MAX_MOTORS; i++)
+ 653              		.loc 1 178 0 discriminator 2
+ 654 014e FB68     		ldr	r3, [r7, #12]
+ 655 0150 03F10103 		add	r3, r3, #1
+ 656 0154 FB60     		str	r3, [r7, #12]
+ 657              	.L16:
+ 178:../src/mixer.c ****     for (i = 0; i < MAX_MOTORS; i++)
+ 658              		.loc 1 178 0 is_stmt 0 discriminator 1
+ 659 0156 FB68     		ldr	r3, [r7, #12]
+ 660 0158 0B2B     		cmp	r3, #11
+ 661 015a EFDD     		ble	.L17
+ 180:../src/mixer.c **** 
+ 181:../src/mixer.c ****     // do we have anything here to begin with?
+ 182:../src/mixer.c ****     if (mixers[index].motor != NULL) {
+ 662              		.loc 1 182 0 is_stmt 1
+ 663 015c 194A     		ldr	r2, .L21+4
+ 664 015e 7B68     		ldr	r3, [r7, #4]
+ 665 0160 4FEAC303 		lsl	r3, r3, #3
+ 666 0164 D318     		adds	r3, r2, r3
+ 667 0166 5B68     		ldr	r3, [r3, #4]
+ 668 0168 002B     		cmp	r3, #0
+ 669 016a 24D0     		beq	.L15
+ 183:../src/mixer.c ****         for (i = 0; i < mixers[index].numberMotor; i++)
+ 670              		.loc 1 183 0
+ 671 016c 4FF00003 		mov	r3, #0
+ 672 0170 FB60     		str	r3, [r7, #12]
+ 673 0172 18E0     		b	.L19
+ 674              	.L20:
+ 184:../src/mixer.c ****             mcfg.customMixer[i] = mixers[index].motor[i];
+ 675              		.loc 1 184 0 discriminator 2
+ 676 0174 134A     		ldr	r2, .L21+4
+ 677 0176 7B68     		ldr	r3, [r7, #4]
+ 678 0178 4FEAC303 		lsl	r3, r3, #3
+ 679 017c D318     		adds	r3, r2, r3
+ 680 017e 5A68     		ldr	r2, [r3, #4]
+ 681 0180 FB68     		ldr	r3, [r7, #12]
+ 682 0182 4FEA0313 		lsl	r3, r3, #4
+ 683 0186 D318     		adds	r3, r2, r3
+ 684 0188 0D49     		ldr	r1, .L21
+ 685 018a FA68     		ldr	r2, [r7, #12]
+ 686 018c 02F10102 		add	r2, r2, #1
+ 687 0190 4FEA0212 		lsl	r2, r2, #4
+ 688 0194 8A18     		adds	r2, r1, r2
+ 689 0196 1446     		mov	r4, r2
+ 690 0198 0FCB     		ldmia	r3, {r0, r1, r2, r3}
+ 691 019a 84E80F00 		stmia	r4, {r0, r1, r2, r3}
+ 183:../src/mixer.c ****         for (i = 0; i < mixers[index].numberMotor; i++)
+ 692              		.loc 1 183 0 discriminator 2
+ 693 019e FB68     		ldr	r3, [r7, #12]
+ 694 01a0 03F10103 		add	r3, r3, #1
+ 695 01a4 FB60     		str	r3, [r7, #12]
+ 696              	.L19:
+ 183:../src/mixer.c ****         for (i = 0; i < mixers[index].numberMotor; i++)
+ 697              		.loc 1 183 0 is_stmt 0 discriminator 1
+ 698 01a6 074B     		ldr	r3, .L21+4
+ 699 01a8 7A68     		ldr	r2, [r7, #4]
+ 700 01aa 13F83230 		ldrb	r3, [r3, r2, lsl #3]	@ zero_extendqisi2
+ 701 01ae 1A46     		mov	r2, r3
+ 702 01b0 FB68     		ldr	r3, [r7, #12]
+ 703 01b2 9A42     		cmp	r2, r3
+ 704 01b4 DEDC     		bgt	.L20
+ 705              	.L15:
+ 185:../src/mixer.c ****     }
+ 186:../src/mixer.c **** }
+ 706              		.loc 1 186 0 is_stmt 1
+ 707 01b6 07F11007 		add	r7, r7, #16
+ 708 01ba BD46     		mov	sp, r7
+ 709 01bc 90BC     		pop	{r4, r7}
+ 710 01be 7047     		bx	lr
+ 711              	.L22:
+ 712              		.align	2
+ 713              	.L21:
+ 714 01c0 00000000 		.word	mcfg
+ 715 01c4 00000000 		.word	mixers
+ 716 01c8 00000000 		.word	0
+ 717              		.cfi_endproc
+ 718              	.LFE30:
+ 720              		.align	2
+ 721              		.global	writeServos
+ 722              		.thumb
+ 723              		.thumb_func
+ 725              	writeServos:
+ 726              	.LFB31:
+ 187:../src/mixer.c **** 
+ 188:../src/mixer.c **** void writeServos(void)
+ 189:../src/mixer.c **** {
+ 727              		.loc 1 189 0
+ 728              		.cfi_startproc
+ 729              		@ args = 0, pretend = 0, frame = 0
+ 730              		@ frame_needed = 1, uses_anonymous_args = 0
+ 731 01cc 80B5     		push	{r7, lr}
+ 732              	.LCFI6:
+ 733              		.cfi_def_cfa_offset 8
+ 734              		.cfi_offset 7, -8
+ 735              		.cfi_offset 14, -4
+ 736 01ce 00AF     		add	r7, sp, #0
+ 737              	.LCFI7:
+ 738              		.cfi_def_cfa_register 7
+ 190:../src/mixer.c ****     if (!useServo)
+ 739              		.loc 1 190 0
+ 740 01d0 394B     		ldr	r3, .L36
+ 741 01d2 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 742 01d4 002B     		cmp	r3, #0
+ 743 01d6 68D0     		beq	.L33
+ 744              	.L24:
+ 191:../src/mixer.c ****         return;
+ 192:../src/mixer.c **** 
+ 193:../src/mixer.c ****     switch (mcfg.mixerConfiguration) {
+ 745              		.loc 1 193 0
+ 746 01d8 384B     		ldr	r3, .L36+4
+ 747 01da 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 748 01dc 03F1FF33 		add	r3, r3, #-1
+ 749 01e0 0D2B     		cmp	r3, #13
+ 750 01e2 4AD8     		bhi	.L26
+ 751 01e4 01A2     		adr	r2, .L31
+ 752 01e6 52F823F0 		ldr	pc, [r2, r3, lsl #2]
+ 753 01ea 00BF     		.align	2
+ 754              	.L31:
+ 755 01ec 47020000 		.word	.L27+1
+ 756 01f0 7B020000 		.word	.L26+1
+ 757 01f4 7B020000 		.word	.L26+1
+ 758 01f8 25020000 		.word	.L28+1
+ 759 01fc 59020000 		.word	.L29+1
+ 760 0200 7B020000 		.word	.L26+1
+ 761 0204 7B020000 		.word	.L26+1
+ 762 0208 59020000 		.word	.L29+1
+ 763 020c 7B020000 		.word	.L26+1
+ 764 0210 7B020000 		.word	.L26+1
+ 765 0214 7B020000 		.word	.L26+1
+ 766 0218 7B020000 		.word	.L26+1
+ 767 021c 7B020000 		.word	.L26+1
+ 768 0220 AF020000 		.word	.L34+1
+ 769              	.L28:
+ 194:../src/mixer.c ****         case MULTITYPE_BI:
+ 195:../src/mixer.c ****             pwmWriteServo(0, servo[4]);
+ 770              		.loc 1 195 0
+ 771 0224 264B     		ldr	r3, .L36+8
+ 772 0226 1B89     		ldrh	r3, [r3, #8]
+ 773 0228 9BB2     		uxth	r3, r3
+ 774 022a 4FF00000 		mov	r0, #0
+ 775 022e 1946     		mov	r1, r3
+ 776 0230 FFF7FEFF 		bl	pwmWriteServo
+ 196:../src/mixer.c ****             pwmWriteServo(1, servo[5]);
+ 777              		.loc 1 196 0
+ 778 0234 224B     		ldr	r3, .L36+8
+ 779 0236 5B89     		ldrh	r3, [r3, #10]
+ 780 0238 9BB2     		uxth	r3, r3
+ 781 023a 4FF00100 		mov	r0, #1
+ 782 023e 1946     		mov	r1, r3
+ 783 0240 FFF7FEFF 		bl	pwmWriteServo
+ 197:../src/mixer.c ****             break;
+ 784              		.loc 1 197 0
+ 785 0244 36E0     		b	.L23
+ 786              	.L27:
+ 198:../src/mixer.c **** 
+ 199:../src/mixer.c ****         case MULTITYPE_TRI:
+ 200:../src/mixer.c ****             pwmWriteServo(0, servo[5]);
+ 787              		.loc 1 200 0
+ 788 0246 1E4B     		ldr	r3, .L36+8
+ 789 0248 5B89     		ldrh	r3, [r3, #10]
+ 790 024a 9BB2     		uxth	r3, r3
+ 791 024c 4FF00000 		mov	r0, #0
+ 792 0250 1946     		mov	r1, r3
+ 793 0252 FFF7FEFF 		bl	pwmWriteServo
+ 201:../src/mixer.c ****             break;
+ 794              		.loc 1 201 0
+ 795 0256 2DE0     		b	.L23
+ 796              	.L29:
+ 202:../src/mixer.c **** 
+ 203:../src/mixer.c ****         case MULTITYPE_AIRPLANE:
+ 204:../src/mixer.c **** 
+ 205:../src/mixer.c ****             break;
+ 206:../src/mixer.c **** 
+ 207:../src/mixer.c ****         case MULTITYPE_FLYING_WING:
+ 208:../src/mixer.c ****         case MULTITYPE_GIMBAL:
+ 209:../src/mixer.c ****             pwmWriteServo(0, servo[0]);
+ 797              		.loc 1 209 0
+ 798 0258 194B     		ldr	r3, .L36+8
+ 799 025a 1B88     		ldrh	r3, [r3, #0]
+ 800 025c 9BB2     		uxth	r3, r3
+ 801 025e 4FF00000 		mov	r0, #0
+ 802 0262 1946     		mov	r1, r3
+ 803 0264 FFF7FEFF 		bl	pwmWriteServo
+ 210:../src/mixer.c ****             pwmWriteServo(1, servo[1]);
+ 804              		.loc 1 210 0
+ 805 0268 154B     		ldr	r3, .L36+8
+ 806 026a 5B88     		ldrh	r3, [r3, #2]
+ 807 026c 9BB2     		uxth	r3, r3
+ 808 026e 4FF00100 		mov	r0, #1
+ 809 0272 1946     		mov	r1, r3
+ 810 0274 FFF7FEFF 		bl	pwmWriteServo
+ 211:../src/mixer.c ****             break;
+ 811              		.loc 1 211 0
+ 812 0278 1CE0     		b	.L23
+ 813              	.L26:
+ 212:../src/mixer.c **** 
+ 213:../src/mixer.c ****         default:
+ 214:../src/mixer.c ****             // Two servos for SERVO_TILT, if enabled
+ 215:../src/mixer.c ****             if (feature(FEATURE_SERVO_TILT)) {
+ 814              		.loc 1 215 0
+ 815 027a 4FF02000 		mov	r0, #32
+ 816 027e FFF7FEFF 		bl	feature
+ 817 0282 0346     		mov	r3, r0
+ 818 0284 002B     		cmp	r3, #0
+ 819 0286 14D0     		beq	.L35
+ 216:../src/mixer.c ****                 pwmWriteServo(0, servo[0]);
+ 820              		.loc 1 216 0
+ 821 0288 0D4B     		ldr	r3, .L36+8
+ 822 028a 1B88     		ldrh	r3, [r3, #0]
+ 823 028c 9BB2     		uxth	r3, r3
+ 824 028e 4FF00000 		mov	r0, #0
+ 825 0292 1946     		mov	r1, r3
+ 826 0294 FFF7FEFF 		bl	pwmWriteServo
+ 217:../src/mixer.c ****                 pwmWriteServo(1, servo[1]);
+ 827              		.loc 1 217 0
+ 828 0298 094B     		ldr	r3, .L36+8
+ 829 029a 5B88     		ldrh	r3, [r3, #2]
+ 830 029c 9BB2     		uxth	r3, r3
+ 831 029e 4FF00100 		mov	r0, #1
+ 832 02a2 1946     		mov	r1, r3
+ 833 02a4 FFF7FEFF 		bl	pwmWriteServo
+ 218:../src/mixer.c ****             }
+ 219:../src/mixer.c ****             break;
+ 834              		.loc 1 219 0
+ 835 02a8 03E0     		b	.L35
+ 836              	.L33:
+ 191:../src/mixer.c ****         return;
+ 837              		.loc 1 191 0
+ 838 02aa 00BF     		nop
+ 839 02ac 02E0     		b	.L23
+ 840              	.L34:
+ 205:../src/mixer.c ****             break;
+ 841              		.loc 1 205 0
+ 842 02ae 00BF     		nop
+ 843 02b0 00E0     		b	.L23
+ 844              	.L35:
+ 845              		.loc 1 219 0
+ 846 02b2 00BF     		nop
+ 847              	.L23:
+ 220:../src/mixer.c ****     }
+ 221:../src/mixer.c **** }
+ 848              		.loc 1 221 0
+ 849 02b4 80BD     		pop	{r7, pc}
+ 850              	.L37:
+ 851 02b6 00BF     		.align	2
+ 852              	.L36:
+ 853 02b8 00000000 		.word	useServo
+ 854 02bc 00000000 		.word	mcfg
+ 855 02c0 00000000 		.word	servo
+ 856              		.cfi_endproc
+ 857              	.LFE31:
+ 859              		.align	2
+ 860              		.global	writeMotors
+ 861              		.thumb
+ 862              		.thumb_func
+ 864              	writeMotors:
+ 865              	.LFB32:
+ 222:../src/mixer.c **** 
+ 223:../src/mixer.c **** extern uint8_t cliMode;
+ 224:../src/mixer.c **** 
+ 225:../src/mixer.c **** void writeMotors(void)
+ 226:../src/mixer.c **** {
+ 866              		.loc 1 226 0
+ 867              		.cfi_startproc
+ 868              		@ args = 0, pretend = 0, frame = 8
+ 869              		@ frame_needed = 1, uses_anonymous_args = 0
+ 870 02c4 80B5     		push	{r7, lr}
+ 871              	.LCFI8:
+ 872              		.cfi_def_cfa_offset 8
+ 873              		.cfi_offset 7, -8
+ 874              		.cfi_offset 14, -4
+ 875 02c6 82B0     		sub	sp, sp, #8
+ 876              	.LCFI9:
+ 877              		.cfi_def_cfa_offset 16
+ 878 02c8 00AF     		add	r7, sp, #0
+ 879              	.LCFI10:
+ 880              		.cfi_def_cfa_register 7
+ 227:../src/mixer.c ****     uint8_t i;
+ 228:../src/mixer.c **** 
+ 229:../src/mixer.c ****     for (i = 0; i < numberMotor; i++)
+ 881              		.loc 1 229 0
+ 882 02ca 4FF00003 		mov	r3, #0
+ 883 02ce FB71     		strb	r3, [r7, #7]
+ 884 02d0 0DE0     		b	.L39
+ 885              	.L40:
+ 230:../src/mixer.c ****         pwmWriteMotor(i, motor[i]);
+ 886              		.loc 1 230 0 discriminator 2
+ 887 02d2 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 888 02d4 0A4B     		ldr	r3, .L41
+ 889 02d6 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 890 02da 9BB2     		uxth	r3, r3
+ 891 02dc FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 892 02de 1046     		mov	r0, r2
+ 893 02e0 1946     		mov	r1, r3
+ 894 02e2 FFF7FEFF 		bl	pwmWriteMotor
+ 229:../src/mixer.c ****     for (i = 0; i < numberMotor; i++)
+ 895              		.loc 1 229 0 discriminator 2
+ 896 02e6 FB79     		ldrb	r3, [r7, #7]
+ 897 02e8 03F10103 		add	r3, r3, #1
+ 898 02ec FB71     		strb	r3, [r7, #7]
+ 899              	.L39:
+ 229:../src/mixer.c ****     for (i = 0; i < numberMotor; i++)
+ 900              		.loc 1 229 0 is_stmt 0 discriminator 1
+ 901 02ee 054B     		ldr	r3, .L41+4
+ 902 02f0 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 903 02f2 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 904 02f4 9A42     		cmp	r2, r3
+ 905 02f6 ECD3     		bcc	.L40
+ 231:../src/mixer.c **** }
+ 906              		.loc 1 231 0 is_stmt 1
+ 907 02f8 07F10807 		add	r7, r7, #8
+ 908 02fc BD46     		mov	sp, r7
+ 909 02fe 80BD     		pop	{r7, pc}
+ 910              	.L42:
+ 911              		.align	2
+ 912              	.L41:
+ 913 0300 00000000 		.word	motor
+ 914 0304 00000000 		.word	numberMotor
+ 915              		.cfi_endproc
+ 916              	.LFE32:
+ 918              		.align	2
+ 919              		.global	writeAllMotors
+ 920              		.thumb
+ 921              		.thumb_func
+ 923              	writeAllMotors:
+ 924              	.LFB33:
+ 232:../src/mixer.c **** 
+ 233:../src/mixer.c **** void writeAllMotors(int16_t mc)
+ 234:../src/mixer.c **** {
+ 925              		.loc 1 234 0
+ 926              		.cfi_startproc
+ 927              		@ args = 0, pretend = 0, frame = 16
+ 928              		@ frame_needed = 1, uses_anonymous_args = 0
+ 929 0308 80B5     		push	{r7, lr}
+ 930              	.LCFI11:
+ 931              		.cfi_def_cfa_offset 8
+ 932              		.cfi_offset 7, -8
+ 933              		.cfi_offset 14, -4
+ 934 030a 84B0     		sub	sp, sp, #16
+ 935              	.LCFI12:
+ 936              		.cfi_def_cfa_offset 24
+ 937 030c 00AF     		add	r7, sp, #0
+ 938              	.LCFI13:
+ 939              		.cfi_def_cfa_register 7
+ 940 030e 0346     		mov	r3, r0
+ 941 0310 FB80     		strh	r3, [r7, #6]	@ movhi
+ 235:../src/mixer.c ****     uint8_t i;
+ 236:../src/mixer.c **** 
+ 237:../src/mixer.c ****     // Sends commands to all motors
+ 238:../src/mixer.c ****     for (i = 0; i < numberMotor; i++)
+ 942              		.loc 1 238 0
+ 943 0312 4FF00003 		mov	r3, #0
+ 944 0316 FB73     		strb	r3, [r7, #15]
+ 945 0318 08E0     		b	.L44
+ 946              	.L45:
+ 239:../src/mixer.c ****         motor[i] = mc;
+ 947              		.loc 1 239 0 discriminator 2
+ 948 031a FA7B     		ldrb	r2, [r7, #15]	@ zero_extendqisi2
+ 949 031c 094B     		ldr	r3, .L46
+ 950 031e F988     		ldrh	r1, [r7, #6]	@ movhi
+ 951 0320 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 238:../src/mixer.c ****     for (i = 0; i < numberMotor; i++)
+ 952              		.loc 1 238 0 discriminator 2
+ 953 0324 FB7B     		ldrb	r3, [r7, #15]
+ 954 0326 03F10103 		add	r3, r3, #1
+ 955 032a FB73     		strb	r3, [r7, #15]
+ 956              	.L44:
+ 238:../src/mixer.c ****     for (i = 0; i < numberMotor; i++)
+ 957              		.loc 1 238 0 is_stmt 0 discriminator 1
+ 958 032c 064B     		ldr	r3, .L46+4
+ 959 032e 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 960 0330 FA7B     		ldrb	r2, [r7, #15]	@ zero_extendqisi2
+ 961 0332 9A42     		cmp	r2, r3
+ 962 0334 F1D3     		bcc	.L45
+ 240:../src/mixer.c ****     writeMotors();
+ 963              		.loc 1 240 0 is_stmt 1
+ 964 0336 FFF7FEFF 		bl	writeMotors
+ 241:../src/mixer.c **** }
+ 965              		.loc 1 241 0
+ 966 033a 07F11007 		add	r7, r7, #16
+ 967 033e BD46     		mov	sp, r7
+ 968 0340 80BD     		pop	{r7, pc}
+ 969              	.L47:
+ 970 0342 00BF     		.align	2
+ 971              	.L46:
+ 972 0344 00000000 		.word	motor
+ 973 0348 00000000 		.word	numberMotor
+ 974              		.cfi_endproc
+ 975              	.LFE33:
+ 977              		.align	2
+ 978              		.thumb
+ 979              		.thumb_func
+ 981              	airplaneMixer:
+ 982              	.LFB34:
+ 242:../src/mixer.c **** 
+ 243:../src/mixer.c **** static void airplaneMixer(void)
+ 244:../src/mixer.c **** {
+ 983              		.loc 1 244 0
+ 984              		.cfi_startproc
+ 985              		@ args = 0, pretend = 0, frame = 0
+ 986              		@ frame_needed = 1, uses_anonymous_args = 0
+ 987              		@ link register save eliminated.
+ 988 034c 80B4     		push	{r7}
+ 989              	.LCFI14:
+ 990              		.cfi_def_cfa_offset 4
+ 991              		.cfi_offset 7, -4
+ 992 034e 00AF     		add	r7, sp, #0
+ 993              	.LCFI15:
+ 994              		.cfi_def_cfa_register 7
+ 245:../src/mixer.c **** #if 0
+ 246:../src/mixer.c ****     uint16_t servomid[8];
+ 247:../src/mixer.c ****     int16_t flaperons[2] = { 0, 0 };
+ 248:../src/mixer.c **** 
+ 249:../src/mixer.c ****     for (i = 0; i < 8; i++) {
+ 250:../src/mixer.c ****         servomid[i] = 1500 + cfg.servotrim[i]; // servo center is 1500?
+ 251:../src/mixer.c ****     }
+ 252:../src/mixer.c **** 
+ 253:../src/mixer.c ****     if (!f.ARMED)
+ 254:../src/mixer.c ****         motor[0] = cfg.mincommand; // Kill throttle when disarmed
+ 255:../src/mixer.c ****     else
+ 256:../src/mixer.c ****         motor[0] = rcData[THROTTLE];
+ 257:../src/mixer.c **** 
+ 258:../src/mixer.c ****     if (cfg.flaperons) {
+ 259:../src/mixer.c ****         
+ 260:../src/mixer.c ****         
+ 261:../src/mixer.c ****     }
+ 262:../src/mixer.c **** 
+ 263:../src/mixer.c ****     if (cfg.flaps) {
+ 264:../src/mixer.c ****         int16_t flap = 1500 - constrain(rcData[cfg.flaps], cfg.servoendpoint_low[2], cfg.servoendpo
+ 265:../src/mixer.c ****         static int16_t slowFlaps = flap;
+ 266:../src/mixer.c **** 
+ 267:../src/mixer.c ****         if (cfg.flapspeed) {
+ 268:../src/mixer.c ****             if (slowFlaps < flap) {
+ 269:../src/mixer.c ****                 slowFlaps += cfg.flapspeed;
+ 270:../src/mixer.c ****             } else if (slowFlaps > flap) {
+ 271:../src/mixer.c ****                 slowFlaps -= cfg.flapspeed;
+ 272:../src/mixer.c ****             }
+ 273:../src/mixer.c ****         } else {
+ 274:../src/mixer.c ****             slowFlaps = flap;
+ 275:../src/mixer.c ****         }
+ 276:../src/mixer.c ****         servo[2] = servomid[2] + (slowFlaps * cfg.servoreverse[2]);
+ 277:../src/mixer.c ****     }
+ 278:../src/mixer.c **** 
+ 279:../src/mixer.c ****     if (f.PASSTHRU_MODE) { // Direct passthru from RX
+ 280:../src/mixer.c ****         servo[3] = servomid[3] + ((rcCommand[ROLL] + flapperons[0]) * cfg.servoreverse[3]);     // 
+ 281:../src/mixer.c ****         servo[4] = servomid[4] + ((rcCommand[ROLL] + flapperons[1]) * cfg.servoreverse[4]);     // 
+ 282:../src/mixer.c ****         servo[5] = servomid[5] + (rcCommand[YAW] * cfg.servoreverse[5]);                        // 
+ 283:../src/mixer.c ****         servo[6] = servomid[6] + (rcCommand[PITCH] * cfg.servoreverse[6]);                      // 
+ 284:../src/mixer.c ****     } else { // Assisted modes (gyro only or gyro+acc according to AUX configuration in Gui
+ 285:../src/mixer.c ****         servo[3] = (servomid[3] + ((axisPID[ROLL] + flapperons[0]) * cfg.servoreverse[3]));     // 
+ 286:../src/mixer.c ****         servo[4] = (servomid[4] + ((axisPID[ROLL] + flapperons[1]) * cfg.servoreverse[4]));     // 
+ 287:../src/mixer.c ****         servo[5] = (servomid[5] + (axisPID[YAW] * cfg.servoreverse[5]));                        // 
+ 288:../src/mixer.c ****         servo[6] = (servomid[6] + (axisPID[PITCH] * cfg.servoreverse[6]));                      // 
+ 289:../src/mixer.c ****     }
+ 290:../src/mixer.c **** #endif
+ 291:../src/mixer.c **** }
+ 995              		.loc 1 291 0
+ 996 0350 BD46     		mov	sp, r7
+ 997 0352 80BC     		pop	{r7}
+ 998 0354 7047     		bx	lr
+ 999              		.cfi_endproc
+ 1000              	.LFE34:
+ 1002              		.global	__aeabi_i2f
+ 1003              		.global	__aeabi_fmul
+ 1004              		.global	__aeabi_fadd
+ 1005              		.global	__aeabi_f2iz
+ 1006 0356 00BF     		.align	2
+ 1007              		.global	mixTable
+ 1008              		.thumb
+ 1009              		.thumb_func
+ 1011              	mixTable:
+ 1012              	.LFB35:
+ 292:../src/mixer.c **** 
+ 293:../src/mixer.c **** void mixTable(void)
+ 294:../src/mixer.c **** {
+ 1013              		.loc 1 294 0
+ 1014              		.cfi_startproc
+ 1015              		@ args = 0, pretend = 0, frame = 16
+ 1016              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1017 0358 90B5     		push	{r4, r7, lr}
+ 1018              	.LCFI16:
+ 1019              		.cfi_def_cfa_offset 12
+ 1020              		.cfi_offset 4, -12
+ 1021              		.cfi_offset 7, -8
+ 1022              		.cfi_offset 14, -4
+ 1023 035a 85B0     		sub	sp, sp, #20
+ 1024              	.LCFI17:
+ 1025              		.cfi_def_cfa_offset 32
+ 1026 035c 00AF     		add	r7, sp, #0
+ 1027              	.LCFI18:
+ 1028              		.cfi_def_cfa_register 7
+ 295:../src/mixer.c ****     int16_t maxMotor;
+ 296:../src/mixer.c ****     uint32_t i;
+ 297:../src/mixer.c **** 
+ 298:../src/mixer.c ****     if (numberMotor > 3) {
+ 1029              		.loc 1 298 0
+ 1030 035e A64B     		ldr	r3, .L114
+ 1031 0360 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1032 0362 032B     		cmp	r3, #3
+ 1033 0364 2CD9     		bls	.L50
+ 299:../src/mixer.c ****         // prevent "yaw jump" during yaw correction
+ 300:../src/mixer.c ****         axisPID[YAW] = constrain(axisPID[YAW], -100 - abs(rcCommand[YAW]), +100 + abs(rcCommand[YAW
+ 1034              		.loc 1 300 0
+ 1035 0366 A54B     		ldr	r3, .L114+4
+ 1036 0368 9B88     		ldrh	r3, [r3, #4]
+ 1037 036a 1AB2     		sxth	r2, r3
+ 1038 036c A44B     		ldr	r3, .L114+8
+ 1039 036e 9B88     		ldrh	r3, [r3, #4]
+ 1040 0370 1BB2     		sxth	r3, r3
+ 1041 0372 83EAE371 		eor	r1, r3, r3, asr #31
+ 1042 0376 A1EBE371 		sub	r1, r1, r3, asr #31
+ 1043 037a 6FF06303 		mvn	r3, #99
+ 1044 037e 5B1A     		subs	r3, r3, r1
+ 1045 0380 9A42     		cmp	r2, r3
+ 1046 0382 0CDA     		bge	.L51
+ 1047              		.loc 1 300 0 is_stmt 0 discriminator 1
+ 1048 0384 9E4B     		ldr	r3, .L114+8
+ 1049 0386 9B88     		ldrh	r3, [r3, #4]
+ 1050 0388 1BB2     		sxth	r3, r3
+ 1051 038a 002B     		cmp	r3, #0
+ 1052 038c B8BF     		it	lt
+ 1053 038e 5B42     		rsblt	r3, r3, #0
+ 1054 0390 9AB2     		uxth	r2, r3
+ 1055 0392 6FF06303 		mvn	r3, #99
+ 1056 0396 9B1A     		subs	r3, r3, r2
+ 1057 0398 9BB2     		uxth	r3, r3
+ 1058 039a 9BB2     		uxth	r3, r3
+ 1059 039c 0EE0     		b	.L52
+ 1060              	.L51:
+ 1061              		.loc 1 300 0 discriminator 2
+ 1062 039e 974B     		ldr	r3, .L114+4
+ 1063 03a0 9B88     		ldrh	r3, [r3, #4]
+ 1064 03a2 1AB2     		sxth	r2, r3
+ 1065 03a4 964B     		ldr	r3, .L114+8
+ 1066 03a6 9B88     		ldrh	r3, [r3, #4]
+ 1067 03a8 1BB2     		sxth	r3, r3
+ 1068 03aa 002B     		cmp	r3, #0
+ 1069 03ac B8BF     		it	lt
+ 1070 03ae 5B42     		rsblt	r3, r3, #0
+ 1071 03b0 03F16403 		add	r3, r3, #100
+ 1072 03b4 9A42     		cmp	r2, r3
+ 1073 03b6 B8BF     		it	lt
+ 1074 03b8 1346     		movlt	r3, r2
+ 1075 03ba 9BB2     		uxth	r3, r3
+ 1076              	.L52:
+ 1077              		.loc 1 300 0 discriminator 3
+ 1078 03bc 8F4A     		ldr	r2, .L114+4
+ 1079 03be 9380     		strh	r3, [r2, #4]	@ movhi
+ 1080              	.L50:
+ 301:../src/mixer.c ****     }
+ 302:../src/mixer.c **** 
+ 303:../src/mixer.c ****     // motors for non-servo mixes
+ 304:../src/mixer.c ****     if (numberMotor > 1)
+ 1081              		.loc 1 304 0 is_stmt 1
+ 1082 03c0 8D4B     		ldr	r3, .L114
+ 1083 03c2 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1084 03c4 012B     		cmp	r3, #1
+ 1085 03c6 7CD9     		bls	.L53
+ 305:../src/mixer.c ****         for (i = 0; i < numberMotor; i++)
+ 1086              		.loc 1 305 0
+ 1087 03c8 4FF00003 		mov	r3, #0
+ 1088 03cc BB60     		str	r3, [r7, #8]
+ 1089 03ce 72E0     		b	.L54
+ 1090              	.L55:
+ 306:../src/mixer.c ****             motor[i] = rcCommand[THROTTLE] * currentMixer[i].throttle + axisPID[PITCH] * currentMix
+ 1091              		.loc 1 306 0 discriminator 2
+ 1092 03d0 8B4B     		ldr	r3, .L114+8
+ 1093 03d2 DB88     		ldrh	r3, [r3, #6]
+ 1094 03d4 1BB2     		sxth	r3, r3
+ 1095 03d6 1846     		mov	r0, r3
+ 1096 03d8 FFF7FEFF 		bl	__aeabi_i2f
+ 1097 03dc 0246     		mov	r2, r0
+ 1098 03de 8949     		ldr	r1, .L114+12
+ 1099 03e0 BB68     		ldr	r3, [r7, #8]
+ 1100 03e2 4FEA0313 		lsl	r3, r3, #4
+ 1101 03e6 CB18     		adds	r3, r1, r3
+ 1102 03e8 1B68     		ldr	r3, [r3, #0]	@ float
+ 1103 03ea 1046     		mov	r0, r2
+ 1104 03ec 1946     		mov	r1, r3
+ 1105 03ee FFF7FEFF 		bl	__aeabi_fmul
+ 1106 03f2 0346     		mov	r3, r0
+ 1107 03f4 1C46     		mov	r4, r3
+ 1108 03f6 814B     		ldr	r3, .L114+4
+ 1109 03f8 5B88     		ldrh	r3, [r3, #2]
+ 1110 03fa 1BB2     		sxth	r3, r3
+ 1111 03fc 1846     		mov	r0, r3
+ 1112 03fe FFF7FEFF 		bl	__aeabi_i2f
+ 1113 0402 0246     		mov	r2, r0
+ 1114 0404 7F49     		ldr	r1, .L114+12
+ 1115 0406 BB68     		ldr	r3, [r7, #8]
+ 1116 0408 4FEA0313 		lsl	r3, r3, #4
+ 1117 040c CB18     		adds	r3, r1, r3
+ 1118 040e 03F10803 		add	r3, r3, #8
+ 1119 0412 1B68     		ldr	r3, [r3, #0]	@ float
+ 1120 0414 1046     		mov	r0, r2
+ 1121 0416 1946     		mov	r1, r3
+ 1122 0418 FFF7FEFF 		bl	__aeabi_fmul
+ 1123 041c 0346     		mov	r3, r0
+ 1124 041e 2046     		mov	r0, r4
+ 1125 0420 1946     		mov	r1, r3
+ 1126 0422 FFF7FEFF 		bl	__aeabi_fadd
+ 1127 0426 0346     		mov	r3, r0
+ 1128 0428 1C46     		mov	r4, r3
+ 1129 042a 744B     		ldr	r3, .L114+4
+ 1130 042c 1B88     		ldrh	r3, [r3, #0]
+ 1131 042e 1BB2     		sxth	r3, r3
+ 1132 0430 1846     		mov	r0, r3
+ 1133 0432 FFF7FEFF 		bl	__aeabi_i2f
+ 1134 0436 0246     		mov	r2, r0
+ 1135 0438 7249     		ldr	r1, .L114+12
+ 1136 043a BB68     		ldr	r3, [r7, #8]
+ 1137 043c 4FEA0313 		lsl	r3, r3, #4
+ 1138 0440 CB18     		adds	r3, r1, r3
+ 1139 0442 03F10403 		add	r3, r3, #4
+ 1140 0446 1B68     		ldr	r3, [r3, #0]	@ float
+ 1141 0448 1046     		mov	r0, r2
+ 1142 044a 1946     		mov	r1, r3
+ 1143 044c FFF7FEFF 		bl	__aeabi_fmul
+ 1144 0450 0346     		mov	r3, r0
+ 1145 0452 2046     		mov	r0, r4
+ 1146 0454 1946     		mov	r1, r3
+ 1147 0456 FFF7FEFF 		bl	__aeabi_fadd
+ 1148 045a 0346     		mov	r3, r0
+ 1149 045c 1C46     		mov	r4, r3
+ 1150 045e 6A4B     		ldr	r3, .L114+16
+ 1151 0460 93F86830 		ldrb	r3, [r3, #104]	@ zero_extendqisi2
+ 1152 0464 5BB2     		sxtb	r3, r3
+ 1153 0466 654A     		ldr	r2, .L114+4
+ 1154 0468 9288     		ldrh	r2, [r2, #4]
+ 1155 046a 12B2     		sxth	r2, r2
+ 1156 046c 02FB03F3 		mul	r3, r2, r3
+ 1157 0470 1846     		mov	r0, r3
+ 1158 0472 FFF7FEFF 		bl	__aeabi_i2f
+ 1159 0476 0246     		mov	r2, r0
+ 1160 0478 6249     		ldr	r1, .L114+12
+ 1161 047a BB68     		ldr	r3, [r7, #8]
+ 1162 047c 4FEA0313 		lsl	r3, r3, #4
+ 1163 0480 CB18     		adds	r3, r1, r3
+ 1164 0482 03F10C03 		add	r3, r3, #12
+ 1165 0486 1B68     		ldr	r3, [r3, #0]	@ float
+ 1166 0488 1046     		mov	r0, r2
+ 1167 048a 1946     		mov	r1, r3
+ 1168 048c FFF7FEFF 		bl	__aeabi_fmul
+ 1169 0490 0346     		mov	r3, r0
+ 1170 0492 2046     		mov	r0, r4
+ 1171 0494 1946     		mov	r1, r3
+ 1172 0496 FFF7FEFF 		bl	__aeabi_fadd
+ 1173 049a 0346     		mov	r3, r0
+ 1174 049c 1846     		mov	r0, r3
+ 1175 049e FFF7FEFF 		bl	__aeabi_f2iz
+ 1176 04a2 0346     		mov	r3, r0
+ 1177 04a4 99B2     		uxth	r1, r3
+ 1178 04a6 594B     		ldr	r3, .L114+20
+ 1179 04a8 BA68     		ldr	r2, [r7, #8]
+ 1180 04aa 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 305:../src/mixer.c ****         for (i = 0; i < numberMotor; i++)
+ 1181              		.loc 1 305 0 discriminator 2
+ 1182 04ae BB68     		ldr	r3, [r7, #8]
+ 1183 04b0 03F10103 		add	r3, r3, #1
+ 1184 04b4 BB60     		str	r3, [r7, #8]
+ 1185              	.L54:
+ 305:../src/mixer.c ****         for (i = 0; i < numberMotor; i++)
+ 1186              		.loc 1 305 0 is_stmt 0 discriminator 1
+ 1187 04b6 504B     		ldr	r3, .L114
+ 1188 04b8 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1189 04ba 1A46     		mov	r2, r3
+ 1190 04bc BB68     		ldr	r3, [r7, #8]
+ 1191 04be 9A42     		cmp	r2, r3
+ 1192 04c0 86D8     		bhi	.L55
+ 1193              	.L53:
+ 307:../src/mixer.c **** 
+ 308:../src/mixer.c ****     // airplane / servo mixes
+ 309:../src/mixer.c ****     switch (mcfg.mixerConfiguration) {
+ 1194              		.loc 1 309 0 is_stmt 1
+ 1195 04c2 534B     		ldr	r3, .L114+24
+ 1196 04c4 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 1197 04c6 03F1FF33 		add	r3, r3, #-1
+ 1198 04ca 0D2B     		cmp	r3, #13
+ 1199 04cc 00F22582 		bhi	.L56
+ 1200 04d0 01A2     		adr	r2, .L62
+ 1201 04d2 52F823F0 		ldr	pc, [r2, r3, lsl #2]
+ 1202 04d6 00BF     		.align	2
+ 1203              	.L62:
+ 1204 04d8 C7050000 		.word	.L57+1
+ 1205 04dc 1B090000 		.word	.L56+1
+ 1206 04e0 1B090000 		.word	.L56+1
+ 1207 04e4 11050000 		.word	.L58+1
+ 1208 04e8 49060000 		.word	.L59+1
+ 1209 04ec 1B090000 		.word	.L56+1
+ 1210 04f0 1B090000 		.word	.L56+1
+ 1211 04f4 5D070000 		.word	.L60+1
+ 1212 04f8 1B090000 		.word	.L56+1
+ 1213 04fc 1B090000 		.word	.L56+1
+ 1214 0500 1B090000 		.word	.L56+1
+ 1215 0504 1B090000 		.word	.L56+1
+ 1216 0508 1B090000 		.word	.L56+1
+ 1217 050c 57070000 		.word	.L61+1
+ 1218              	.L58:
+ 310:../src/mixer.c ****         case MULTITYPE_BI:
+ 311:../src/mixer.c ****             servo[4] = constrain(1500 + (cfg.yaw_direction * axisPID[YAW]) + axisPID[PITCH], 1020, 
+ 1219              		.loc 1 311 0
+ 1220 0510 3D4B     		ldr	r3, .L114+16
+ 1221 0512 93F86830 		ldrb	r3, [r3, #104]	@ zero_extendqisi2
+ 1222 0516 5BB2     		sxtb	r3, r3
+ 1223 0518 384A     		ldr	r2, .L114+4
+ 1224 051a 9288     		ldrh	r2, [r2, #4]
+ 1225 051c 12B2     		sxth	r2, r2
+ 1226 051e 02FB03F3 		mul	r3, r2, r3
+ 1227 0522 03F2DC52 		addw	r2, r3, #1500
+ 1228 0526 354B     		ldr	r3, .L114+4
+ 1229 0528 5B88     		ldrh	r3, [r3, #2]
+ 1230 052a 1BB2     		sxth	r3, r3
+ 1231 052c D218     		adds	r2, r2, r3
+ 1232 052e 40F2FB33 		movw	r3, #1019
+ 1233 0532 9A42     		cmp	r2, r3
+ 1234 0534 15DD     		ble	.L63
+ 1235              		.loc 1 311 0 is_stmt 0 discriminator 1
+ 1236 0536 344B     		ldr	r3, .L114+16
+ 1237 0538 93F86830 		ldrb	r3, [r3, #104]	@ zero_extendqisi2
+ 1238 053c 5BB2     		sxtb	r3, r3
+ 1239 053e 2F4A     		ldr	r2, .L114+4
+ 1240 0540 9288     		ldrh	r2, [r2, #4]
+ 1241 0542 12B2     		sxth	r2, r2
+ 1242 0544 02FB03F3 		mul	r3, r2, r3
+ 1243 0548 03F2DC52 		addw	r2, r3, #1500
+ 1244 054c 2B4B     		ldr	r3, .L114+4
+ 1245 054e 5B88     		ldrh	r3, [r3, #2]
+ 1246 0550 1BB2     		sxth	r3, r3
+ 1247 0552 D318     		adds	r3, r2, r3
+ 1248 0554 B3F5FA6F 		cmp	r3, #2000
+ 1249 0558 A8BF     		it	ge
+ 1250 055a 4FF4FA63 		movge	r3, #2000
+ 1251 055e 9BB2     		uxth	r3, r3
+ 1252 0560 01E0     		b	.L64
+ 1253              	.L63:
+ 1254              		.loc 1 311 0 discriminator 2
+ 1255 0562 4FF47F73 		mov	r3, #1020
+ 1256              	.L64:
+ 1257              		.loc 1 311 0 discriminator 3
+ 1258 0566 2B4A     		ldr	r2, .L114+28
+ 1259 0568 1381     		strh	r3, [r2, #8]	@ movhi
+ 312:../src/mixer.c ****             servo[5] = constrain(1500 + (cfg.yaw_direction * axisPID[YAW]) - axisPID[PITCH], 1020, 
+ 1260              		.loc 1 312 0 is_stmt 1 discriminator 3
+ 1261 056a 274B     		ldr	r3, .L114+16
+ 1262 056c 93F86830 		ldrb	r3, [r3, #104]	@ zero_extendqisi2
+ 1263 0570 5BB2     		sxtb	r3, r3
+ 1264 0572 224A     		ldr	r2, .L114+4
+ 1265 0574 9288     		ldrh	r2, [r2, #4]
+ 1266 0576 12B2     		sxth	r2, r2
+ 1267 0578 02FB03F3 		mul	r3, r2, r3
+ 1268 057c 03F2DC52 		addw	r2, r3, #1500
+ 1269 0580 1E4B     		ldr	r3, .L114+4
+ 1270 0582 5B88     		ldrh	r3, [r3, #2]
+ 1271 0584 1BB2     		sxth	r3, r3
+ 1272 0586 D21A     		subs	r2, r2, r3
+ 1273 0588 40F2FB33 		movw	r3, #1019
+ 1274 058c 9A42     		cmp	r2, r3
+ 1275 058e 15DD     		ble	.L65
+ 1276              		.loc 1 312 0 is_stmt 0 discriminator 1
+ 1277 0590 1D4B     		ldr	r3, .L114+16
+ 1278 0592 93F86830 		ldrb	r3, [r3, #104]	@ zero_extendqisi2
+ 1279 0596 5BB2     		sxtb	r3, r3
+ 1280 0598 184A     		ldr	r2, .L114+4
+ 1281 059a 9288     		ldrh	r2, [r2, #4]
+ 1282 059c 12B2     		sxth	r2, r2
+ 1283 059e 02FB03F3 		mul	r3, r2, r3
+ 1284 05a2 03F2DC52 		addw	r2, r3, #1500
+ 1285 05a6 154B     		ldr	r3, .L114+4
+ 1286 05a8 5B88     		ldrh	r3, [r3, #2]
+ 1287 05aa 1BB2     		sxth	r3, r3
+ 1288 05ac D31A     		subs	r3, r2, r3
+ 1289 05ae B3F5FA6F 		cmp	r3, #2000
+ 1290 05b2 A8BF     		it	ge
+ 1291 05b4 4FF4FA63 		movge	r3, #2000
+ 1292 05b8 9BB2     		uxth	r3, r3
+ 1293 05ba 01E0     		b	.L66
+ 1294              	.L65:
+ 1295              		.loc 1 312 0 discriminator 2
+ 1296 05bc 4FF47F73 		mov	r3, #1020
+ 1297              	.L66:
+ 1298              		.loc 1 312 0 discriminator 3
+ 1299 05c0 144A     		ldr	r2, .L114+28
+ 1300 05c2 5381     		strh	r3, [r2, #10]	@ movhi
+ 313:../src/mixer.c ****             break;
+ 1301              		.loc 1 313 0 is_stmt 1 discriminator 3
+ 1302 05c4 A9E1     		b	.L56
+ 1303              	.L57:
+ 314:../src/mixer.c **** 
+ 315:../src/mixer.c ****         case MULTITYPE_TRI:
+ 316:../src/mixer.c ****             servo[5] = constrain(cfg.tri_yaw_middle + cfg.yaw_direction * axisPID[YAW], cfg.tri_yaw
+ 1304              		.loc 1 316 0
+ 1305 05c6 104B     		ldr	r3, .L114+16
+ 1306 05c8 B3F86A30 		ldrh	r3, [r3, #106]
+ 1307 05cc 1A46     		mov	r2, r3
+ 1308 05ce 0E4B     		ldr	r3, .L114+16
+ 1309 05d0 93F86830 		ldrb	r3, [r3, #104]	@ zero_extendqisi2
+ 1310 05d4 5BB2     		sxtb	r3, r3
+ 1311 05d6 0949     		ldr	r1, .L114+4
+ 1312 05d8 8988     		ldrh	r1, [r1, #4]
+ 1313 05da 09B2     		sxth	r1, r1
+ 1314 05dc 01FB03F3 		mul	r3, r1, r3
+ 1315 05e0 D218     		adds	r2, r2, r3
+ 1316 05e2 094B     		ldr	r3, .L114+16
+ 1317 05e4 B3F86C30 		ldrh	r3, [r3, #108]
+ 1318 05e8 9A42     		cmp	r2, r3
+ 1319 05ea 15DA     		bge	.L67
+ 1320              		.loc 1 316 0 is_stmt 0 discriminator 1
+ 1321 05ec 064B     		ldr	r3, .L114+16
+ 1322 05ee B3F86C30 		ldrh	r3, [r3, #108]
+ 1323 05f2 9BB2     		uxth	r3, r3
+ 1324 05f4 25E0     		b	.L68
+ 1325              	.L115:
+ 1326 05f6 00BF     		.align	2
+ 1327              	.L114:
+ 1328 05f8 00000000 		.word	numberMotor
+ 1329 05fc 00000000 		.word	axisPID
+ 1330 0600 00000000 		.word	rcCommand
+ 1331 0604 04000000 		.word	currentMixer
+ 1332 0608 00000000 		.word	cfg
+ 1333 060c 00000000 		.word	motor
+ 1334 0610 00000000 		.word	mcfg
+ 1335 0614 00000000 		.word	servo
+ 1336              	.L67:
+ 1337              		.loc 1 316 0 discriminator 2
+ 1338 0618 7A4B     		ldr	r3, .L116
+ 1339 061a B3F86A30 		ldrh	r3, [r3, #106]
+ 1340 061e 1A46     		mov	r2, r3
+ 1341 0620 784B     		ldr	r3, .L116
+ 1342 0622 93F86830 		ldrb	r3, [r3, #104]	@ zero_extendqisi2
+ 1343 0626 5BB2     		sxtb	r3, r3
+ 1344 0628 7749     		ldr	r1, .L116+4
+ 1345 062a 8988     		ldrh	r1, [r1, #4]
+ 1346 062c 09B2     		sxth	r1, r1
+ 1347 062e 01FB03F3 		mul	r3, r1, r3
+ 1348 0632 D218     		adds	r2, r2, r3
+ 1349 0634 734B     		ldr	r3, .L116
+ 1350 0636 B3F86E30 		ldrh	r3, [r3, #110]
+ 1351 063a 9A42     		cmp	r2, r3
+ 1352 063c B8BF     		it	lt
+ 1353 063e 1346     		movlt	r3, r2
+ 1354 0640 9BB2     		uxth	r3, r3
+ 1355              	.L68:
+ 1356              		.loc 1 316 0 discriminator 3
+ 1357 0642 724A     		ldr	r2, .L116+8
+ 1358 0644 5381     		strh	r3, [r2, #10]	@ movhi
+ 317:../src/mixer.c ****             break;
+ 1359              		.loc 1 317 0 is_stmt 1 discriminator 3
+ 1360 0646 68E1     		b	.L56
+ 1361              	.L59:
+ 318:../src/mixer.c **** 
+ 319:../src/mixer.c ****         case MULTITYPE_GIMBAL:
+ 320:../src/mixer.c ****             servo[0] = constrain(cfg.gimbal_pitch_mid + cfg.gimbal_pitch_gain * angle[PITCH] / 16 +
+ 1362              		.loc 1 320 0
+ 1363 0648 6E4B     		ldr	r3, .L116
+ 1364 064a B3F88830 		ldrh	r3, [r3, #136]
+ 1365 064e 1A46     		mov	r2, r3
+ 1366 0650 6C4B     		ldr	r3, .L116
+ 1367 0652 93F88030 		ldrb	r3, [r3, #128]	@ zero_extendqisi2
+ 1368 0656 5BB2     		sxtb	r3, r3
+ 1369 0658 6D49     		ldr	r1, .L116+12
+ 1370 065a 4988     		ldrh	r1, [r1, #2]
+ 1371 065c 09B2     		sxth	r1, r1
+ 1372 065e 01FB03F3 		mul	r3, r1, r3
+ 1373 0662 002B     		cmp	r3, #0
+ 1374 0664 01DA     		bge	.L69
+ 1375 0666 03F10F03 		add	r3, r3, #15
+ 1376              	.L69:
+ 1377 066a 4FEA2313 		asr	r3, r3, #4
+ 1378 066e D218     		adds	r2, r2, r3
+ 1379 0670 684B     		ldr	r3, .L116+16
+ 1380 0672 5B88     		ldrh	r3, [r3, #2]
+ 1381 0674 1BB2     		sxth	r3, r3
+ 1382 0676 D218     		adds	r2, r2, r3
+ 1383 0678 624B     		ldr	r3, .L116
+ 1384 067a B3F88430 		ldrh	r3, [r3, #132]
+ 1385 067e 9A42     		cmp	r2, r3
+ 1386 0680 04DA     		bge	.L70
+ 1387              		.loc 1 320 0 is_stmt 0 discriminator 1
+ 1388 0682 604B     		ldr	r3, .L116
+ 1389 0684 B3F88430 		ldrh	r3, [r3, #132]
+ 1390 0688 9BB2     		uxth	r3, r3
+ 1391 068a 1EE0     		b	.L71
+ 1392              	.L70:
+ 1393              		.loc 1 320 0 discriminator 2
+ 1394 068c 5D4B     		ldr	r3, .L116
+ 1395 068e B3F88830 		ldrh	r3, [r3, #136]
+ 1396 0692 1A46     		mov	r2, r3
+ 1397 0694 5B4B     		ldr	r3, .L116
+ 1398 0696 93F88030 		ldrb	r3, [r3, #128]	@ zero_extendqisi2
+ 1399 069a 5BB2     		sxtb	r3, r3
+ 1400 069c 5C49     		ldr	r1, .L116+12
+ 1401 069e 4988     		ldrh	r1, [r1, #2]
+ 1402 06a0 09B2     		sxth	r1, r1
+ 1403 06a2 01FB03F3 		mul	r3, r1, r3
+ 1404 06a6 002B     		cmp	r3, #0
+ 1405 06a8 01DA     		bge	.L72
+ 1406 06aa 03F10F03 		add	r3, r3, #15
+ 1407              	.L72:
+ 1408 06ae 4FEA2313 		asr	r3, r3, #4
+ 1409 06b2 D218     		adds	r2, r2, r3
+ 1410 06b4 574B     		ldr	r3, .L116+16
+ 1411 06b6 5B88     		ldrh	r3, [r3, #2]
+ 1412 06b8 1BB2     		sxth	r3, r3
+ 1413 06ba D218     		adds	r2, r2, r3
+ 1414 06bc 514B     		ldr	r3, .L116
+ 1415 06be B3F88630 		ldrh	r3, [r3, #134]
+ 1416 06c2 9A42     		cmp	r2, r3
+ 1417 06c4 B8BF     		it	lt
+ 1418 06c6 1346     		movlt	r3, r2
+ 1419 06c8 9BB2     		uxth	r3, r3
+ 1420              	.L71:
+ 1421              		.loc 1 320 0 discriminator 3
+ 1422 06ca 504A     		ldr	r2, .L116+8
+ 1423 06cc 1380     		strh	r3, [r2, #0]	@ movhi
+ 321:../src/mixer.c ****             servo[1] = constrain(cfg.gimbal_roll_mid + cfg.gimbal_roll_gain * angle[ROLL] / 16 + rc
+ 1424              		.loc 1 321 0 is_stmt 1 discriminator 3
+ 1425 06ce 4D4B     		ldr	r3, .L116
+ 1426 06d0 B3F88E30 		ldrh	r3, [r3, #142]
+ 1427 06d4 1A46     		mov	r2, r3
+ 1428 06d6 4B4B     		ldr	r3, .L116
+ 1429 06d8 93F88130 		ldrb	r3, [r3, #129]	@ zero_extendqisi2
+ 1430 06dc 5BB2     		sxtb	r3, r3
+ 1431 06de 4C49     		ldr	r1, .L116+12
+ 1432 06e0 0988     		ldrh	r1, [r1, #0]
+ 1433 06e2 09B2     		sxth	r1, r1
+ 1434 06e4 01FB03F3 		mul	r3, r1, r3
+ 1435 06e8 002B     		cmp	r3, #0
+ 1436 06ea 01DA     		bge	.L73
+ 1437 06ec 03F10F03 		add	r3, r3, #15
+ 1438              	.L73:
+ 1439 06f0 4FEA2313 		asr	r3, r3, #4
+ 1440 06f4 D218     		adds	r2, r2, r3
+ 1441 06f6 474B     		ldr	r3, .L116+16
+ 1442 06f8 1B88     		ldrh	r3, [r3, #0]
+ 1443 06fa 1BB2     		sxth	r3, r3
+ 1444 06fc D218     		adds	r2, r2, r3
+ 1445 06fe 414B     		ldr	r3, .L116
+ 1446 0700 B3F88A30 		ldrh	r3, [r3, #138]
+ 1447 0704 9A42     		cmp	r2, r3
+ 1448 0706 04DA     		bge	.L74
+ 1449              		.loc 1 321 0 is_stmt 0 discriminator 1
+ 1450 0708 3E4B     		ldr	r3, .L116
+ 1451 070a B3F88A30 		ldrh	r3, [r3, #138]
+ 1452 070e 9BB2     		uxth	r3, r3
+ 1453 0710 1EE0     		b	.L75
+ 1454              	.L74:
+ 1455              		.loc 1 321 0 discriminator 2
+ 1456 0712 3C4B     		ldr	r3, .L116
+ 1457 0714 B3F88E30 		ldrh	r3, [r3, #142]
+ 1458 0718 1A46     		mov	r2, r3
+ 1459 071a 3A4B     		ldr	r3, .L116
+ 1460 071c 93F88130 		ldrb	r3, [r3, #129]	@ zero_extendqisi2
+ 1461 0720 5BB2     		sxtb	r3, r3
+ 1462 0722 3B49     		ldr	r1, .L116+12
+ 1463 0724 0988     		ldrh	r1, [r1, #0]
+ 1464 0726 09B2     		sxth	r1, r1
+ 1465 0728 01FB03F3 		mul	r3, r1, r3
+ 1466 072c 002B     		cmp	r3, #0
+ 1467 072e 01DA     		bge	.L76
+ 1468 0730 03F10F03 		add	r3, r3, #15
+ 1469              	.L76:
+ 1470 0734 4FEA2313 		asr	r3, r3, #4
+ 1471 0738 D218     		adds	r2, r2, r3
+ 1472 073a 364B     		ldr	r3, .L116+16
+ 1473 073c 1B88     		ldrh	r3, [r3, #0]
+ 1474 073e 1BB2     		sxth	r3, r3
+ 1475 0740 D218     		adds	r2, r2, r3
+ 1476 0742 304B     		ldr	r3, .L116
+ 1477 0744 B3F88C30 		ldrh	r3, [r3, #140]
+ 1478 0748 9A42     		cmp	r2, r3
+ 1479 074a B8BF     		it	lt
+ 1480 074c 1346     		movlt	r3, r2
+ 1481 074e 9BB2     		uxth	r3, r3
+ 1482              	.L75:
+ 1483              		.loc 1 321 0 discriminator 3
+ 1484 0750 2E4A     		ldr	r2, .L116+8
+ 1485 0752 5380     		strh	r3, [r2, #2]	@ movhi
+ 322:../src/mixer.c ****             break;
+ 1486              		.loc 1 322 0 is_stmt 1 discriminator 3
+ 1487 0754 E1E0     		b	.L56
+ 1488              	.L61:
+ 323:../src/mixer.c **** 
+ 324:../src/mixer.c ****         case MULTITYPE_AIRPLANE:
+ 325:../src/mixer.c ****             airplaneMixer();
+ 1489              		.loc 1 325 0
+ 1490 0756 FFF7F9FD 		bl	airplaneMixer
+ 326:../src/mixer.c ****             break;
+ 1491              		.loc 1 326 0
+ 1492 075a DEE0     		b	.L56
+ 1493              	.L60:
+ 327:../src/mixer.c **** 
+ 328:../src/mixer.c ****         case MULTITYPE_FLYING_WING:
+ 329:../src/mixer.c ****             motor[0] = rcCommand[THROTTLE];
+ 1494              		.loc 1 329 0
+ 1495 075c 2D4B     		ldr	r3, .L116+16
+ 1496 075e DA88     		ldrh	r2, [r3, #6]
+ 1497 0760 2D4B     		ldr	r3, .L116+20
+ 1498 0762 1A80     		strh	r2, [r3, #0]	@ movhi
+ 330:../src/mixer.c ****             if (f.PASSTHRU_MODE) {
+ 1499              		.loc 1 330 0
+ 1500 0764 2D4B     		ldr	r3, .L116+24
+ 1501 0766 9B7A     		ldrb	r3, [r3, #10]	@ zero_extendqisi2
+ 1502 0768 002B     		cmp	r3, #0
+ 1503 076a 5DD0     		beq	.L77
+ 331:../src/mixer.c ****                 // do not use sensors for correction, simple 2 channel mixing
+ 332:../src/mixer.c ****                 servo[0]  = cfg.pitch_direction_l * (rcData[PITCH] - mcfg.midrc) + cfg.roll_directi
+ 1504              		.loc 1 332 0
+ 1505 076c 254B     		ldr	r3, .L116
+ 1506 076e 93F87C30 		ldrb	r3, [r3, #124]	@ zero_extendqisi2
+ 1507 0772 5BB2     		sxtb	r3, r3
+ 1508 0774 9BB2     		uxth	r3, r3
+ 1509 0776 2A4A     		ldr	r2, .L116+28
+ 1510 0778 5288     		ldrh	r2, [r2, #2]
+ 1511 077a 11B2     		sxth	r1, r2
+ 1512 077c 294A     		ldr	r2, .L116+32
+ 1513 077e B2F80821 		ldrh	r2, [r2, #264]
+ 1514 0782 8A1A     		subs	r2, r1, r2
+ 1515 0784 92B2     		uxth	r2, r2
+ 1516 0786 02FB03F3 		mul	r3, r2, r3
+ 1517 078a 9AB2     		uxth	r2, r3
+ 1518 078c 1D4B     		ldr	r3, .L116
+ 1519 078e 93F87E30 		ldrb	r3, [r3, #126]	@ zero_extendqisi2
+ 1520 0792 5BB2     		sxtb	r3, r3
+ 1521 0794 9BB2     		uxth	r3, r3
+ 1522 0796 2249     		ldr	r1, .L116+28
+ 1523 0798 0988     		ldrh	r1, [r1, #0]
+ 1524 079a 08B2     		sxth	r0, r1
+ 1525 079c 2149     		ldr	r1, .L116+32
+ 1526 079e B1F80811 		ldrh	r1, [r1, #264]
+ 1527 07a2 411A     		subs	r1, r0, r1
+ 1528 07a4 89B2     		uxth	r1, r1
+ 1529 07a6 01FB03F3 		mul	r3, r1, r3
+ 1530 07aa 9BB2     		uxth	r3, r3
+ 1531 07ac D318     		adds	r3, r2, r3
+ 1532 07ae 9BB2     		uxth	r3, r3
+ 1533 07b0 9AB2     		uxth	r2, r3
+ 1534 07b2 164B     		ldr	r3, .L116+8
+ 1535 07b4 1A80     		strh	r2, [r3, #0]	@ movhi
+ 333:../src/mixer.c ****                 servo[1]  = cfg.pitch_direction_r * (rcData[PITCH] - mcfg.midrc) + cfg.roll_directi
+ 1536              		.loc 1 333 0
+ 1537 07b6 134B     		ldr	r3, .L116
+ 1538 07b8 93F87D30 		ldrb	r3, [r3, #125]	@ zero_extendqisi2
+ 1539 07bc 5BB2     		sxtb	r3, r3
+ 1540 07be 9BB2     		uxth	r3, r3
+ 1541 07c0 174A     		ldr	r2, .L116+28
+ 1542 07c2 5288     		ldrh	r2, [r2, #2]
+ 1543 07c4 11B2     		sxth	r1, r2
+ 1544 07c6 174A     		ldr	r2, .L116+32
+ 1545 07c8 B2F80821 		ldrh	r2, [r2, #264]
+ 1546 07cc 8A1A     		subs	r2, r1, r2
+ 1547 07ce 92B2     		uxth	r2, r2
+ 1548 07d0 02FB03F3 		mul	r3, r2, r3
+ 1549 07d4 9AB2     		uxth	r2, r3
+ 1550 07d6 0B4B     		ldr	r3, .L116
+ 1551 07d8 93F87F30 		ldrb	r3, [r3, #127]	@ zero_extendqisi2
+ 1552 07dc 5BB2     		sxtb	r3, r3
+ 1553 07de 9BB2     		uxth	r3, r3
+ 1554 07e0 0F49     		ldr	r1, .L116+28
+ 1555 07e2 0988     		ldrh	r1, [r1, #0]
+ 1556 07e4 08B2     		sxth	r0, r1
+ 1557 07e6 0F49     		ldr	r1, .L116+32
+ 1558 07e8 B1F80811 		ldrh	r1, [r1, #264]
+ 1559 07ec 411A     		subs	r1, r0, r1
+ 1560 07ee 89B2     		uxth	r1, r1
+ 1561 07f0 01FB03F3 		mul	r3, r1, r3
+ 1562 07f4 9BB2     		uxth	r3, r3
+ 1563 07f6 D318     		adds	r3, r2, r3
+ 1564 07f8 9BB2     		uxth	r3, r3
+ 1565 07fa 9AB2     		uxth	r2, r3
+ 1566 07fc 034B     		ldr	r3, .L116+8
+ 1567 07fe 5A80     		strh	r2, [r3, #2]	@ movhi
+ 1568 0800 48E0     		b	.L78
+ 1569              	.L117:
+ 1570 0802 00BF     		.align	2
+ 1571              	.L116:
+ 1572 0804 00000000 		.word	cfg
+ 1573 0808 00000000 		.word	axisPID
+ 1574 080c 00000000 		.word	servo
+ 1575 0810 00000000 		.word	angle
+ 1576 0814 00000000 		.word	rcCommand
+ 1577 0818 00000000 		.word	motor
+ 1578 081c 00000000 		.word	f
+ 1579 0820 00000000 		.word	rcData
+ 1580 0824 00000000 		.word	mcfg
+ 1581              	.L77:
+ 334:../src/mixer.c ****             } else {
+ 335:../src/mixer.c ****                 // use sensors to correct (gyro only or gyro + acc)
+ 336:../src/mixer.c ****                 servo[0]  = cfg.pitch_direction_l * axisPID[PITCH] + cfg.roll_direction_l * axisPID
+ 1582              		.loc 1 336 0
+ 1583 0828 924B     		ldr	r3, .L118
+ 1584 082a 93F87C30 		ldrb	r3, [r3, #124]	@ zero_extendqisi2
+ 1585 082e 5BB2     		sxtb	r3, r3
+ 1586 0830 9BB2     		uxth	r3, r3
+ 1587 0832 914A     		ldr	r2, .L118+4
+ 1588 0834 5288     		ldrh	r2, [r2, #2]
+ 1589 0836 92B2     		uxth	r2, r2
+ 1590 0838 02FB03F3 		mul	r3, r2, r3
+ 1591 083c 9AB2     		uxth	r2, r3
+ 1592 083e 8D4B     		ldr	r3, .L118
+ 1593 0840 93F87E30 		ldrb	r3, [r3, #126]	@ zero_extendqisi2
+ 1594 0844 5BB2     		sxtb	r3, r3
+ 1595 0846 9BB2     		uxth	r3, r3
+ 1596 0848 8B49     		ldr	r1, .L118+4
+ 1597 084a 0988     		ldrh	r1, [r1, #0]
+ 1598 084c 89B2     		uxth	r1, r1
+ 1599 084e 01FB03F3 		mul	r3, r1, r3
+ 1600 0852 9BB2     		uxth	r3, r3
+ 1601 0854 D318     		adds	r3, r2, r3
+ 1602 0856 9BB2     		uxth	r3, r3
+ 1603 0858 9AB2     		uxth	r2, r3
+ 1604 085a 884B     		ldr	r3, .L118+8
+ 1605 085c 1A80     		strh	r2, [r3, #0]	@ movhi
+ 337:../src/mixer.c ****                 servo[1]  = cfg.pitch_direction_r * axisPID[PITCH] + cfg.roll_direction_r * axisPID
+ 1606              		.loc 1 337 0
+ 1607 085e 854B     		ldr	r3, .L118
+ 1608 0860 93F87D30 		ldrb	r3, [r3, #125]	@ zero_extendqisi2
+ 1609 0864 5BB2     		sxtb	r3, r3
+ 1610 0866 9BB2     		uxth	r3, r3
+ 1611 0868 834A     		ldr	r2, .L118+4
+ 1612 086a 5288     		ldrh	r2, [r2, #2]
+ 1613 086c 92B2     		uxth	r2, r2
+ 1614 086e 02FB03F3 		mul	r3, r2, r3
+ 1615 0872 9AB2     		uxth	r2, r3
+ 1616 0874 7F4B     		ldr	r3, .L118
+ 1617 0876 93F87F30 		ldrb	r3, [r3, #127]	@ zero_extendqisi2
+ 1618 087a 5BB2     		sxtb	r3, r3
+ 1619 087c 9BB2     		uxth	r3, r3
+ 1620 087e 7E49     		ldr	r1, .L118+4
+ 1621 0880 0988     		ldrh	r1, [r1, #0]
+ 1622 0882 89B2     		uxth	r1, r1
+ 1623 0884 01FB03F3 		mul	r3, r1, r3
+ 1624 0888 9BB2     		uxth	r3, r3
+ 1625 088a D318     		adds	r3, r2, r3
+ 1626 088c 9BB2     		uxth	r3, r3
+ 1627 088e 9AB2     		uxth	r2, r3
+ 1628 0890 7A4B     		ldr	r3, .L118+8
+ 1629 0892 5A80     		strh	r2, [r3, #2]	@ movhi
+ 1630              	.L78:
+ 338:../src/mixer.c ****             }
+ 339:../src/mixer.c ****             servo[0] = constrain(servo[0] + cfg.wing_left_mid, cfg.wing_left_min, cfg.wing_left_max
+ 1631              		.loc 1 339 0
+ 1632 0894 794B     		ldr	r3, .L118+8
+ 1633 0896 1B88     		ldrh	r3, [r3, #0]
+ 1634 0898 1AB2     		sxth	r2, r3
+ 1635 089a 764B     		ldr	r3, .L118
+ 1636 089c B3F87230 		ldrh	r3, [r3, #114]
+ 1637 08a0 D218     		adds	r2, r2, r3
+ 1638 08a2 744B     		ldr	r3, .L118
+ 1639 08a4 B3F87030 		ldrh	r3, [r3, #112]
+ 1640 08a8 9A42     		cmp	r2, r3
+ 1641 08aa 04DA     		bge	.L79
+ 1642              		.loc 1 339 0 is_stmt 0 discriminator 1
+ 1643 08ac 714B     		ldr	r3, .L118
+ 1644 08ae B3F87030 		ldrh	r3, [r3, #112]
+ 1645 08b2 9BB2     		uxth	r3, r3
+ 1646 08b4 0DE0     		b	.L80
+ 1647              	.L79:
+ 1648              		.loc 1 339 0 discriminator 2
+ 1649 08b6 714B     		ldr	r3, .L118+8
+ 1650 08b8 1B88     		ldrh	r3, [r3, #0]
+ 1651 08ba 1AB2     		sxth	r2, r3
+ 1652 08bc 6D4B     		ldr	r3, .L118
+ 1653 08be B3F87230 		ldrh	r3, [r3, #114]
+ 1654 08c2 D218     		adds	r2, r2, r3
+ 1655 08c4 6B4B     		ldr	r3, .L118
+ 1656 08c6 B3F87430 		ldrh	r3, [r3, #116]
+ 1657 08ca 9A42     		cmp	r2, r3
+ 1658 08cc B8BF     		it	lt
+ 1659 08ce 1346     		movlt	r3, r2
+ 1660 08d0 9BB2     		uxth	r3, r3
+ 1661              	.L80:
+ 1662              		.loc 1 339 0 discriminator 3
+ 1663 08d2 6A4A     		ldr	r2, .L118+8
+ 1664 08d4 1380     		strh	r3, [r2, #0]	@ movhi
+ 340:../src/mixer.c ****             servo[1] = constrain(servo[1] + cfg.wing_right_mid, cfg.wing_right_min, cfg.wing_right_
+ 1665              		.loc 1 340 0 is_stmt 1 discriminator 3
+ 1666 08d6 694B     		ldr	r3, .L118+8
+ 1667 08d8 5B88     		ldrh	r3, [r3, #2]
+ 1668 08da 1AB2     		sxth	r2, r3
+ 1669 08dc 654B     		ldr	r3, .L118
+ 1670 08de B3F87830 		ldrh	r3, [r3, #120]
+ 1671 08e2 D218     		adds	r2, r2, r3
+ 1672 08e4 634B     		ldr	r3, .L118
+ 1673 08e6 B3F87630 		ldrh	r3, [r3, #118]
+ 1674 08ea 9A42     		cmp	r2, r3
+ 1675 08ec 04DA     		bge	.L81
+ 1676              		.loc 1 340 0 is_stmt 0 discriminator 1
+ 1677 08ee 614B     		ldr	r3, .L118
+ 1678 08f0 B3F87630 		ldrh	r3, [r3, #118]
+ 1679 08f4 9BB2     		uxth	r3, r3
+ 1680 08f6 0DE0     		b	.L82
+ 1681              	.L81:
+ 1682              		.loc 1 340 0 discriminator 2
+ 1683 08f8 604B     		ldr	r3, .L118+8
+ 1684 08fa 5B88     		ldrh	r3, [r3, #2]
+ 1685 08fc 1AB2     		sxth	r2, r3
+ 1686 08fe 5D4B     		ldr	r3, .L118
+ 1687 0900 B3F87830 		ldrh	r3, [r3, #120]
+ 1688 0904 D218     		adds	r2, r2, r3
+ 1689 0906 5B4B     		ldr	r3, .L118
+ 1690 0908 B3F87A30 		ldrh	r3, [r3, #122]
+ 1691 090c 9A42     		cmp	r2, r3
+ 1692 090e B8BF     		it	lt
+ 1693 0910 1346     		movlt	r3, r2
+ 1694 0912 9BB2     		uxth	r3, r3
+ 1695              	.L82:
+ 1696              		.loc 1 340 0 discriminator 3
+ 1697 0914 594A     		ldr	r2, .L118+8
+ 1698 0916 5380     		strh	r3, [r2, #2]	@ movhi
+ 341:../src/mixer.c ****             break;
+ 1699              		.loc 1 341 0 is_stmt 1
+ 1700 0918 00BF     		nop
+ 1701              	.L56:
+ 342:../src/mixer.c ****     }
+ 343:../src/mixer.c **** 
+ 344:../src/mixer.c ****     // do camstab
+ 345:../src/mixer.c ****     if (feature(FEATURE_SERVO_TILT)) {
+ 1702              		.loc 1 345 0
+ 1703 091a 4FF02000 		mov	r0, #32
+ 1704 091e FFF7FEFF 		bl	feature
+ 1705 0922 0346     		mov	r3, r0
+ 1706 0924 002B     		cmp	r3, #0
+ 1707 0926 00F01581 		beq	.L83
+ 1708              	.LBB2:
+ 346:../src/mixer.c ****         uint16_t aux[2] = { 0, 0 };
+ 1709              		.loc 1 346 0
+ 1710 092a 4FF00003 		mov	r3, #0
+ 1711 092e 3B80     		strh	r3, [r7, #0]	@ movhi
+ 1712 0930 4FF00003 		mov	r3, #0
+ 1713 0934 7B80     		strh	r3, [r7, #2]	@ movhi
+ 347:../src/mixer.c **** 
+ 348:../src/mixer.c ****         if ((cfg.gimbal_flags & GIMBAL_NORMAL) || (cfg.gimbal_flags & GIMBAL_TILTONLY))
+ 1714              		.loc 1 348 0
+ 1715 0936 4F4B     		ldr	r3, .L118
+ 1716 0938 93F88230 		ldrb	r3, [r3, #130]	@ zero_extendqisi2
+ 1717 093c 03F00103 		and	r3, r3, #1
+ 1718 0940 002B     		cmp	r3, #0
+ 1719 0942 06D1     		bne	.L84
+ 1720              		.loc 1 348 0 is_stmt 0 discriminator 1
+ 1721 0944 4B4B     		ldr	r3, .L118
+ 1722 0946 93F88230 		ldrb	r3, [r3, #130]	@ zero_extendqisi2
+ 1723 094a 03F00203 		and	r3, r3, #2
+ 1724 094e 002B     		cmp	r3, #0
+ 1725 0950 08D0     		beq	.L85
+ 1726              	.L84:
+ 349:../src/mixer.c ****             aux[0] = rcData[AUX3] - mcfg.midrc;
+ 1727              		.loc 1 349 0 is_stmt 1
+ 1728 0952 4B4B     		ldr	r3, .L118+12
+ 1729 0954 9B89     		ldrh	r3, [r3, #12]
+ 1730 0956 9AB2     		uxth	r2, r3
+ 1731 0958 4A4B     		ldr	r3, .L118+16
+ 1732 095a B3F80831 		ldrh	r3, [r3, #264]
+ 1733 095e D31A     		subs	r3, r2, r3
+ 1734 0960 9BB2     		uxth	r3, r3
+ 1735 0962 3B80     		strh	r3, [r7, #0]	@ movhi
+ 1736              	.L85:
+ 350:../src/mixer.c ****         if (!(cfg.gimbal_flags & GIMBAL_DISABLEAUX34))
+ 1737              		.loc 1 350 0
+ 1738 0964 434B     		ldr	r3, .L118
+ 1739 0966 93F88230 		ldrb	r3, [r3, #130]	@ zero_extendqisi2
+ 1740 096a 03F00403 		and	r3, r3, #4
+ 1741 096e 002B     		cmp	r3, #0
+ 1742 0970 08D1     		bne	.L86
+ 351:../src/mixer.c ****             aux[1] = rcData[AUX4] - mcfg.midrc;
+ 1743              		.loc 1 351 0
+ 1744 0972 434B     		ldr	r3, .L118+12
+ 1745 0974 DB89     		ldrh	r3, [r3, #14]
+ 1746 0976 9AB2     		uxth	r2, r3
+ 1747 0978 424B     		ldr	r3, .L118+16
+ 1748 097a B3F80831 		ldrh	r3, [r3, #264]
+ 1749 097e D31A     		subs	r3, r2, r3
+ 1750 0980 9BB2     		uxth	r3, r3
+ 1751 0982 7B80     		strh	r3, [r7, #2]	@ movhi
+ 1752              	.L86:
+ 352:../src/mixer.c **** 
+ 353:../src/mixer.c ****         servo[0] = cfg.gimbal_pitch_mid + aux[0];
+ 1753              		.loc 1 353 0
+ 1754 0984 3B4B     		ldr	r3, .L118
+ 1755 0986 B3F88820 		ldrh	r2, [r3, #136]
+ 1756 098a 3B88     		ldrh	r3, [r7, #0]
+ 1757 098c D318     		adds	r3, r2, r3
+ 1758 098e 9BB2     		uxth	r3, r3
+ 1759 0990 9AB2     		uxth	r2, r3
+ 1760 0992 3A4B     		ldr	r3, .L118+8
+ 1761 0994 1A80     		strh	r2, [r3, #0]	@ movhi
+ 354:../src/mixer.c ****         servo[1] = cfg.gimbal_roll_mid + aux[1];
+ 1762              		.loc 1 354 0
+ 1763 0996 374B     		ldr	r3, .L118
+ 1764 0998 B3F88E20 		ldrh	r2, [r3, #142]
+ 1765 099c 7B88     		ldrh	r3, [r7, #2]
+ 1766 099e D318     		adds	r3, r2, r3
+ 1767 09a0 9BB2     		uxth	r3, r3
+ 1768 09a2 9AB2     		uxth	r2, r3
+ 1769 09a4 354B     		ldr	r3, .L118+8
+ 1770 09a6 5A80     		strh	r2, [r3, #2]	@ movhi
+ 355:../src/mixer.c **** 
+ 356:../src/mixer.c ****         if (rcOptions[BOXCAMSTAB]) {
+ 1771              		.loc 1 356 0
+ 1772 09a8 374B     		ldr	r3, .L118+20
+ 1773 09aa 1B7A     		ldrb	r3, [r3, #8]	@ zero_extendqisi2
+ 1774 09ac 002B     		cmp	r3, #0
+ 1775 09ae 00F09F80 		beq	.L87
+ 357:../src/mixer.c ****             if (cfg.gimbal_flags & GIMBAL_MIXTILT) {
+ 1776              		.loc 1 357 0
+ 1777 09b2 304B     		ldr	r3, .L118
+ 1778 09b4 93F88230 		ldrb	r3, [r3, #130]	@ zero_extendqisi2
+ 1779 09b8 03F01003 		and	r3, r3, #16
+ 1780 09bc 002B     		cmp	r3, #0
+ 1781 09be 67D0     		beq	.L88
+ 358:../src/mixer.c ****                 servo[0] -= (-cfg.gimbal_pitch_gain) * angle[PITCH] / 16 - cfg.gimbal_roll_gain * a
+ 1782              		.loc 1 358 0
+ 1783 09c0 2E4B     		ldr	r3, .L118+8
+ 1784 09c2 1B88     		ldrh	r3, [r3, #0]
+ 1785 09c4 9AB2     		uxth	r2, r3
+ 1786 09c6 2B4B     		ldr	r3, .L118
+ 1787 09c8 93F88130 		ldrb	r3, [r3, #129]	@ zero_extendqisi2
+ 1788 09cc 5BB2     		sxtb	r3, r3
+ 1789 09ce 2F49     		ldr	r1, .L118+24
+ 1790 09d0 0988     		ldrh	r1, [r1, #0]
+ 1791 09d2 09B2     		sxth	r1, r1
+ 1792 09d4 01FB03F3 		mul	r3, r1, r3
+ 1793 09d8 002B     		cmp	r3, #0
+ 1794 09da 01DA     		bge	.L89
+ 1795 09dc 03F10F03 		add	r3, r3, #15
+ 1796              	.L89:
+ 1797 09e0 4FEA2313 		asr	r3, r3, #4
+ 1798 09e4 99B2     		uxth	r1, r3
+ 1799 09e6 234B     		ldr	r3, .L118
+ 1800 09e8 93F88030 		ldrb	r3, [r3, #128]	@ zero_extendqisi2
+ 1801 09ec 5BB2     		sxtb	r3, r3
+ 1802 09ee C3F10003 		rsb	r3, r3, #0
+ 1803 09f2 2648     		ldr	r0, .L118+24
+ 1804 09f4 4088     		ldrh	r0, [r0, #2]
+ 1805 09f6 00B2     		sxth	r0, r0
+ 1806 09f8 00FB03F3 		mul	r3, r0, r3
+ 1807 09fc 002B     		cmp	r3, #0
+ 1808 09fe 01DA     		bge	.L90
+ 1809 0a00 03F10F03 		add	r3, r3, #15
+ 1810              	.L90:
+ 1811 0a04 4FEA2313 		asr	r3, r3, #4
+ 1812 0a08 9BB2     		uxth	r3, r3
+ 1813 0a0a CB1A     		subs	r3, r1, r3
+ 1814 0a0c 9BB2     		uxth	r3, r3
+ 1815 0a0e D318     		adds	r3, r2, r3
+ 1816 0a10 9BB2     		uxth	r3, r3
+ 1817 0a12 9AB2     		uxth	r2, r3
+ 1818 0a14 194B     		ldr	r3, .L118+8
+ 1819 0a16 1A80     		strh	r2, [r3, #0]	@ movhi
+ 359:../src/mixer.c ****                 servo[1] += (-cfg.gimbal_pitch_gain) * angle[PITCH] / 16 + cfg.gimbal_roll_gain * a
+ 1820              		.loc 1 359 0
+ 1821 0a18 184B     		ldr	r3, .L118+8
+ 1822 0a1a 5B88     		ldrh	r3, [r3, #2]
+ 1823 0a1c 9AB2     		uxth	r2, r3
+ 1824 0a1e 154B     		ldr	r3, .L118
+ 1825 0a20 93F88030 		ldrb	r3, [r3, #128]	@ zero_extendqisi2
+ 1826 0a24 5BB2     		sxtb	r3, r3
+ 1827 0a26 C3F10003 		rsb	r3, r3, #0
+ 1828 0a2a 1849     		ldr	r1, .L118+24
+ 1829 0a2c 4988     		ldrh	r1, [r1, #2]
+ 1830 0a2e 09B2     		sxth	r1, r1
+ 1831 0a30 01FB03F3 		mul	r3, r1, r3
+ 1832 0a34 002B     		cmp	r3, #0
+ 1833 0a36 01DA     		bge	.L91
+ 1834 0a38 03F10F03 		add	r3, r3, #15
+ 1835              	.L91:
+ 1836 0a3c 4FEA2313 		asr	r3, r3, #4
+ 1837 0a40 99B2     		uxth	r1, r3
+ 1838 0a42 0C4B     		ldr	r3, .L118
+ 1839 0a44 93F88130 		ldrb	r3, [r3, #129]	@ zero_extendqisi2
+ 1840 0a48 5BB2     		sxtb	r3, r3
+ 1841 0a4a 1048     		ldr	r0, .L118+24
+ 1842 0a4c 0088     		ldrh	r0, [r0, #0]
+ 1843 0a4e 00B2     		sxth	r0, r0
+ 1844 0a50 00FB03F3 		mul	r3, r0, r3
+ 1845 0a54 002B     		cmp	r3, #0
+ 1846 0a56 01DA     		bge	.L92
+ 1847 0a58 03F10F03 		add	r3, r3, #15
+ 1848              	.L92:
+ 1849 0a5c 4FEA2313 		asr	r3, r3, #4
+ 1850 0a60 9BB2     		uxth	r3, r3
+ 1851 0a62 CB18     		adds	r3, r1, r3
+ 1852 0a64 9BB2     		uxth	r3, r3
+ 1853 0a66 D318     		adds	r3, r2, r3
+ 1854 0a68 9BB2     		uxth	r3, r3
+ 1855 0a6a 9AB2     		uxth	r2, r3
+ 1856 0a6c 034B     		ldr	r3, .L118+8
+ 1857 0a6e 5A80     		strh	r2, [r3, #2]	@ movhi
+ 1858 0a70 3EE0     		b	.L87
+ 1859              	.L119:
+ 1860 0a72 00BF     		.align	2
+ 1861              	.L118:
+ 1862 0a74 00000000 		.word	cfg
+ 1863 0a78 00000000 		.word	axisPID
+ 1864 0a7c 00000000 		.word	servo
+ 1865 0a80 00000000 		.word	rcData
+ 1866 0a84 00000000 		.word	mcfg
+ 1867 0a88 00000000 		.word	rcOptions
+ 1868 0a8c 00000000 		.word	angle
+ 1869              	.L88:
+ 360:../src/mixer.c ****             } else {
+ 361:../src/mixer.c ****                 servo[0] += cfg.gimbal_pitch_gain * angle[PITCH] / 16;
+ 1870              		.loc 1 361 0
+ 1871 0a90 944B     		ldr	r3, .L120
+ 1872 0a92 1B88     		ldrh	r3, [r3, #0]
+ 1873 0a94 9AB2     		uxth	r2, r3
+ 1874 0a96 944B     		ldr	r3, .L120+4
+ 1875 0a98 93F88030 		ldrb	r3, [r3, #128]	@ zero_extendqisi2
+ 1876 0a9c 5BB2     		sxtb	r3, r3
+ 1877 0a9e 9349     		ldr	r1, .L120+8
+ 1878 0aa0 4988     		ldrh	r1, [r1, #2]
+ 1879 0aa2 09B2     		sxth	r1, r1
+ 1880 0aa4 01FB03F3 		mul	r3, r1, r3
+ 1881 0aa8 002B     		cmp	r3, #0
+ 1882 0aaa 01DA     		bge	.L93
+ 1883 0aac 03F10F03 		add	r3, r3, #15
+ 1884              	.L93:
+ 1885 0ab0 4FEA2313 		asr	r3, r3, #4
+ 1886 0ab4 9BB2     		uxth	r3, r3
+ 1887 0ab6 D318     		adds	r3, r2, r3
+ 1888 0ab8 9BB2     		uxth	r3, r3
+ 1889 0aba 9AB2     		uxth	r2, r3
+ 1890 0abc 894B     		ldr	r3, .L120
+ 1891 0abe 1A80     		strh	r2, [r3, #0]	@ movhi
+ 362:../src/mixer.c ****                 servo[1] += cfg.gimbal_roll_gain * angle[ROLL]  / 16;
+ 1892              		.loc 1 362 0
+ 1893 0ac0 884B     		ldr	r3, .L120
+ 1894 0ac2 5B88     		ldrh	r3, [r3, #2]
+ 1895 0ac4 9AB2     		uxth	r2, r3
+ 1896 0ac6 884B     		ldr	r3, .L120+4
+ 1897 0ac8 93F88130 		ldrb	r3, [r3, #129]	@ zero_extendqisi2
+ 1898 0acc 5BB2     		sxtb	r3, r3
+ 1899 0ace 8749     		ldr	r1, .L120+8
+ 1900 0ad0 0988     		ldrh	r1, [r1, #0]
+ 1901 0ad2 09B2     		sxth	r1, r1
+ 1902 0ad4 01FB03F3 		mul	r3, r1, r3
+ 1903 0ad8 002B     		cmp	r3, #0
+ 1904 0ada 01DA     		bge	.L94
+ 1905 0adc 03F10F03 		add	r3, r3, #15
+ 1906              	.L94:
+ 1907 0ae0 4FEA2313 		asr	r3, r3, #4
+ 1908 0ae4 9BB2     		uxth	r3, r3
+ 1909 0ae6 D318     		adds	r3, r2, r3
+ 1910 0ae8 9BB2     		uxth	r3, r3
+ 1911 0aea 9AB2     		uxth	r2, r3
+ 1912 0aec 7D4B     		ldr	r3, .L120
+ 1913 0aee 5A80     		strh	r2, [r3, #2]	@ movhi
+ 1914              	.L87:
+ 363:../src/mixer.c ****             }
+ 364:../src/mixer.c ****         }
+ 365:../src/mixer.c **** 
+ 366:../src/mixer.c ****         servo[0] = constrain(servo[0], cfg.gimbal_pitch_min, cfg.gimbal_pitch_max);
+ 1915              		.loc 1 366 0
+ 1916 0af0 7C4B     		ldr	r3, .L120
+ 1917 0af2 1B88     		ldrh	r3, [r3, #0]
+ 1918 0af4 1AB2     		sxth	r2, r3
+ 1919 0af6 7C4B     		ldr	r3, .L120+4
+ 1920 0af8 B3F88430 		ldrh	r3, [r3, #132]
+ 1921 0afc 9A42     		cmp	r2, r3
+ 1922 0afe 04DA     		bge	.L95
+ 1923              		.loc 1 366 0 is_stmt 0 discriminator 1
+ 1924 0b00 794B     		ldr	r3, .L120+4
+ 1925 0b02 B3F88430 		ldrh	r3, [r3, #132]
+ 1926 0b06 9BB2     		uxth	r3, r3
+ 1927 0b08 09E0     		b	.L96
+ 1928              	.L95:
+ 1929              		.loc 1 366 0 discriminator 2
+ 1930 0b0a 764B     		ldr	r3, .L120
+ 1931 0b0c 1B88     		ldrh	r3, [r3, #0]
+ 1932 0b0e 1AB2     		sxth	r2, r3
+ 1933 0b10 754B     		ldr	r3, .L120+4
+ 1934 0b12 B3F88630 		ldrh	r3, [r3, #134]
+ 1935 0b16 9A42     		cmp	r2, r3
+ 1936 0b18 B8BF     		it	lt
+ 1937 0b1a 1346     		movlt	r3, r2
+ 1938 0b1c 9BB2     		uxth	r3, r3
+ 1939              	.L96:
+ 1940              		.loc 1 366 0 discriminator 3
+ 1941 0b1e 714A     		ldr	r2, .L120
+ 1942 0b20 1380     		strh	r3, [r2, #0]	@ movhi
+ 367:../src/mixer.c ****         servo[1] = constrain(servo[1], cfg.gimbal_roll_min, cfg.gimbal_roll_max);
+ 1943              		.loc 1 367 0 is_stmt 1 discriminator 3
+ 1944 0b22 704B     		ldr	r3, .L120
+ 1945 0b24 5B88     		ldrh	r3, [r3, #2]
+ 1946 0b26 1AB2     		sxth	r2, r3
+ 1947 0b28 6F4B     		ldr	r3, .L120+4
+ 1948 0b2a B3F88A30 		ldrh	r3, [r3, #138]
+ 1949 0b2e 9A42     		cmp	r2, r3
+ 1950 0b30 04DA     		bge	.L97
+ 1951              		.loc 1 367 0 is_stmt 0 discriminator 1
+ 1952 0b32 6D4B     		ldr	r3, .L120+4
+ 1953 0b34 B3F88A30 		ldrh	r3, [r3, #138]
+ 1954 0b38 9BB2     		uxth	r3, r3
+ 1955 0b3a 09E0     		b	.L98
+ 1956              	.L97:
+ 1957              		.loc 1 367 0 discriminator 2
+ 1958 0b3c 694B     		ldr	r3, .L120
+ 1959 0b3e 5B88     		ldrh	r3, [r3, #2]
+ 1960 0b40 1AB2     		sxth	r2, r3
+ 1961 0b42 694B     		ldr	r3, .L120+4
+ 1962 0b44 B3F88C30 		ldrh	r3, [r3, #140]
+ 1963 0b48 9A42     		cmp	r2, r3
+ 1964 0b4a B8BF     		it	lt
+ 1965 0b4c 1346     		movlt	r3, r2
+ 1966 0b4e 9BB2     		uxth	r3, r3
+ 1967              	.L98:
+ 1968              		.loc 1 367 0 discriminator 3
+ 1969 0b50 644A     		ldr	r2, .L120
+ 1970 0b52 5380     		strh	r3, [r2, #2]	@ movhi
+ 1971              	.L83:
+ 1972              	.LBE2:
+ 368:../src/mixer.c ****     }
+ 369:../src/mixer.c **** 
+ 370:../src/mixer.c ****     if (cfg.gimbal_flags & GIMBAL_FORWARDAUX) {
+ 1973              		.loc 1 370 0 is_stmt 1
+ 1974 0b54 644B     		ldr	r3, .L120+4
+ 1975 0b56 93F88230 		ldrb	r3, [r3, #130]	@ zero_extendqisi2
+ 1976 0b5a 03F00803 		and	r3, r3, #8
+ 1977 0b5e 002B     		cmp	r3, #0
+ 1978 0b60 28D0     		beq	.L99
+ 1979              	.LBB3:
+ 371:../src/mixer.c ****         int offset = 0;
+ 1980              		.loc 1 371 0
+ 1981 0b62 4FF00003 		mov	r3, #0
+ 1982 0b66 7B60     		str	r3, [r7, #4]
+ 372:../src/mixer.c ****         if (feature(FEATURE_SERVO_TILT))
+ 1983              		.loc 1 372 0
+ 1984 0b68 4FF02000 		mov	r0, #32
+ 1985 0b6c FFF7FEFF 		bl	feature
+ 1986 0b70 0346     		mov	r3, r0
+ 1987 0b72 002B     		cmp	r3, #0
+ 1988 0b74 02D0     		beq	.L100
+ 373:../src/mixer.c ****             offset = 2;
+ 1989              		.loc 1 373 0
+ 1990 0b76 4FF00203 		mov	r3, #2
+ 1991 0b7a 7B60     		str	r3, [r7, #4]
+ 1992              	.L100:
+ 374:../src/mixer.c ****         for (i = 0; i < 4; i++)
+ 1993              		.loc 1 374 0
+ 1994 0b7c 4FF00003 		mov	r3, #0
+ 1995 0b80 BB60     		str	r3, [r7, #8]
+ 1996 0b82 14E0     		b	.L101
+ 1997              	.L102:
+ 375:../src/mixer.c ****             pwmWriteServo(i + offset, rcData[AUX1 + i]);
+ 1998              		.loc 1 375 0 discriminator 2
+ 1999 0b84 BB68     		ldr	r3, [r7, #8]
+ 2000 0b86 DAB2     		uxtb	r2, r3
+ 2001 0b88 7B68     		ldr	r3, [r7, #4]
+ 2002 0b8a DBB2     		uxtb	r3, r3
+ 2003 0b8c D318     		adds	r3, r2, r3
+ 2004 0b8e DAB2     		uxtb	r2, r3
+ 2005 0b90 BB68     		ldr	r3, [r7, #8]
+ 2006 0b92 03F10401 		add	r1, r3, #4
+ 2007 0b96 564B     		ldr	r3, .L120+12
+ 2008 0b98 33F81130 		ldrh	r3, [r3, r1, lsl #1]
+ 2009 0b9c 9BB2     		uxth	r3, r3
+ 2010 0b9e 1046     		mov	r0, r2
+ 2011 0ba0 1946     		mov	r1, r3
+ 2012 0ba2 FFF7FEFF 		bl	pwmWriteServo
+ 374:../src/mixer.c ****         for (i = 0; i < 4; i++)
+ 2013              		.loc 1 374 0 discriminator 2
+ 2014 0ba6 BB68     		ldr	r3, [r7, #8]
+ 2015 0ba8 03F10103 		add	r3, r3, #1
+ 2016 0bac BB60     		str	r3, [r7, #8]
+ 2017              	.L101:
+ 374:../src/mixer.c ****         for (i = 0; i < 4; i++)
+ 2018              		.loc 1 374 0 is_stmt 0 discriminator 1
+ 2019 0bae BB68     		ldr	r3, [r7, #8]
+ 2020 0bb0 032B     		cmp	r3, #3
+ 2021 0bb2 E7D9     		bls	.L102
+ 2022              	.L99:
+ 2023              	.LBE3:
+ 376:../src/mixer.c ****     }
+ 377:../src/mixer.c **** 
+ 378:../src/mixer.c ****     maxMotor = motor[0];
+ 2024              		.loc 1 378 0 is_stmt 1
+ 2025 0bb4 4F4B     		ldr	r3, .L120+16
+ 2026 0bb6 1B88     		ldrh	r3, [r3, #0]	@ movhi
+ 2027 0bb8 FB81     		strh	r3, [r7, #14]	@ movhi
+ 379:../src/mixer.c ****     for (i = 1; i < numberMotor; i++)
+ 2028              		.loc 1 379 0
+ 2029 0bba 4FF00103 		mov	r3, #1
+ 2030 0bbe BB60     		str	r3, [r7, #8]
+ 2031 0bc0 11E0     		b	.L103
+ 2032              	.L105:
+ 380:../src/mixer.c ****         if (motor[i] > maxMotor)
+ 2033              		.loc 1 380 0
+ 2034 0bc2 4C4B     		ldr	r3, .L120+16
+ 2035 0bc4 BA68     		ldr	r2, [r7, #8]
+ 2036 0bc6 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 2037 0bca B7F90E20 		ldrsh	r2, [r7, #14]
+ 2038 0bce 1BB2     		sxth	r3, r3
+ 2039 0bd0 9A42     		cmp	r2, r3
+ 2040 0bd2 04DA     		bge	.L104
+ 381:../src/mixer.c ****             maxMotor = motor[i];
+ 2041              		.loc 1 381 0
+ 2042 0bd4 474B     		ldr	r3, .L120+16
+ 2043 0bd6 BA68     		ldr	r2, [r7, #8]
+ 2044 0bd8 33F81230 		ldrh	r3, [r3, r2, lsl #1]	@ movhi
+ 2045 0bdc FB81     		strh	r3, [r7, #14]	@ movhi
+ 2046              	.L104:
+ 379:../src/mixer.c ****     for (i = 1; i < numberMotor; i++)
+ 2047              		.loc 1 379 0
+ 2048 0bde BB68     		ldr	r3, [r7, #8]
+ 2049 0be0 03F10103 		add	r3, r3, #1
+ 2050 0be4 BB60     		str	r3, [r7, #8]
+ 2051              	.L103:
+ 379:../src/mixer.c ****     for (i = 1; i < numberMotor; i++)
+ 2052              		.loc 1 379 0 is_stmt 0 discriminator 1
+ 2053 0be6 444B     		ldr	r3, .L120+20
+ 2054 0be8 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2055 0bea 1A46     		mov	r2, r3
+ 2056 0bec BB68     		ldr	r3, [r7, #8]
+ 2057 0bee 9A42     		cmp	r2, r3
+ 2058 0bf0 E7D8     		bhi	.L105
+ 382:../src/mixer.c ****     for (i = 0; i < numberMotor; i++) {
+ 2059              		.loc 1 382 0 is_stmt 1
+ 2060 0bf2 4FF00003 		mov	r3, #0
+ 2061 0bf6 BB60     		str	r3, [r7, #8]
+ 2062 0bf8 6AE0     		b	.L106
+ 2063              	.L113:
+ 383:../src/mixer.c ****         if (maxMotor > mcfg.maxthrottle)     // this is a way to still have good gyro corrections i
+ 2064              		.loc 1 383 0
+ 2065 0bfa B7F90E20 		ldrsh	r2, [r7, #14]
+ 2066 0bfe 3F4B     		ldr	r3, .L120+24
+ 2067 0c00 B3F8D230 		ldrh	r3, [r3, #210]
+ 2068 0c04 9A42     		cmp	r2, r3
+ 2069 0c06 11DD     		ble	.L107
+ 384:../src/mixer.c ****             motor[i] -= maxMotor - mcfg.maxthrottle;
+ 2070              		.loc 1 384 0
+ 2071 0c08 3A4B     		ldr	r3, .L120+16
+ 2072 0c0a BA68     		ldr	r2, [r7, #8]
+ 2073 0c0c 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 2074 0c10 9AB2     		uxth	r2, r3
+ 2075 0c12 3A4B     		ldr	r3, .L120+24
+ 2076 0c14 B3F8D210 		ldrh	r1, [r3, #210]
+ 2077 0c18 FB89     		ldrh	r3, [r7, #14]
+ 2078 0c1a CB1A     		subs	r3, r1, r3
+ 2079 0c1c 9BB2     		uxth	r3, r3
+ 2080 0c1e D318     		adds	r3, r2, r3
+ 2081 0c20 9BB2     		uxth	r3, r3
+ 2082 0c22 99B2     		uxth	r1, r3
+ 2083 0c24 334B     		ldr	r3, .L120+16
+ 2084 0c26 BA68     		ldr	r2, [r7, #8]
+ 2085 0c28 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 2086              	.L107:
+ 385:../src/mixer.c ****         motor[i] = constrain(motor[i], mcfg.minthrottle, mcfg.maxthrottle);
+ 2087              		.loc 1 385 0
+ 2088 0c2c 314B     		ldr	r3, .L120+16
+ 2089 0c2e BA68     		ldr	r2, [r7, #8]
+ 2090 0c30 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 2091 0c34 1AB2     		sxth	r2, r3
+ 2092 0c36 314B     		ldr	r3, .L120+24
+ 2093 0c38 B3F8D030 		ldrh	r3, [r3, #208]
+ 2094 0c3c 9A42     		cmp	r2, r3
+ 2095 0c3e 04DA     		bge	.L108
+ 2096              		.loc 1 385 0 is_stmt 0 discriminator 1
+ 2097 0c40 2E4B     		ldr	r3, .L120+24
+ 2098 0c42 B3F8D030 		ldrh	r3, [r3, #208]
+ 2099 0c46 9BB2     		uxth	r3, r3
+ 2100 0c48 0BE0     		b	.L109
+ 2101              	.L108:
+ 2102              		.loc 1 385 0 discriminator 2
+ 2103 0c4a 2A4B     		ldr	r3, .L120+16
+ 2104 0c4c BA68     		ldr	r2, [r7, #8]
+ 2105 0c4e 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 2106 0c52 1AB2     		sxth	r2, r3
+ 2107 0c54 294B     		ldr	r3, .L120+24
+ 2108 0c56 B3F8D230 		ldrh	r3, [r3, #210]
+ 2109 0c5a 9A42     		cmp	r2, r3
+ 2110 0c5c B8BF     		it	lt
+ 2111 0c5e 1346     		movlt	r3, r2
+ 2112 0c60 9BB2     		uxth	r3, r3
+ 2113              	.L109:
+ 2114              		.loc 1 385 0 discriminator 3
+ 2115 0c62 244A     		ldr	r2, .L120+16
+ 2116 0c64 B968     		ldr	r1, [r7, #8]
+ 2117 0c66 22F81130 		strh	r3, [r2, r1, lsl #1]	@ movhi
+ 386:../src/mixer.c ****         if ((rcData[THROTTLE]) < mcfg.mincheck) {
+ 2118              		.loc 1 386 0 is_stmt 1 discriminator 3
+ 2119 0c6a 214B     		ldr	r3, .L120+12
+ 2120 0c6c DB88     		ldrh	r3, [r3, #6]
+ 2121 0c6e 1AB2     		sxth	r2, r3
+ 2122 0c70 224B     		ldr	r3, .L120+24
+ 2123 0c72 B3F80A31 		ldrh	r3, [r3, #266]
+ 2124 0c76 9A42     		cmp	r2, r3
+ 2125 0c78 1ADA     		bge	.L110
+ 387:../src/mixer.c ****             if (!feature(FEATURE_MOTOR_STOP))
+ 2126              		.loc 1 387 0
+ 2127 0c7a 4FF01000 		mov	r0, #16
+ 2128 0c7e FFF7FEFF 		bl	feature
+ 2129 0c82 0346     		mov	r3, r0
+ 2130 0c84 83F00103 		eor	r3, r3, #1
+ 2131 0c88 DBB2     		uxtb	r3, r3
+ 2132 0c8a 002B     		cmp	r3, #0
+ 2133 0c8c 08D0     		beq	.L111
+ 388:../src/mixer.c ****                 motor[i] = mcfg.minthrottle;
+ 2134              		.loc 1 388 0
+ 2135 0c8e 1B4B     		ldr	r3, .L120+24
+ 2136 0c90 B3F8D030 		ldrh	r3, [r3, #208]
+ 2137 0c94 99B2     		uxth	r1, r3
+ 2138 0c96 174B     		ldr	r3, .L120+16
+ 2139 0c98 BA68     		ldr	r2, [r7, #8]
+ 2140 0c9a 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 2141 0c9e 07E0     		b	.L110
+ 2142              	.L111:
+ 389:../src/mixer.c ****             else
+ 390:../src/mixer.c ****                 motor[i] = mcfg.mincommand;
+ 2143              		.loc 1 390 0
+ 2144 0ca0 164B     		ldr	r3, .L120+24
+ 2145 0ca2 B3F8D430 		ldrh	r3, [r3, #212]
+ 2146 0ca6 99B2     		uxth	r1, r3
+ 2147 0ca8 124B     		ldr	r3, .L120+16
+ 2148 0caa BA68     		ldr	r2, [r7, #8]
+ 2149 0cac 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 2150              	.L110:
+ 391:../src/mixer.c ****         }
+ 392:../src/mixer.c ****         if (!f.ARMED)
+ 2151              		.loc 1 392 0
+ 2152 0cb0 134B     		ldr	r3, .L120+28
+ 2153 0cb2 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 2154 0cb4 002B     		cmp	r3, #0
+ 2155 0cb6 07D1     		bne	.L112
+ 393:../src/mixer.c ****             motor[i] = mcfg.mincommand;
+ 2156              		.loc 1 393 0
+ 2157 0cb8 104B     		ldr	r3, .L120+24
+ 2158 0cba B3F8D430 		ldrh	r3, [r3, #212]
+ 2159 0cbe 99B2     		uxth	r1, r3
+ 2160 0cc0 0C4B     		ldr	r3, .L120+16
+ 2161 0cc2 BA68     		ldr	r2, [r7, #8]
+ 2162 0cc4 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 2163              	.L112:
+ 382:../src/mixer.c ****     for (i = 0; i < numberMotor; i++) {
+ 2164              		.loc 1 382 0
+ 2165 0cc8 BB68     		ldr	r3, [r7, #8]
+ 2166 0cca 03F10103 		add	r3, r3, #1
+ 2167 0cce BB60     		str	r3, [r7, #8]
+ 2168              	.L106:
+ 382:../src/mixer.c ****     for (i = 0; i < numberMotor; i++) {
+ 2169              		.loc 1 382 0 is_stmt 0 discriminator 1
+ 2170 0cd0 094B     		ldr	r3, .L120+20
+ 2171 0cd2 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2172 0cd4 1A46     		mov	r2, r3
+ 2173 0cd6 BB68     		ldr	r3, [r7, #8]
+ 2174 0cd8 9A42     		cmp	r2, r3
+ 2175 0cda 8ED8     		bhi	.L113
+ 394:../src/mixer.c ****     }
+ 395:../src/mixer.c **** }
+ 2176              		.loc 1 395 0 is_stmt 1
+ 2177 0cdc 07F11407 		add	r7, r7, #20
+ 2178 0ce0 BD46     		mov	sp, r7
+ 2179 0ce2 90BD     		pop	{r4, r7, pc}
+ 2180              	.L121:
+ 2181              		.align	2
+ 2182              	.L120:
+ 2183 0ce4 00000000 		.word	servo
+ 2184 0ce8 00000000 		.word	cfg
+ 2185 0cec 00000000 		.word	angle
+ 2186 0cf0 00000000 		.word	rcData
+ 2187 0cf4 00000000 		.word	motor
+ 2188 0cf8 00000000 		.word	numberMotor
+ 2189 0cfc 00000000 		.word	mcfg
+ 2190 0d00 00000000 		.word	f
+ 2191              		.cfi_endproc
+ 2192              	.LFE35:
+ 2194              	.Letext0:
+ 2195              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 2196              		.file 3 "../src/mw.h"
+ 2197              		.file 4 "../src/board.h"
+ 2198              		.file 5 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 mixer.c
+     /tmp/ccqbLZ4J.s:19     .bss:00000000 numberMotor
+     /tmp/ccqbLZ4J.s:20     .bss:00000000 $d
+     /tmp/ccqbLZ4J.s:24     .bss:00000001 useServo
+                            *COM*:00000018 motor
+     /tmp/ccqbLZ4J.s:32     .data:00000000 servo
+     /tmp/ccqbLZ4J.s:29     .data:00000000 $d
+     /tmp/ccqbLZ4J.s:43     .bss:00000004 currentMixer
+     /tmp/ccqbLZ4J.s:46     .bss:000000c4 currentServo
+     /tmp/ccqbLZ4J.s:49     .rodata:00000000 $d
+     /tmp/ccqbLZ4J.s:52     .rodata:00000000 mixerTri
+     /tmp/ccqbLZ4J.s:68     .rodata:00000030 mixerQuadP
+     /tmp/ccqbLZ4J.s:88     .rodata:00000070 mixerQuadX
+     /tmp/ccqbLZ4J.s:108    .rodata:000000b0 mixerBi
+     /tmp/ccqbLZ4J.s:120    .rodata:000000d0 mixerY6
+     /tmp/ccqbLZ4J.s:148    .rodata:00000130 mixerHex6P
+     /tmp/ccqbLZ4J.s:176    .rodata:00000190 mixerY4
+     /tmp/ccqbLZ4J.s:196    .rodata:000001d0 mixerHex6X
+     /tmp/ccqbLZ4J.s:224    .rodata:00000230 mixerOctoX8
+     /tmp/ccqbLZ4J.s:260    .rodata:000002b0 mixerOctoFlatP
+     /tmp/ccqbLZ4J.s:296    .rodata:00000330 mixerOctoFlatX
+     /tmp/ccqbLZ4J.s:332    .rodata:000003b0 mixerVtail4
+     /tmp/ccqbLZ4J.s:353    .rodata:000003f0 mixers
+     /tmp/ccqbLZ4J.s:433    .rodata:00000488 servoInit
+     /tmp/ccqbLZ4J.s:441    .text:00000000 $t
+     /tmp/ccqbLZ4J.s:446    .text:00000000 mixerInit
+     /tmp/ccqbLZ4J.s:603    .text:0000010c $d
+     /tmp/ccqbLZ4J.s:612    .text:00000124 $t
+     /tmp/ccqbLZ4J.s:617    .text:00000124 mixerLoadMix
+     /tmp/ccqbLZ4J.s:714    .text:000001c0 $d
+     /tmp/ccqbLZ4J.s:720    .text:000001cc $t
+     /tmp/ccqbLZ4J.s:725    .text:000001cc writeServos
+     /tmp/ccqbLZ4J.s:755    .text:000001ec $d
+     /tmp/ccqbLZ4J.s:771    .text:00000224 $t
+     /tmp/ccqbLZ4J.s:853    .text:000002b8 $d
+     /tmp/ccqbLZ4J.s:859    .text:000002c4 $t
+     /tmp/ccqbLZ4J.s:864    .text:000002c4 writeMotors
+     /tmp/ccqbLZ4J.s:913    .text:00000300 $d
+     /tmp/ccqbLZ4J.s:918    .text:00000308 $t
+     /tmp/ccqbLZ4J.s:923    .text:00000308 writeAllMotors
+     /tmp/ccqbLZ4J.s:972    .text:00000344 $d
+     /tmp/ccqbLZ4J.s:977    .text:0000034c $t
+     /tmp/ccqbLZ4J.s:981    .text:0000034c airplaneMixer
+     /tmp/ccqbLZ4J.s:1011   .text:00000358 mixTable
+     /tmp/ccqbLZ4J.s:1204   .text:000004d8 $d
+     /tmp/ccqbLZ4J.s:1220   .text:00000510 $t
+     /tmp/ccqbLZ4J.s:1328   .text:000005f8 $d
+     /tmp/ccqbLZ4J.s:1338   .text:00000618 $t
+     /tmp/ccqbLZ4J.s:1572   .text:00000804 $d
+     /tmp/ccqbLZ4J.s:1583   .text:00000828 $t
+     /tmp/ccqbLZ4J.s:1862   .text:00000a74 $d
+     /tmp/ccqbLZ4J.s:1871   .text:00000a90 $t
+     /tmp/ccqbLZ4J.s:2183   .text:00000ce4 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+                           .group:00000000 wm4.mw.h.4.b0e233e0e6ae9c4c07b142ad41413d4c
+
+UNDEFINED SYMBOLS
+__aeabi_fcmpeq
+feature
+mcfg
+pwmWriteServo
+pwmWriteMotor
+__aeabi_i2f
+__aeabi_fmul
+__aeabi_fadd
+__aeabi_f2iz
+axisPID
+rcCommand
+cfg
+angle
+f
+rcData
+rcOptions

@@ -1,0 +1,3243 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"imu.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.comm	gyroADC,6,4
+  19              		.comm	accADC,6,4
+  20              		.comm	accSmooth,6,4
+  21              		.comm	magADC,6,4
+  22              		.comm	accLPFVel,12,4
+  23              		.global	acc_25deg
+  24              		.bss
+  25              		.align	1
+  28              	acc_25deg:
+  29 0000 0000     		.space	2
+  30              		.global	baroPressure
+  31 0002 0000     		.align	2
+  34              	baroPressure:
+  35 0004 00000000 		.space	4
+  36              		.global	baroTemperature
+  37              		.align	2
+  40              	baroTemperature:
+  41 0008 00000000 		.space	4
+  42              		.global	baroPressureSum
+  43              		.align	2
+  46              	baroPressureSum:
+  47 000c 00000000 		.space	4
+  48              		.global	BaroAlt
+  49              		.align	2
+  52              	BaroAlt:
+  53 0010 00000000 		.space	4
+  54              		.comm	sonarAlt,2,2
+  55              		.comm	EstAlt,4,4
+  56              		.global	BaroPID
+  57              		.align	1
+  60              	BaroPID:
+  61 0014 0000     		.space	2
+  62              		.comm	AltHold,4,4
+  63              		.global	errorAltitudeI
+  64              		.align	1
+  67              	errorAltitudeI:
+  68 0016 0000     		.space	2
+  69              		.global	vario
+  70              		.align	1
+  73              	vario:
+  74 0018 0000     		.space	2
+  75              		.global	magneticDeclination
+  76 001a 0000     		.align	2
+  79              	magneticDeclination:
+  80 001c 00000000 		.space	4
+  81              		.comm	accVelScale,4,4
+  82              		.global	gyroData
+  83              		.align	2
+  86              	gyroData:
+  87 0020 00000000 		.space	6
+  87      0000
+  88              		.global	gyroZero
+  89 0026 0000     		.align	2
+  92              	gyroZero:
+  93 0028 00000000 		.space	6
+  93      0000
+  94              		.global	angle
+  95 002e 0000     		.align	2
+  98              	angle:
+  99 0030 00000000 		.space	4
+ 100              		.global	__aeabi_i2f
+ 101              		.global	__aeabi_fmul
+ 102              		.global	__aeabi_f2iz
+ 103              		.global	__aeabi_fdiv
+ 104              		.text
+ 105              		.align	2
+ 106              		.global	imuInit
+ 107              		.thumb
+ 108              		.thumb_func
+ 110              	imuInit:
+ 111              	.LFB29:
+ 112              		.file 1 "../src/imu.c"
+   1:../src/imu.c  **** #include "board.h"
+   2:../src/imu.c  **** #include "mw.h"
+   3:../src/imu.c  **** 
+   4:../src/imu.c  **** int16_t gyroADC[3], accADC[3], accSmooth[3], magADC[3];
+   5:../src/imu.c  **** float accLPFVel[3];
+   6:../src/imu.c  **** int16_t acc_25deg = 0;
+   7:../src/imu.c  **** int32_t baroPressure = 0;
+   8:../src/imu.c  **** int32_t baroTemperature = 0;
+   9:../src/imu.c  **** int32_t baroPressureSum = 0;
+  10:../src/imu.c  **** int32_t BaroAlt = 0;
+  11:../src/imu.c  **** int16_t sonarAlt;              // to think about the unit
+  12:../src/imu.c  **** int32_t EstAlt;                // in cm
+  13:../src/imu.c  **** int16_t BaroPID = 0;
+  14:../src/imu.c  **** int32_t AltHold;
+  15:../src/imu.c  **** int16_t errorAltitudeI = 0;
+  16:../src/imu.c  **** int16_t vario = 0;              // variometer in cm/s
+  17:../src/imu.c  **** float magneticDeclination = 0.0f; // calculated at startup from config
+  18:../src/imu.c  **** float accVelScale;
+  19:../src/imu.c  **** 
+  20:../src/imu.c  **** // **************
+  21:../src/imu.c  **** // gyro+acc IMU
+  22:../src/imu.c  **** // **************
+  23:../src/imu.c  **** int16_t gyroData[3] = { 0, 0, 0 };
+  24:../src/imu.c  **** int16_t gyroZero[3] = { 0, 0, 0 };
+  25:../src/imu.c  **** int16_t angle[2] = { 0, 0 };     // absolute angle inclination in multiple of 0.1 degree    180 deg
+  26:../src/imu.c  **** 
+  27:../src/imu.c  **** static void getEstimatedAttitude(void);
+  28:../src/imu.c  **** 
+  29:../src/imu.c  **** void imuInit(void)
+  30:../src/imu.c  **** {
+ 113              		.loc 1 30 0
+ 114              		.cfi_startproc
+ 115              		@ args = 0, pretend = 0, frame = 0
+ 116              		@ frame_needed = 1, uses_anonymous_args = 0
+ 117 0000 80B5     		push	{r7, lr}
+ 118              	.LCFI0:
+ 119              		.cfi_def_cfa_offset 8
+ 120              		.cfi_offset 7, -8
+ 121              		.cfi_offset 14, -4
+ 122 0002 00AF     		add	r7, sp, #0
+ 123              	.LCFI1:
+ 124              		.cfi_def_cfa_register 7
+  31:../src/imu.c  ****     acc_25deg = acc_1G * 0.423f;
+ 125              		.loc 1 31 0
+ 126 0004 174B     		ldr	r3, .L3
+ 127 0006 1B88     		ldrh	r3, [r3, #0]
+ 128 0008 1846     		mov	r0, r3
+ 129 000a FFF7FEFF 		bl	__aeabi_i2f
+ 130 000e 0346     		mov	r3, r0
+ 131 0010 1846     		mov	r0, r3
+ 132 0012 1749     		ldr	r1, .L3+12	@ float
+ 133 0014 FFF7FEFF 		bl	__aeabi_fmul
+ 134 0018 0346     		mov	r3, r0
+ 135 001a 1846     		mov	r0, r3
+ 136 001c FFF7FEFF 		bl	__aeabi_f2iz
+ 137 0020 0346     		mov	r3, r0
+ 138 0022 9AB2     		uxth	r2, r3
+ 139 0024 104B     		ldr	r3, .L3+4
+ 140 0026 1A80     		strh	r2, [r3, #0]	@ movhi
+  32:../src/imu.c  ****     accVelScale = 9.80665f / acc_1G / 10000.0f;
+ 141              		.loc 1 32 0
+ 142 0028 0E4B     		ldr	r3, .L3
+ 143 002a 1B88     		ldrh	r3, [r3, #0]
+ 144 002c 1846     		mov	r0, r3
+ 145 002e FFF7FEFF 		bl	__aeabi_i2f
+ 146 0032 0346     		mov	r3, r0
+ 147 0034 0F48     		ldr	r0, .L3+16	@ float
+ 148 0036 1946     		mov	r1, r3
+ 149 0038 FFF7FEFF 		bl	__aeabi_fdiv
+ 150 003c 0346     		mov	r3, r0
+ 151 003e 1846     		mov	r0, r3
+ 152 0040 0D49     		ldr	r1, .L3+20	@ float
+ 153 0042 FFF7FEFF 		bl	__aeabi_fdiv
+ 154 0046 0346     		mov	r3, r0
+ 155 0048 1A46     		mov	r2, r3
+ 156 004a 084B     		ldr	r3, .L3+8
+ 157 004c 1A60     		str	r2, [r3, #0]	@ float
+  33:../src/imu.c  **** 
+  34:../src/imu.c  **** #ifdef MAG
+  35:../src/imu.c  ****     // if mag sensor is enabled, use it
+  36:../src/imu.c  ****     if (sensors(SENSOR_MAG))
+ 158              		.loc 1 36 0
+ 159 004e 4FF00400 		mov	r0, #4
+ 160 0052 FFF7FEFF 		bl	sensors
+ 161 0056 0346     		mov	r3, r0
+ 162 0058 002B     		cmp	r3, #0
+ 163 005a 01D0     		beq	.L1
+  37:../src/imu.c  ****         Mag_init();
+ 164              		.loc 1 37 0
+ 165 005c FFF7FEFF 		bl	Mag_init
+ 166              	.L1:
+  38:../src/imu.c  **** #endif
+  39:../src/imu.c  **** }
+ 167              		.loc 1 39 0
+ 168 0060 80BD     		pop	{r7, pc}
+ 169              	.L4:
+ 170 0062 00BF     		.align	2
+ 171              	.L3:
+ 172 0064 00000000 		.word	acc_1G
+ 173 0068 00000000 		.word	acc_25deg
+ 174 006c 00000000 		.word	accVelScale
+ 175 0070 7593D83E 		.word	1054380917
+ 176 0074 0AE81C41 		.word	1092413450
+ 177 0078 00401C46 		.word	1176256512
+ 178              		.cfi_endproc
+ 179              	.LFE29:
+ 181              		.align	2
+ 182              		.global	computeIMU
+ 183              		.thumb
+ 184              		.thumb_func
+ 186              	computeIMU:
+ 187              	.LFB30:
+  40:../src/imu.c  **** 
+  41:../src/imu.c  **** 
+  42:../src/imu.c  **** void computeIMU(void)
+  43:../src/imu.c  **** {
+ 188              		.loc 1 43 0
+ 189              		.cfi_startproc
+ 190              		@ args = 0, pretend = 0, frame = 24
+ 191              		@ frame_needed = 1, uses_anonymous_args = 0
+ 192 007c 80B5     		push	{r7, lr}
+ 193              	.LCFI2:
+ 194              		.cfi_def_cfa_offset 8
+ 195              		.cfi_offset 7, -8
+ 196              		.cfi_offset 14, -4
+ 197 007e 86B0     		sub	sp, sp, #24
+ 198              	.LCFI3:
+ 199              		.cfi_def_cfa_offset 32
+ 200 0080 00AF     		add	r7, sp, #0
+ 201              	.LCFI4:
+ 202              		.cfi_def_cfa_register 7
+  44:../src/imu.c  ****     uint32_t axis;
+  45:../src/imu.c  ****     static int16_t gyroADCprevious[3] = { 0, 0, 0 };
+  46:../src/imu.c  ****     int16_t gyroADCp[3];
+  47:../src/imu.c  ****     int16_t gyroADCinter[3];
+  48:../src/imu.c  ****     static uint32_t timeInterleave = 0;
+  49:../src/imu.c  ****     static int16_t gyroYawSmooth = 0;
+  50:../src/imu.c  **** 
+  51:../src/imu.c  **** #define GYRO_INTERLEAVE
+  52:../src/imu.c  **** 
+  53:../src/imu.c  ****     if (sensors(SENSOR_ACC)) {
+ 203              		.loc 1 53 0
+ 204 0082 4FF00100 		mov	r0, #1
+ 205 0086 FFF7FEFF 		bl	sensors
+ 206 008a 0346     		mov	r3, r0
+ 207 008c 002B     		cmp	r3, #0
+ 208 008e 03D0     		beq	.L6
+  54:../src/imu.c  ****         ACC_getADC();
+ 209              		.loc 1 54 0
+ 210 0090 FFF7FEFF 		bl	ACC_getADC
+  55:../src/imu.c  ****         getEstimatedAttitude();
+ 211              		.loc 1 55 0
+ 212 0094 00F070FA 		bl	getEstimatedAttitude
+ 213              	.L6:
+  56:../src/imu.c  ****     }
+  57:../src/imu.c  **** 
+  58:../src/imu.c  ****     Gyro_getADC();
+ 214              		.loc 1 58 0
+ 215 0098 FFF7FEFF 		bl	Gyro_getADC
+  59:../src/imu.c  **** 
+  60:../src/imu.c  ****     for (axis = 0; axis < 3; axis++) {
+ 216              		.loc 1 60 0
+ 217 009c 4FF00003 		mov	r3, #0
+ 218 00a0 7B61     		str	r3, [r7, #20]
+ 219 00a2 1FE0     		b	.L7
+ 220              	.L9:
+  61:../src/imu.c  **** #ifdef GYRO_INTERLEAVE
+  62:../src/imu.c  ****         gyroADCp[axis] = gyroADC[axis];
+ 221              		.loc 1 62 0
+ 222 00a4 8E4B     		ldr	r3, .L22
+ 223 00a6 7A69     		ldr	r2, [r7, #20]
+ 224 00a8 33F81220 		ldrh	r2, [r3, r2, lsl #1]
+ 225 00ac 7B69     		ldr	r3, [r7, #20]
+ 226 00ae 4FEA4303 		lsl	r3, r3, #1
+ 227 00b2 07F11801 		add	r1, r7, #24
+ 228 00b6 CB18     		adds	r3, r1, r3
+ 229 00b8 23F80C2C 		strh	r2, [r3, #-12]	@ movhi
+  63:../src/imu.c  **** #else
+  64:../src/imu.c  ****         gyroData[axis] = gyroADC[axis];
+  65:../src/imu.c  **** #endif
+  66:../src/imu.c  ****         if (!sensors(SENSOR_ACC))
+ 230              		.loc 1 66 0
+ 231 00bc 4FF00100 		mov	r0, #1
+ 232 00c0 FFF7FEFF 		bl	sensors
+ 233 00c4 0346     		mov	r3, r0
+ 234 00c6 83F00103 		eor	r3, r3, #1
+ 235 00ca DBB2     		uxtb	r3, r3
+ 236 00cc 002B     		cmp	r3, #0
+ 237 00ce 05D0     		beq	.L8
+  67:../src/imu.c  ****             accADC[axis] = 0;
+ 238              		.loc 1 67 0
+ 239 00d0 844B     		ldr	r3, .L22+4
+ 240 00d2 7A69     		ldr	r2, [r7, #20]
+ 241 00d4 4FF00001 		mov	r1, #0
+ 242 00d8 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 243              	.L8:
+  60:../src/imu.c  ****     for (axis = 0; axis < 3; axis++) {
+ 244              		.loc 1 60 0
+ 245 00dc 7B69     		ldr	r3, [r7, #20]
+ 246 00de 03F10103 		add	r3, r3, #1
+ 247 00e2 7B61     		str	r3, [r7, #20]
+ 248              	.L7:
+  60:../src/imu.c  ****     for (axis = 0; axis < 3; axis++) {
+ 249              		.loc 1 60 0 is_stmt 0 discriminator 1
+ 250 00e4 7B69     		ldr	r3, [r7, #20]
+ 251 00e6 022B     		cmp	r3, #2
+ 252 00e8 DCD9     		bls	.L9
+  68:../src/imu.c  ****     }
+  69:../src/imu.c  ****     timeInterleave = micros();
+ 253              		.loc 1 69 0 is_stmt 1
+ 254 00ea FFF7FEFF 		bl	micros
+ 255 00ee 0246     		mov	r2, r0
+ 256 00f0 7D4B     		ldr	r3, .L22+8
+ 257 00f2 1A60     		str	r2, [r3, #0]
+  70:../src/imu.c  ****     annexCode();
+ 258              		.loc 1 70 0
+ 259 00f4 FFF7FEFF 		bl	annexCode
+  71:../src/imu.c  **** #ifdef GYRO_INTERLEAVE
+  72:../src/imu.c  ****     if ((micros() - timeInterleave) > 650) {
+ 260              		.loc 1 72 0
+ 261 00f8 FFF7FEFF 		bl	micros
+ 262 00fc 0246     		mov	r2, r0
+ 263 00fe 7A4B     		ldr	r3, .L22+8
+ 264 0100 1B68     		ldr	r3, [r3, #0]
+ 265 0102 D21A     		subs	r2, r2, r3
+ 266 0104 40F28A23 		movw	r3, #650
+ 267 0108 9A42     		cmp	r2, r3
+ 268 010a 07D9     		bls	.L21
+  73:../src/imu.c  ****         annex650_overrun_count++;
+ 269              		.loc 1 73 0
+ 270 010c 774B     		ldr	r3, .L22+12
+ 271 010e 1B88     		ldrh	r3, [r3, #0]
+ 272 0110 03F10103 		add	r3, r3, #1
+ 273 0114 9AB2     		uxth	r2, r3
+ 274 0116 754B     		ldr	r3, .L22+12
+ 275 0118 1A80     		strh	r2, [r3, #0]	@ movhi
+ 276 011a 0AE0     		b	.L11
+ 277              	.L21:
+  74:../src/imu.c  ****     } else {
+  75:../src/imu.c  ****         while ((micros() - timeInterleave) < 650);  // empirical, interleaving delay between 2 cons
+ 278              		.loc 1 75 0
+ 279 011c 00BF     		nop
+ 280              	.L12:
+ 281              		.loc 1 75 0 is_stmt 0 discriminator 1
+ 282 011e FFF7FEFF 		bl	micros
+ 283 0122 0246     		mov	r2, r0
+ 284 0124 704B     		ldr	r3, .L22+8
+ 285 0126 1B68     		ldr	r3, [r3, #0]
+ 286 0128 D21A     		subs	r2, r2, r3
+ 287 012a 40F28923 		movw	r3, #649
+ 288 012e 9A42     		cmp	r2, r3
+ 289 0130 F5D9     		bls	.L12
+ 290              	.L11:
+  76:../src/imu.c  ****     }
+  77:../src/imu.c  **** 
+  78:../src/imu.c  ****     Gyro_getADC();
+ 291              		.loc 1 78 0 is_stmt 1
+ 292 0132 FFF7FEFF 		bl	Gyro_getADC
+  79:../src/imu.c  ****     for (axis = 0; axis < 3; axis++) {
+ 293              		.loc 1 79 0
+ 294 0136 4FF00003 		mov	r3, #0
+ 295 013a 7B61     		str	r3, [r7, #20]
+ 296 013c 59E0     		b	.L13
+ 297              	.L15:
+  80:../src/imu.c  ****         gyroADCinter[axis] = gyroADC[axis] + gyroADCp[axis];
+ 298              		.loc 1 80 0
+ 299 013e 684B     		ldr	r3, .L22
+ 300 0140 7A69     		ldr	r2, [r7, #20]
+ 301 0142 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 302 0146 9AB2     		uxth	r2, r3
+ 303 0148 7B69     		ldr	r3, [r7, #20]
+ 304 014a 4FEA4303 		lsl	r3, r3, #1
+ 305 014e 07F11801 		add	r1, r7, #24
+ 306 0152 CB18     		adds	r3, r1, r3
+ 307 0154 33F80C3C 		ldrh	r3, [r3, #-12]
+ 308 0158 9BB2     		uxth	r3, r3
+ 309 015a D318     		adds	r3, r2, r3
+ 310 015c 9BB2     		uxth	r3, r3
+ 311 015e 9AB2     		uxth	r2, r3
+ 312 0160 7B69     		ldr	r3, [r7, #20]
+ 313 0162 4FEA4303 		lsl	r3, r3, #1
+ 314 0166 07F11801 		add	r1, r7, #24
+ 315 016a CB18     		adds	r3, r1, r3
+ 316 016c 23F8142C 		strh	r2, [r3, #-20]	@ movhi
+  81:../src/imu.c  ****         // empirical, we take a weighted value of the current and the previous values
+  82:../src/imu.c  ****         gyroData[axis] = (gyroADCinter[axis] + gyroADCprevious[axis]) / 3;
+ 317              		.loc 1 82 0
+ 318 0170 7B69     		ldr	r3, [r7, #20]
+ 319 0172 4FEA4303 		lsl	r3, r3, #1
+ 320 0176 07F11802 		add	r2, r7, #24
+ 321 017a D318     		adds	r3, r2, r3
+ 322 017c 33F8143C 		ldrh	r3, [r3, #-20]
+ 323 0180 1AB2     		sxth	r2, r3
+ 324 0182 5B4B     		ldr	r3, .L22+16
+ 325 0184 7969     		ldr	r1, [r7, #20]
+ 326 0186 33F81130 		ldrh	r3, [r3, r1, lsl #1]
+ 327 018a 1BB2     		sxth	r3, r3
+ 328 018c D318     		adds	r3, r2, r3
+ 329 018e 594A     		ldr	r2, .L22+20
+ 330 0190 82FB0312 		smull	r1, r2, r2, r3
+ 331 0194 4FEAE373 		asr	r3, r3, #31
+ 332 0198 D31A     		subs	r3, r2, r3
+ 333 019a 99B2     		uxth	r1, r3
+ 334 019c 564B     		ldr	r3, .L22+24
+ 335 019e 7A69     		ldr	r2, [r7, #20]
+ 336 01a0 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+  83:../src/imu.c  ****         gyroADCprevious[axis] = gyroADCinter[axis] / 2;
+ 337              		.loc 1 83 0
+ 338 01a4 7B69     		ldr	r3, [r7, #20]
+ 339 01a6 4FEA4303 		lsl	r3, r3, #1
+ 340 01aa 07F11802 		add	r2, r7, #24
+ 341 01ae D318     		adds	r3, r2, r3
+ 342 01b0 33F8143C 		ldrh	r3, [r3, #-20]
+ 343 01b4 1BB2     		sxth	r3, r3
+ 344 01b6 4FEAD372 		lsr	r2, r3, #31
+ 345 01ba D318     		adds	r3, r2, r3
+ 346 01bc 4FEA6303 		asr	r3, r3, #1
+ 347 01c0 99B2     		uxth	r1, r3
+ 348 01c2 4B4B     		ldr	r3, .L22+16
+ 349 01c4 7A69     		ldr	r2, [r7, #20]
+ 350 01c6 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+  84:../src/imu.c  ****         if (!sensors(SENSOR_ACC))
+ 351              		.loc 1 84 0
+ 352 01ca 4FF00100 		mov	r0, #1
+ 353 01ce FFF7FEFF 		bl	sensors
+ 354 01d2 0346     		mov	r3, r0
+ 355 01d4 83F00103 		eor	r3, r3, #1
+ 356 01d8 DBB2     		uxtb	r3, r3
+ 357 01da 002B     		cmp	r3, #0
+ 358 01dc 05D0     		beq	.L14
+  85:../src/imu.c  ****             accADC[axis] = 0;
+ 359              		.loc 1 85 0
+ 360 01de 414B     		ldr	r3, .L22+4
+ 361 01e0 7A69     		ldr	r2, [r7, #20]
+ 362 01e2 4FF00001 		mov	r1, #0
+ 363 01e6 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 364              	.L14:
+  79:../src/imu.c  ****     for (axis = 0; axis < 3; axis++) {
+ 365              		.loc 1 79 0
+ 366 01ea 7B69     		ldr	r3, [r7, #20]
+ 367 01ec 03F10103 		add	r3, r3, #1
+ 368 01f0 7B61     		str	r3, [r7, #20]
+ 369              	.L13:
+  79:../src/imu.c  ****     for (axis = 0; axis < 3; axis++) {
+ 370              		.loc 1 79 0 is_stmt 0 discriminator 1
+ 371 01f2 7B69     		ldr	r3, [r7, #20]
+ 372 01f4 022B     		cmp	r3, #2
+ 373 01f6 A2D9     		bls	.L15
+  86:../src/imu.c  ****     }
+  87:../src/imu.c  **** #endif
+  88:../src/imu.c  **** 
+  89:../src/imu.c  ****     if (feature(FEATURE_GYRO_SMOOTHING)) {
+ 374              		.loc 1 89 0 is_stmt 1
+ 375 01f8 4FF04000 		mov	r0, #64
+ 376 01fc FFF7FEFF 		bl	feature
+ 377 0200 0346     		mov	r3, r0
+ 378 0202 002B     		cmp	r3, #0
+ 379 0204 4DD0     		beq	.L16
+ 380              	.LBB2:
+  90:../src/imu.c  ****         static uint8_t Smoothing[3] = { 0, 0, 0 };
+  91:../src/imu.c  ****         static int16_t gyroSmooth[3] = { 0, 0, 0 };
+  92:../src/imu.c  ****         if (Smoothing[0] == 0) {
+ 381              		.loc 1 92 0
+ 382 0206 3D4B     		ldr	r3, .L22+28
+ 383 0208 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 384 020a 002B     		cmp	r3, #0
+ 385 020c 15D1     		bne	.L17
+  93:../src/imu.c  ****             // initialize
+  94:../src/imu.c  ****             Smoothing[ROLL] = (mcfg.gyro_smoothing_factor >> 16) & 0xff;
+ 386              		.loc 1 94 0
+ 387 020e 3C4B     		ldr	r3, .L22+32
+ 388 0210 D3F8E830 		ldr	r3, [r3, #232]
+ 389 0214 4FEA1343 		lsr	r3, r3, #16
+ 390 0218 DAB2     		uxtb	r2, r3
+ 391 021a 384B     		ldr	r3, .L22+28
+ 392 021c 1A70     		strb	r2, [r3, #0]
+  95:../src/imu.c  ****             Smoothing[PITCH] = (mcfg.gyro_smoothing_factor >> 8) & 0xff;
+ 393              		.loc 1 95 0
+ 394 021e 384B     		ldr	r3, .L22+32
+ 395 0220 D3F8E830 		ldr	r3, [r3, #232]
+ 396 0224 4FEA1323 		lsr	r3, r3, #8
+ 397 0228 DAB2     		uxtb	r2, r3
+ 398 022a 344B     		ldr	r3, .L22+28
+ 399 022c 5A70     		strb	r2, [r3, #1]
+  96:../src/imu.c  ****             Smoothing[YAW] = (mcfg.gyro_smoothing_factor) & 0xff;
+ 400              		.loc 1 96 0
+ 401 022e 344B     		ldr	r3, .L22+32
+ 402 0230 D3F8E830 		ldr	r3, [r3, #232]
+ 403 0234 DAB2     		uxtb	r2, r3
+ 404 0236 314B     		ldr	r3, .L22+28
+ 405 0238 9A70     		strb	r2, [r3, #2]
+ 406              	.L17:
+  97:../src/imu.c  ****         }
+  98:../src/imu.c  ****         for (axis = 0; axis < 3; axis++) {
+ 407              		.loc 1 98 0
+ 408 023a 4FF00003 		mov	r3, #0
+ 409 023e 7B61     		str	r3, [r7, #20]
+ 410 0240 2BE0     		b	.L18
+ 411              	.L19:
+  99:../src/imu.c  ****             gyroData[axis] = (int16_t)(((int32_t)((int32_t)gyroSmooth[axis] * (Smoothing[axis] - 1)
+ 412              		.loc 1 99 0 discriminator 2
+ 413 0242 304B     		ldr	r3, .L22+36
+ 414 0244 7A69     		ldr	r2, [r7, #20]
+ 415 0246 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 416 024a 1BB2     		sxth	r3, r3
+ 417 024c 2B49     		ldr	r1, .L22+28
+ 418 024e 7A69     		ldr	r2, [r7, #20]
+ 419 0250 8A18     		adds	r2, r1, r2
+ 420 0252 1278     		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 421 0254 02F1FF32 		add	r2, r2, #-1
+ 422 0258 02FB03F2 		mul	r2, r2, r3
+ 423 025c 264B     		ldr	r3, .L22+24
+ 424 025e 7969     		ldr	r1, [r7, #20]
+ 425 0260 33F81130 		ldrh	r3, [r3, r1, lsl #1]
+ 426 0264 1BB2     		sxth	r3, r3
+ 427 0266 D318     		adds	r3, r2, r3
+ 428 0268 03F10102 		add	r2, r3, #1
+ 429 026c 2349     		ldr	r1, .L22+28
+ 430 026e 7B69     		ldr	r3, [r7, #20]
+ 431 0270 CB18     		adds	r3, r1, r3
+ 432 0272 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 433 0274 92FBF3F3 		sdiv	r3, r2, r3
+ 434 0278 99B2     		uxth	r1, r3
+ 435 027a 1F4B     		ldr	r3, .L22+24
+ 436 027c 7A69     		ldr	r2, [r7, #20]
+ 437 027e 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 100:../src/imu.c  ****             gyroSmooth[axis] = gyroData[axis];
+ 438              		.loc 1 100 0 discriminator 2
+ 439 0282 1D4B     		ldr	r3, .L22+24
+ 440 0284 7A69     		ldr	r2, [r7, #20]
+ 441 0286 33F81210 		ldrh	r1, [r3, r2, lsl #1]
+ 442 028a 1E4B     		ldr	r3, .L22+36
+ 443 028c 7A69     		ldr	r2, [r7, #20]
+ 444 028e 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+  98:../src/imu.c  ****         for (axis = 0; axis < 3; axis++) {
+ 445              		.loc 1 98 0 discriminator 2
+ 446 0292 7B69     		ldr	r3, [r7, #20]
+ 447 0294 03F10103 		add	r3, r3, #1
+ 448 0298 7B61     		str	r3, [r7, #20]
+ 449              	.L18:
+  98:../src/imu.c  ****         for (axis = 0; axis < 3; axis++) {
+ 450              		.loc 1 98 0 is_stmt 0 discriminator 1
+ 451 029a 7B69     		ldr	r3, [r7, #20]
+ 452 029c 022B     		cmp	r3, #2
+ 453 029e D0D9     		bls	.L19
+  98:../src/imu.c  ****         for (axis = 0; axis < 3; axis++) {
+ 454              		.loc 1 98 0
+ 455 02a0 19E0     		b	.L5
+ 456              	.L16:
+ 457              	.LBE2:
+ 101:../src/imu.c  ****         }
+ 102:../src/imu.c  ****     } else if (mcfg.mixerConfiguration == MULTITYPE_TRI) {
+ 458              		.loc 1 102 0 is_stmt 1
+ 459 02a2 174B     		ldr	r3, .L22+32
+ 460 02a4 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 461 02a6 012B     		cmp	r3, #1
+ 462 02a8 15D1     		bne	.L5
+ 103:../src/imu.c  ****         gyroData[YAW] = (gyroYawSmooth * 2 + gyroData[YAW]) / 3;
+ 463              		.loc 1 103 0
+ 464 02aa 174B     		ldr	r3, .L22+40
+ 465 02ac 1B88     		ldrh	r3, [r3, #0]
+ 466 02ae 1BB2     		sxth	r3, r3
+ 467 02b0 4FEA4302 		lsl	r2, r3, #1
+ 468 02b4 104B     		ldr	r3, .L22+24
+ 469 02b6 9B88     		ldrh	r3, [r3, #4]
+ 470 02b8 1BB2     		sxth	r3, r3
+ 471 02ba D318     		adds	r3, r2, r3
+ 472 02bc 0D4A     		ldr	r2, .L22+20
+ 473 02be 82FB0312 		smull	r1, r2, r2, r3
+ 474 02c2 4FEAE373 		asr	r3, r3, #31
+ 475 02c6 D31A     		subs	r3, r2, r3
+ 476 02c8 9AB2     		uxth	r2, r3
+ 477 02ca 0B4B     		ldr	r3, .L22+24
+ 478 02cc 9A80     		strh	r2, [r3, #4]	@ movhi
+ 104:../src/imu.c  ****         gyroYawSmooth = gyroData[YAW];
+ 479              		.loc 1 104 0
+ 480 02ce 0A4B     		ldr	r3, .L22+24
+ 481 02d0 9A88     		ldrh	r2, [r3, #4]
+ 482 02d2 0D4B     		ldr	r3, .L22+40
+ 483 02d4 1A80     		strh	r2, [r3, #0]	@ movhi
+ 484              	.L5:
+ 105:../src/imu.c  ****     }
+ 106:../src/imu.c  **** }
+ 485              		.loc 1 106 0
+ 486 02d6 07F11807 		add	r7, r7, #24
+ 487 02da BD46     		mov	sp, r7
+ 488 02dc 80BD     		pop	{r7, pc}
+ 489              	.L23:
+ 490 02de 00BF     		.align	2
+ 491              	.L22:
+ 492 02e0 00000000 		.word	gyroADC
+ 493 02e4 00000000 		.word	accADC
+ 494 02e8 64000000 		.word	timeInterleave.9060
+ 495 02ec 00000000 		.word	annex650_overrun_count
+ 496 02f0 68000000 		.word	gyroADCprevious.9057
+ 497 02f4 56555555 		.word	1431655766
+ 498 02f8 00000000 		.word	gyroData
+ 499 02fc 70000000 		.word	Smoothing.9071
+ 500 0300 00000000 		.word	mcfg
+ 501 0304 74000000 		.word	gyroSmooth.9072
+ 502 0308 7A000000 		.word	gyroYawSmooth.9061
+ 503              		.cfi_endproc
+ 504              	.LFE30:
+ 506              		.comm	EstG,12,4
+ 507              		.global	__aeabi_fsub
+ 508              		.global	__aeabi_fadd
+ 509              		.align	2
+ 510              		.global	rotateV
+ 511              		.thumb
+ 512              		.thumb_func
+ 514              	rotateV:
+ 515              	.LFB31:
+ 107:../src/imu.c  **** 
+ 108:../src/imu.c  **** // **************************************************
+ 109:../src/imu.c  **** // Simplified IMU based on "Complementary Filter"
+ 110:../src/imu.c  **** // Inspired by http://starlino.com/imu_guide.html
+ 111:../src/imu.c  **** //
+ 112:../src/imu.c  **** // adapted by ziss_dm : http://www.multiwii.com/forum/viewtopic.php?f=8&t=198
+ 113:../src/imu.c  **** //
+ 114:../src/imu.c  **** // The following ideas was used in this project:
+ 115:../src/imu.c  **** // 1) Rotation matrix: http://en.wikipedia.org/wiki/Rotation_matrix
+ 116:../src/imu.c  **** // 2) Small-angle approximation: http://en.wikipedia.org/wiki/Small-angle_approximation
+ 117:../src/imu.c  **** // 3) C. Hastings approximation for atan2()
+ 118:../src/imu.c  **** // 4) Optimization tricks: http://www.hackersdelight.org/
+ 119:../src/imu.c  **** //
+ 120:../src/imu.c  **** // Currently Magnetometer uses separate CF which is used only
+ 121:../src/imu.c  **** // for heading approximation.
+ 122:../src/imu.c  **** //
+ 123:../src/imu.c  **** // Modified: 19/04/2011  by ziss_dm
+ 124:../src/imu.c  **** // Version: V1.1
+ 125:../src/imu.c  **** //
+ 126:../src/imu.c  **** // code size deduction and tmp vector intermediate step for vector rotation computation: October 20
+ 127:../src/imu.c  **** // **************************************************
+ 128:../src/imu.c  **** 
+ 129:../src/imu.c  **** //******  advanced users settings *******************
+ 130:../src/imu.c  **** 
+ 131:../src/imu.c  **** /* Set the Low Pass Filter factor for Magnetometer */
+ 132:../src/imu.c  **** /* Increasing this value would reduce Magnetometer noise (not visible in GUI), but would increase M
+ 133:../src/imu.c  **** /* Comment this if  you do not want filter at all.*/
+ 134:../src/imu.c  **** /* Default WMC value: n/a*/
+ 135:../src/imu.c  **** //#define MG_LPF_FACTOR 4
+ 136:../src/imu.c  **** 
+ 137:../src/imu.c  **** /* Set the Gyro Weight for Gyro/Magnetometer complementary filter */
+ 138:../src/imu.c  **** /* Increasing this value would reduce and delay Magnetometer influence on the output of the filter*
+ 139:../src/imu.c  **** /* Default WMC value: n/a*/
+ 140:../src/imu.c  **** #define GYR_CMPFM_FACTOR 200.0f
+ 141:../src/imu.c  **** 
+ 142:../src/imu.c  **** //****** end of advanced users settings *************
+ 143:../src/imu.c  **** 
+ 144:../src/imu.c  **** #define INV_GYR_CMPF_FACTOR   (1.0f / ((float)mcfg.gyro_cmpf_factor + 1.0f))
+ 145:../src/imu.c  **** #define INV_GYR_CMPFM_FACTOR  (1.0f / (GYR_CMPFM_FACTOR + 1.0f))
+ 146:../src/imu.c  **** 
+ 147:../src/imu.c  **** // #define GYRO_SCALE ((1998 * M_PI)/((32767.0f / 4.0f ) * 180.0f * 1000000.0f))     // 32767 / 16.
+ 148:../src/imu.c  **** 
+ 149:../src/imu.c  **** typedef struct fp_vector {
+ 150:../src/imu.c  ****     float X;
+ 151:../src/imu.c  ****     float Y;
+ 152:../src/imu.c  ****     float Z;
+ 153:../src/imu.c  **** } t_fp_vector_def;
+ 154:../src/imu.c  **** 
+ 155:../src/imu.c  **** typedef union {
+ 156:../src/imu.c  ****     float A[3];
+ 157:../src/imu.c  ****     t_fp_vector_def V;
+ 158:../src/imu.c  **** } t_fp_vector;
+ 159:../src/imu.c  **** 
+ 160:../src/imu.c  **** t_fp_vector EstG;
+ 161:../src/imu.c  **** 
+ 162:../src/imu.c  **** // Rotate Estimated vector(s) with small angle approximation, according to the gyro data
+ 163:../src/imu.c  **** void rotateV(struct fp_vector *v, float *delta)
+ 164:../src/imu.c  **** {
+ 516              		.loc 1 164 0
+ 517              		.cfi_startproc
+ 518              		@ args = 0, pretend = 0, frame = 104
+ 519              		@ frame_needed = 1, uses_anonymous_args = 0
+ 520 030c 90B5     		push	{r4, r7, lr}
+ 521              	.LCFI5:
+ 522              		.cfi_def_cfa_offset 12
+ 523              		.cfi_offset 4, -12
+ 524              		.cfi_offset 7, -8
+ 525              		.cfi_offset 14, -4
+ 526 030e 9BB0     		sub	sp, sp, #108
+ 527              	.LCFI6:
+ 528              		.cfi_def_cfa_offset 120
+ 529 0310 00AF     		add	r7, sp, #0
+ 530              	.LCFI7:
+ 531              		.cfi_def_cfa_register 7
+ 532 0312 7860     		str	r0, [r7, #4]
+ 533 0314 3960     		str	r1, [r7, #0]
+ 165:../src/imu.c  ****     struct fp_vector v_tmp = *v;
+ 534              		.loc 1 165 0
+ 535 0316 7A68     		ldr	r2, [r7, #4]
+ 536 0318 07F13003 		add	r3, r7, #48
+ 537 031c 07CA     		ldmia	r2, {r0, r1, r2}
+ 538 031e 83E80700 		stmia	r3, {r0, r1, r2}
+ 166:../src/imu.c  **** 
+ 167:../src/imu.c  **** #if INACCURATE
+ 168:../src/imu.c  ****     v->Z -= delta[ROLL] * v_tmp.X + delta[PITCH] * v_tmp.Y;
+ 169:../src/imu.c  ****     v->X += delta[ROLL] * v_tmp.Z - delta[YAW] * v_tmp.Y;
+ 170:../src/imu.c  ****     v->Y += delta[PITCH] * v_tmp.Z + delta[YAW] * v_tmp.X;
+ 171:../src/imu.c  **** #else
+ 172:../src/imu.c  ****     // This does a  "proper" matrix rotation using gyro deltas without small-angle approximation
+ 173:../src/imu.c  ****     float mat[3][3];
+ 174:../src/imu.c  ****     float cosx, sinx, cosy, siny, cosz, sinz;
+ 175:../src/imu.c  ****     float coszcosx, coszcosy, sinzcosx, coszsinx, sinzsinx;
+ 176:../src/imu.c  **** 
+ 177:../src/imu.c  ****     cosx = cosf(-delta[PITCH]);
+ 539              		.loc 1 177 0
+ 540 0322 3B68     		ldr	r3, [r7, #0]
+ 541 0324 03F10403 		add	r3, r3, #4
+ 542 0328 1B68     		ldr	r3, [r3, #0]	@ float
+ 543 032a 1846     		mov	r0, r3
+ 544 032c FFF7FEFF 		bl	cosf
+ 545 0330 7866     		str	r0, [r7, #100]	@ float
+ 178:../src/imu.c  ****     sinx = sinf(-delta[PITCH]);
+ 546              		.loc 1 178 0
+ 547 0332 3B68     		ldr	r3, [r7, #0]
+ 548 0334 03F10403 		add	r3, r3, #4
+ 549 0338 1B68     		ldr	r3, [r3, #0]	@ float
+ 550 033a 83F00043 		eor	r3, r3, #-2147483648
+ 551 033e 1846     		mov	r0, r3
+ 552 0340 FFF7FEFF 		bl	sinf
+ 553 0344 3866     		str	r0, [r7, #96]	@ float
+ 179:../src/imu.c  ****     cosy = cosf(delta[ROLL]);
+ 554              		.loc 1 179 0
+ 555 0346 3B68     		ldr	r3, [r7, #0]
+ 556 0348 1B68     		ldr	r3, [r3, #0]	@ float
+ 557 034a 1846     		mov	r0, r3
+ 558 034c FFF7FEFF 		bl	cosf
+ 559 0350 F865     		str	r0, [r7, #92]	@ float
+ 180:../src/imu.c  ****     siny = sinf(delta[ROLL]);
+ 560              		.loc 1 180 0
+ 561 0352 3B68     		ldr	r3, [r7, #0]
+ 562 0354 1B68     		ldr	r3, [r3, #0]	@ float
+ 563 0356 1846     		mov	r0, r3
+ 564 0358 FFF7FEFF 		bl	sinf
+ 565 035c B865     		str	r0, [r7, #88]	@ float
+ 181:../src/imu.c  ****     cosz = cosf(delta[YAW]);
+ 566              		.loc 1 181 0
+ 567 035e 3B68     		ldr	r3, [r7, #0]
+ 568 0360 03F10803 		add	r3, r3, #8
+ 569 0364 1B68     		ldr	r3, [r3, #0]	@ float
+ 570 0366 1846     		mov	r0, r3
+ 571 0368 FFF7FEFF 		bl	cosf
+ 572 036c 7865     		str	r0, [r7, #84]	@ float
+ 182:../src/imu.c  ****     sinz = sinf(delta[YAW]);
+ 573              		.loc 1 182 0
+ 574 036e 3B68     		ldr	r3, [r7, #0]
+ 575 0370 03F10803 		add	r3, r3, #8
+ 576 0374 1B68     		ldr	r3, [r3, #0]	@ float
+ 577 0376 1846     		mov	r0, r3
+ 578 0378 FFF7FEFF 		bl	sinf
+ 579 037c 3865     		str	r0, [r7, #80]	@ float
+ 183:../src/imu.c  **** 
+ 184:../src/imu.c  ****     coszcosx = cosz * cosx;
+ 580              		.loc 1 184 0
+ 581 037e 786D     		ldr	r0, [r7, #84]	@ float
+ 582 0380 796E     		ldr	r1, [r7, #100]	@ float
+ 583 0382 FFF7FEFF 		bl	__aeabi_fmul
+ 584 0386 0346     		mov	r3, r0
+ 585 0388 FB64     		str	r3, [r7, #76]	@ float
+ 185:../src/imu.c  ****     coszcosy = cosz * cosy;
+ 586              		.loc 1 185 0
+ 587 038a 786D     		ldr	r0, [r7, #84]	@ float
+ 588 038c F96D     		ldr	r1, [r7, #92]	@ float
+ 589 038e FFF7FEFF 		bl	__aeabi_fmul
+ 590 0392 0346     		mov	r3, r0
+ 591 0394 BB64     		str	r3, [r7, #72]	@ float
+ 186:../src/imu.c  ****     sinzcosx = sinz * cosx;
+ 592              		.loc 1 186 0
+ 593 0396 386D     		ldr	r0, [r7, #80]	@ float
+ 594 0398 796E     		ldr	r1, [r7, #100]	@ float
+ 595 039a FFF7FEFF 		bl	__aeabi_fmul
+ 596 039e 0346     		mov	r3, r0
+ 597 03a0 7B64     		str	r3, [r7, #68]	@ float
+ 187:../src/imu.c  ****     coszsinx = sinx * cosz;
+ 598              		.loc 1 187 0
+ 599 03a2 386E     		ldr	r0, [r7, #96]	@ float
+ 600 03a4 796D     		ldr	r1, [r7, #84]	@ float
+ 601 03a6 FFF7FEFF 		bl	__aeabi_fmul
+ 602 03aa 0346     		mov	r3, r0
+ 603 03ac 3B64     		str	r3, [r7, #64]	@ float
+ 188:../src/imu.c  ****     sinzsinx = sinx * sinz;
+ 604              		.loc 1 188 0
+ 605 03ae 386E     		ldr	r0, [r7, #96]	@ float
+ 606 03b0 396D     		ldr	r1, [r7, #80]	@ float
+ 607 03b2 FFF7FEFF 		bl	__aeabi_fmul
+ 608 03b6 0346     		mov	r3, r0
+ 609 03b8 FB63     		str	r3, [r7, #60]	@ float
+ 189:../src/imu.c  **** 
+ 190:../src/imu.c  ****     mat[0][0] = coszcosy;
+ 610              		.loc 1 190 0
+ 611 03ba BB6C     		ldr	r3, [r7, #72]	@ float
+ 612 03bc FB60     		str	r3, [r7, #12]	@ float
+ 191:../src/imu.c  ****     mat[0][1] = sinz * cosy;
+ 613              		.loc 1 191 0
+ 614 03be 386D     		ldr	r0, [r7, #80]	@ float
+ 615 03c0 F96D     		ldr	r1, [r7, #92]	@ float
+ 616 03c2 FFF7FEFF 		bl	__aeabi_fmul
+ 617 03c6 0346     		mov	r3, r0
+ 618 03c8 3B61     		str	r3, [r7, #16]	@ float
+ 192:../src/imu.c  ****     mat[0][2] = -siny;
+ 619              		.loc 1 192 0
+ 620 03ca BB6D     		ldr	r3, [r7, #88]
+ 621 03cc 83F00043 		eor	r3, r3, #-2147483648
+ 622 03d0 7B61     		str	r3, [r7, #20]	@ float
+ 193:../src/imu.c  ****     mat[1][0] = (coszsinx * siny) - sinzcosx;
+ 623              		.loc 1 193 0
+ 624 03d2 386C     		ldr	r0, [r7, #64]	@ float
+ 625 03d4 B96D     		ldr	r1, [r7, #88]	@ float
+ 626 03d6 FFF7FEFF 		bl	__aeabi_fmul
+ 627 03da 0346     		mov	r3, r0
+ 628 03dc 1846     		mov	r0, r3
+ 629 03de 796C     		ldr	r1, [r7, #68]	@ float
+ 630 03e0 FFF7FEFF 		bl	__aeabi_fsub
+ 631 03e4 0346     		mov	r3, r0
+ 632 03e6 BB61     		str	r3, [r7, #24]	@ float
+ 194:../src/imu.c  ****     mat[1][1] = (sinzsinx * siny) + (coszcosx);
+ 633              		.loc 1 194 0
+ 634 03e8 F86B     		ldr	r0, [r7, #60]	@ float
+ 635 03ea B96D     		ldr	r1, [r7, #88]	@ float
+ 636 03ec FFF7FEFF 		bl	__aeabi_fmul
+ 637 03f0 0346     		mov	r3, r0
+ 638 03f2 1846     		mov	r0, r3
+ 639 03f4 F96C     		ldr	r1, [r7, #76]	@ float
+ 640 03f6 FFF7FEFF 		bl	__aeabi_fadd
+ 641 03fa 0346     		mov	r3, r0
+ 642 03fc FB61     		str	r3, [r7, #28]	@ float
+ 195:../src/imu.c  ****     mat[1][2] = cosy * sinx;
+ 643              		.loc 1 195 0
+ 644 03fe F86D     		ldr	r0, [r7, #92]	@ float
+ 645 0400 396E     		ldr	r1, [r7, #96]	@ float
+ 646 0402 FFF7FEFF 		bl	__aeabi_fmul
+ 647 0406 0346     		mov	r3, r0
+ 648 0408 3B62     		str	r3, [r7, #32]	@ float
+ 196:../src/imu.c  ****     mat[2][0] = (coszcosx * siny) + (sinzsinx);
+ 649              		.loc 1 196 0
+ 650 040a F86C     		ldr	r0, [r7, #76]	@ float
+ 651 040c B96D     		ldr	r1, [r7, #88]	@ float
+ 652 040e FFF7FEFF 		bl	__aeabi_fmul
+ 653 0412 0346     		mov	r3, r0
+ 654 0414 1846     		mov	r0, r3
+ 655 0416 F96B     		ldr	r1, [r7, #60]	@ float
+ 656 0418 FFF7FEFF 		bl	__aeabi_fadd
+ 657 041c 0346     		mov	r3, r0
+ 658 041e 7B62     		str	r3, [r7, #36]	@ float
+ 197:../src/imu.c  ****     mat[2][1] = (sinzcosx * siny) - (coszsinx);
+ 659              		.loc 1 197 0
+ 660 0420 786C     		ldr	r0, [r7, #68]	@ float
+ 661 0422 B96D     		ldr	r1, [r7, #88]	@ float
+ 662 0424 FFF7FEFF 		bl	__aeabi_fmul
+ 663 0428 0346     		mov	r3, r0
+ 664 042a 1846     		mov	r0, r3
+ 665 042c 396C     		ldr	r1, [r7, #64]	@ float
+ 666 042e FFF7FEFF 		bl	__aeabi_fsub
+ 667 0432 0346     		mov	r3, r0
+ 668 0434 BB62     		str	r3, [r7, #40]	@ float
+ 198:../src/imu.c  ****     mat[2][2] = cosy * cosx;
+ 669              		.loc 1 198 0
+ 670 0436 F86D     		ldr	r0, [r7, #92]	@ float
+ 671 0438 796E     		ldr	r1, [r7, #100]	@ float
+ 672 043a FFF7FEFF 		bl	__aeabi_fmul
+ 673 043e 0346     		mov	r3, r0
+ 674 0440 FB62     		str	r3, [r7, #44]	@ float
+ 199:../src/imu.c  **** 
+ 200:../src/imu.c  ****     v->X = v_tmp.X * mat[0][0] + v_tmp.Y * mat[1][0] + v_tmp.Z * mat[2][0];
+ 675              		.loc 1 200 0
+ 676 0442 3A6B     		ldr	r2, [r7, #48]	@ float
+ 677 0444 FB68     		ldr	r3, [r7, #12]	@ float
+ 678 0446 1046     		mov	r0, r2
+ 679 0448 1946     		mov	r1, r3
+ 680 044a FFF7FEFF 		bl	__aeabi_fmul
+ 681 044e 0346     		mov	r3, r0
+ 682 0450 1C46     		mov	r4, r3
+ 683 0452 7A6B     		ldr	r2, [r7, #52]	@ float
+ 684 0454 BB69     		ldr	r3, [r7, #24]	@ float
+ 685 0456 1046     		mov	r0, r2
+ 686 0458 1946     		mov	r1, r3
+ 687 045a FFF7FEFF 		bl	__aeabi_fmul
+ 688 045e 0346     		mov	r3, r0
+ 689 0460 2046     		mov	r0, r4
+ 690 0462 1946     		mov	r1, r3
+ 691 0464 FFF7FEFF 		bl	__aeabi_fadd
+ 692 0468 0346     		mov	r3, r0
+ 693 046a 1C46     		mov	r4, r3
+ 694 046c BA6B     		ldr	r2, [r7, #56]	@ float
+ 695 046e 7B6A     		ldr	r3, [r7, #36]	@ float
+ 696 0470 1046     		mov	r0, r2
+ 697 0472 1946     		mov	r1, r3
+ 698 0474 FFF7FEFF 		bl	__aeabi_fmul
+ 699 0478 0346     		mov	r3, r0
+ 700 047a 2046     		mov	r0, r4
+ 701 047c 1946     		mov	r1, r3
+ 702 047e FFF7FEFF 		bl	__aeabi_fadd
+ 703 0482 0346     		mov	r3, r0
+ 704 0484 1A46     		mov	r2, r3
+ 705 0486 7B68     		ldr	r3, [r7, #4]
+ 706 0488 1A60     		str	r2, [r3, #0]	@ float
+ 201:../src/imu.c  ****     v->Y = v_tmp.X * mat[0][1] + v_tmp.Y * mat[1][1] + v_tmp.Z * mat[2][1];
+ 707              		.loc 1 201 0
+ 708 048a 3A6B     		ldr	r2, [r7, #48]	@ float
+ 709 048c 3B69     		ldr	r3, [r7, #16]	@ float
+ 710 048e 1046     		mov	r0, r2
+ 711 0490 1946     		mov	r1, r3
+ 712 0492 FFF7FEFF 		bl	__aeabi_fmul
+ 713 0496 0346     		mov	r3, r0
+ 714 0498 1C46     		mov	r4, r3
+ 715 049a 7A6B     		ldr	r2, [r7, #52]	@ float
+ 716 049c FB69     		ldr	r3, [r7, #28]	@ float
+ 717 049e 1046     		mov	r0, r2
+ 718 04a0 1946     		mov	r1, r3
+ 719 04a2 FFF7FEFF 		bl	__aeabi_fmul
+ 720 04a6 0346     		mov	r3, r0
+ 721 04a8 2046     		mov	r0, r4
+ 722 04aa 1946     		mov	r1, r3
+ 723 04ac FFF7FEFF 		bl	__aeabi_fadd
+ 724 04b0 0346     		mov	r3, r0
+ 725 04b2 1C46     		mov	r4, r3
+ 726 04b4 BA6B     		ldr	r2, [r7, #56]	@ float
+ 727 04b6 BB6A     		ldr	r3, [r7, #40]	@ float
+ 728 04b8 1046     		mov	r0, r2
+ 729 04ba 1946     		mov	r1, r3
+ 730 04bc FFF7FEFF 		bl	__aeabi_fmul
+ 731 04c0 0346     		mov	r3, r0
+ 732 04c2 2046     		mov	r0, r4
+ 733 04c4 1946     		mov	r1, r3
+ 734 04c6 FFF7FEFF 		bl	__aeabi_fadd
+ 735 04ca 0346     		mov	r3, r0
+ 736 04cc 1A46     		mov	r2, r3
+ 737 04ce 7B68     		ldr	r3, [r7, #4]
+ 738 04d0 5A60     		str	r2, [r3, #4]	@ float
+ 202:../src/imu.c  ****     v->Z = v_tmp.X * mat[0][2] + v_tmp.Y * mat[1][2] + v_tmp.Z * mat[2][2];
+ 739              		.loc 1 202 0
+ 740 04d2 3A6B     		ldr	r2, [r7, #48]	@ float
+ 741 04d4 7B69     		ldr	r3, [r7, #20]	@ float
+ 742 04d6 1046     		mov	r0, r2
+ 743 04d8 1946     		mov	r1, r3
+ 744 04da FFF7FEFF 		bl	__aeabi_fmul
+ 745 04de 0346     		mov	r3, r0
+ 746 04e0 1C46     		mov	r4, r3
+ 747 04e2 7A6B     		ldr	r2, [r7, #52]	@ float
+ 748 04e4 3B6A     		ldr	r3, [r7, #32]	@ float
+ 749 04e6 1046     		mov	r0, r2
+ 750 04e8 1946     		mov	r1, r3
+ 751 04ea FFF7FEFF 		bl	__aeabi_fmul
+ 752 04ee 0346     		mov	r3, r0
+ 753 04f0 2046     		mov	r0, r4
+ 754 04f2 1946     		mov	r1, r3
+ 755 04f4 FFF7FEFF 		bl	__aeabi_fadd
+ 756 04f8 0346     		mov	r3, r0
+ 757 04fa 1C46     		mov	r4, r3
+ 758 04fc BA6B     		ldr	r2, [r7, #56]	@ float
+ 759 04fe FB6A     		ldr	r3, [r7, #44]	@ float
+ 760 0500 1046     		mov	r0, r2
+ 761 0502 1946     		mov	r1, r3
+ 762 0504 FFF7FEFF 		bl	__aeabi_fmul
+ 763 0508 0346     		mov	r3, r0
+ 764 050a 2046     		mov	r0, r4
+ 765 050c 1946     		mov	r1, r3
+ 766 050e FFF7FEFF 		bl	__aeabi_fadd
+ 767 0512 0346     		mov	r3, r0
+ 768 0514 1A46     		mov	r2, r3
+ 769 0516 7B68     		ldr	r3, [r7, #4]
+ 770 0518 9A60     		str	r2, [r3, #8]	@ float
+ 203:../src/imu.c  **** #endif
+ 204:../src/imu.c  **** }
+ 771              		.loc 1 204 0
+ 772 051a 07F16C07 		add	r7, r7, #108
+ 773 051e BD46     		mov	sp, r7
+ 774 0520 90BD     		pop	{r4, r7, pc}
+ 775              		.cfi_endproc
+ 776              	.LFE31:
+ 778              		.global	__aeabi_f2d
+ 779              		.global	__aeabi_dmul
+ 780              		.global	__aeabi_d2iz
+ 781 0522 00BF     		.align	2
+ 782              		.thumb
+ 783              		.thumb_func
+ 785              	_atan2f:
+ 786              	.LFB32:
+ 205:../src/imu.c  **** 
+ 206:../src/imu.c  **** static int16_t _atan2f(float y, float x)
+ 207:../src/imu.c  **** {
+ 787              		.loc 1 207 0
+ 788              		.cfi_startproc
+ 789              		@ args = 0, pretend = 0, frame = 8
+ 790              		@ frame_needed = 1, uses_anonymous_args = 0
+ 791 0524 80B5     		push	{r7, lr}
+ 792              	.LCFI8:
+ 793              		.cfi_def_cfa_offset 8
+ 794              		.cfi_offset 7, -8
+ 795              		.cfi_offset 14, -4
+ 796 0526 82B0     		sub	sp, sp, #8
+ 797              	.LCFI9:
+ 798              		.cfi_def_cfa_offset 16
+ 799 0528 00AF     		add	r7, sp, #0
+ 800              	.LCFI10:
+ 801              		.cfi_def_cfa_register 7
+ 802 052a 7860     		str	r0, [r7, #4]	@ float
+ 803 052c 3960     		str	r1, [r7, #0]	@ float
+ 208:../src/imu.c  ****     // no need for aidsy inaccurate shortcuts on a proper platform
+ 209:../src/imu.c  ****     return (int16_t)(atan2f(y, x) * (180.0f / M_PI * 10.0f));
+ 804              		.loc 1 209 0
+ 805 052e 7868     		ldr	r0, [r7, #4]	@ float
+ 806 0530 3968     		ldr	r1, [r7, #0]	@ float
+ 807 0532 FFF7FEFF 		bl	atan2f
+ 808 0536 0346     		mov	r3, r0
+ 809 0538 1846     		mov	r0, r3
+ 810 053a FFF7FEFF 		bl	__aeabi_f2d
+ 811 053e 0246     		mov	r2, r0
+ 812 0540 0B46     		mov	r3, r1
+ 813 0542 1046     		mov	r0, r2
+ 814 0544 1946     		mov	r1, r3
+ 815 0546 0AA3     		adr	r3, .L27
+ 816 0548 D3E90023 		ldrd	r2, [r3]
+ 817 054c FFF7FEFF 		bl	__aeabi_dmul
+ 818 0550 0246     		mov	r2, r0
+ 819 0552 0B46     		mov	r3, r1
+ 820 0554 1046     		mov	r0, r2
+ 821 0556 1946     		mov	r1, r3
+ 822 0558 FFF7FEFF 		bl	__aeabi_d2iz
+ 823 055c 0346     		mov	r3, r0
+ 824 055e 9BB2     		uxth	r3, r3
+ 825 0560 1BB2     		sxth	r3, r3
+ 210:../src/imu.c  **** }
+ 826              		.loc 1 210 0
+ 827 0562 1846     		mov	r0, r3
+ 828 0564 07F10807 		add	r7, r7, #8
+ 829 0568 BD46     		mov	sp, r7
+ 830 056a 80BD     		pop	{r7, pc}
+ 831              	.L28:
+ 832 056c AFF30080 		.align	3
+ 833              	.L27:
+ 834 0570 3B597E90 		.word	-1870767813
+ 835 0574 A9E78140 		.word	1082255273
+ 836              		.cfi_endproc
+ 837              	.LFE32:
+ 839              		.global	__aeabi_ui2f
+ 840              		.global	__aeabi_d2f
+ 841              		.global	__aeabi_ddiv
+ 842              		.global	__aeabi_dadd
+ 843              		.align	2
+ 844              		.thumb
+ 845              		.thumb_func
+ 847              	getEstimatedAttitude:
+ 848              	.LFB33:
+ 211:../src/imu.c  **** 
+ 212:../src/imu.c  **** static void getEstimatedAttitude(void)
+ 213:../src/imu.c  **** {
+ 849              		.loc 1 213 0
+ 850              		.cfi_startproc
+ 851              		@ args = 0, pretend = 0, frame = 80
+ 852              		@ frame_needed = 1, uses_anonymous_args = 0
+ 853 0578 B0B5     		push	{r4, r5, r7, lr}
+ 854              	.LCFI11:
+ 855              		.cfi_def_cfa_offset 16
+ 856              		.cfi_offset 4, -16
+ 857              		.cfi_offset 5, -12
+ 858              		.cfi_offset 7, -8
+ 859              		.cfi_offset 14, -4
+ 860 057a 94B0     		sub	sp, sp, #80
+ 861              	.LCFI12:
+ 862              		.cfi_def_cfa_offset 96
+ 863 057c 00AF     		add	r7, sp, #0
+ 864              	.LCFI13:
+ 865              		.cfi_def_cfa_register 7
+ 214:../src/imu.c  ****     uint32_t axis;
+ 215:../src/imu.c  ****     int32_t accMag = 0;
+ 866              		.loc 1 215 0
+ 867 057e 4FF00003 		mov	r3, #0
+ 868 0582 BB64     		str	r3, [r7, #72]
+ 216:../src/imu.c  ****     static t_fp_vector EstM;
+ 217:../src/imu.c  **** #if defined(MG_LPF_FACTOR)
+ 218:../src/imu.c  ****     static int16_t mgSmooth[3];
+ 219:../src/imu.c  **** #endif
+ 220:../src/imu.c  ****     static float accLPF[3];
+ 221:../src/imu.c  ****     static uint32_t previousT;
+ 222:../src/imu.c  ****     uint32_t currentT = micros();
+ 869              		.loc 1 222 0
+ 870 0584 FFF7FEFF 		bl	micros
+ 871 0588 7864     		str	r0, [r7, #68]
+ 223:../src/imu.c  ****     float scale, deltaGyroAngle[3];
+ 224:../src/imu.c  **** 
+ 225:../src/imu.c  ****     scale = (currentT - previousT) * gyro.scale;
+ 872              		.loc 1 225 0
+ 873 058a 9B4B     		ldr	r3, .L47
+ 874 058c 1B68     		ldr	r3, [r3, #0]
+ 875 058e 7A6C     		ldr	r2, [r7, #68]
+ 876 0590 D31A     		subs	r3, r2, r3
+ 877 0592 1846     		mov	r0, r3
+ 878 0594 FFF7FEFF 		bl	__aeabi_ui2f
+ 879 0598 0246     		mov	r2, r0
+ 880 059a 984B     		ldr	r3, .L47+4
+ 881 059c 1B69     		ldr	r3, [r3, #16]	@ float
+ 882 059e 1046     		mov	r0, r2
+ 883 05a0 1946     		mov	r1, r3
+ 884 05a2 FFF7FEFF 		bl	__aeabi_fmul
+ 885 05a6 0346     		mov	r3, r0
+ 886 05a8 3B64     		str	r3, [r7, #64]	@ float
+ 226:../src/imu.c  ****     previousT = currentT;
+ 887              		.loc 1 226 0
+ 888 05aa 934B     		ldr	r3, .L47
+ 889 05ac 7A6C     		ldr	r2, [r7, #68]
+ 890 05ae 1A60     		str	r2, [r3, #0]
+ 227:../src/imu.c  **** 
+ 228:../src/imu.c  ****     // Initialization
+ 229:../src/imu.c  ****     for (axis = 0; axis < 3; axis++) {
+ 891              		.loc 1 229 0
+ 892 05b0 4FF00003 		mov	r3, #0
+ 893 05b4 FB64     		str	r3, [r7, #76]
+ 894 05b6 C6E0     		b	.L30
+ 895              	.L33:
+ 230:../src/imu.c  ****         deltaGyroAngle[axis] = gyroADC[axis] * scale;
+ 896              		.loc 1 230 0
+ 897 05b8 914B     		ldr	r3, .L47+8
+ 898 05ba FA6C     		ldr	r2, [r7, #76]
+ 899 05bc 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 900 05c0 1BB2     		sxth	r3, r3
+ 901 05c2 1846     		mov	r0, r3
+ 902 05c4 FFF7FEFF 		bl	__aeabi_i2f
+ 903 05c8 0346     		mov	r3, r0
+ 904 05ca 1846     		mov	r0, r3
+ 905 05cc 396C     		ldr	r1, [r7, #64]	@ float
+ 906 05ce FFF7FEFF 		bl	__aeabi_fmul
+ 907 05d2 0346     		mov	r3, r0
+ 908 05d4 1A46     		mov	r2, r3
+ 909 05d6 FB6C     		ldr	r3, [r7, #76]
+ 910 05d8 4FEA8303 		lsl	r3, r3, #2
+ 911 05dc 07F15001 		add	r1, r7, #80
+ 912 05e0 CB18     		adds	r3, r1, r3
+ 913 05e2 43F84C2C 		str	r2, [r3, #-76]	@ float
+ 231:../src/imu.c  ****         if (cfg.acc_lpf_factor > 0) {
+ 914              		.loc 1 231 0
+ 915 05e6 874B     		ldr	r3, .L47+12
+ 916 05e8 93F82C30 		ldrb	r3, [r3, #44]	@ zero_extendqisi2
+ 917 05ec 002B     		cmp	r3, #0
+ 918 05ee 4CD0     		beq	.L31
+ 232:../src/imu.c  ****             accLPF[axis] = accLPF[axis] * (1.0f - (1.0f / cfg.acc_lpf_factor)) + accADC[axis] * (1.
+ 919              		.loc 1 232 0
+ 920 05f0 854B     		ldr	r3, .L47+16
+ 921 05f2 FA6C     		ldr	r2, [r7, #76]
+ 922 05f4 53F82240 		ldr	r4, [r3, r2, lsl #2]	@ float
+ 923 05f8 824B     		ldr	r3, .L47+12
+ 924 05fa 93F82C30 		ldrb	r3, [r3, #44]	@ zero_extendqisi2
+ 925 05fe 1846     		mov	r0, r3
+ 926 0600 FFF7FEFF 		bl	__aeabi_i2f
+ 927 0604 0346     		mov	r3, r0
+ 928 0606 8948     		ldr	r0, .L47+52	@ float
+ 929 0608 1946     		mov	r1, r3
+ 930 060a FFF7FEFF 		bl	__aeabi_fdiv
+ 931 060e 0346     		mov	r3, r0
+ 932 0610 8648     		ldr	r0, .L47+52	@ float
+ 933 0612 1946     		mov	r1, r3
+ 934 0614 FFF7FEFF 		bl	__aeabi_fsub
+ 935 0618 0346     		mov	r3, r0
+ 936 061a 2046     		mov	r0, r4
+ 937 061c 1946     		mov	r1, r3
+ 938 061e FFF7FEFF 		bl	__aeabi_fmul
+ 939 0622 0346     		mov	r3, r0
+ 940 0624 1C46     		mov	r4, r3
+ 941 0626 794B     		ldr	r3, .L47+20
+ 942 0628 FA6C     		ldr	r2, [r7, #76]
+ 943 062a 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 944 062e 1BB2     		sxth	r3, r3
+ 945 0630 1846     		mov	r0, r3
+ 946 0632 FFF7FEFF 		bl	__aeabi_i2f
+ 947 0636 0546     		mov	r5, r0
+ 948 0638 724B     		ldr	r3, .L47+12
+ 949 063a 93F82C30 		ldrb	r3, [r3, #44]	@ zero_extendqisi2
+ 950 063e 1846     		mov	r0, r3
+ 951 0640 FFF7FEFF 		bl	__aeabi_i2f
+ 952 0644 0346     		mov	r3, r0
+ 953 0646 7948     		ldr	r0, .L47+52	@ float
+ 954 0648 1946     		mov	r1, r3
+ 955 064a FFF7FEFF 		bl	__aeabi_fdiv
+ 956 064e 0346     		mov	r3, r0
+ 957 0650 2846     		mov	r0, r5
+ 958 0652 1946     		mov	r1, r3
+ 959 0654 FFF7FEFF 		bl	__aeabi_fmul
+ 960 0658 0346     		mov	r3, r0
+ 961 065a 2046     		mov	r0, r4
+ 962 065c 1946     		mov	r1, r3
+ 963 065e FFF7FEFF 		bl	__aeabi_fadd
+ 964 0662 0346     		mov	r3, r0
+ 965 0664 1946     		mov	r1, r3
+ 966 0666 684B     		ldr	r3, .L47+16
+ 967 0668 FA6C     		ldr	r2, [r7, #76]
+ 968 066a 43F82210 		str	r1, [r3, r2, lsl #2]	@ float
+ 233:../src/imu.c  ****             accSmooth[axis] = accLPF[axis];
+ 969              		.loc 1 233 0
+ 970 066e 664B     		ldr	r3, .L47+16
+ 971 0670 FA6C     		ldr	r2, [r7, #76]
+ 972 0672 53F82230 		ldr	r3, [r3, r2, lsl #2]	@ float
+ 973 0676 1846     		mov	r0, r3
+ 974 0678 FFF7FEFF 		bl	__aeabi_f2iz
+ 975 067c 0346     		mov	r3, r0
+ 976 067e 99B2     		uxth	r1, r3
+ 977 0680 634B     		ldr	r3, .L47+24
+ 978 0682 FA6C     		ldr	r2, [r7, #76]
+ 979 0684 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 980 0688 07E0     		b	.L32
+ 981              	.L31:
+ 234:../src/imu.c  ****         } else {
+ 235:../src/imu.c  ****             accSmooth[axis] = accADC[axis];
+ 982              		.loc 1 235 0
+ 983 068a 604B     		ldr	r3, .L47+20
+ 984 068c FA6C     		ldr	r2, [r7, #76]
+ 985 068e 33F81210 		ldrh	r1, [r3, r2, lsl #1]
+ 986 0692 5F4B     		ldr	r3, .L47+24
+ 987 0694 FA6C     		ldr	r2, [r7, #76]
+ 988 0696 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+ 989              	.L32:
+ 236:../src/imu.c  ****         }
+ 237:../src/imu.c  ****         accLPFVel[axis] = accLPFVel[axis] * (1.0f - (1.0f / cfg.acc_lpf_for_velocity)) + accADC[axi
+ 990              		.loc 1 237 0
+ 991 069a 5E4B     		ldr	r3, .L47+28
+ 992 069c FA6C     		ldr	r2, [r7, #76]
+ 993 069e 53F82240 		ldr	r4, [r3, r2, lsl #2]	@ float
+ 994 06a2 584B     		ldr	r3, .L47+12
+ 995 06a4 93F82D30 		ldrb	r3, [r3, #45]	@ zero_extendqisi2
+ 996 06a8 1846     		mov	r0, r3
+ 997 06aa FFF7FEFF 		bl	__aeabi_i2f
+ 998 06ae 0346     		mov	r3, r0
+ 999 06b0 5E48     		ldr	r0, .L47+52	@ float
+ 1000 06b2 1946     		mov	r1, r3
+ 1001 06b4 FFF7FEFF 		bl	__aeabi_fdiv
+ 1002 06b8 0346     		mov	r3, r0
+ 1003 06ba 5C48     		ldr	r0, .L47+52	@ float
+ 1004 06bc 1946     		mov	r1, r3
+ 1005 06be FFF7FEFF 		bl	__aeabi_fsub
+ 1006 06c2 0346     		mov	r3, r0
+ 1007 06c4 2046     		mov	r0, r4
+ 1008 06c6 1946     		mov	r1, r3
+ 1009 06c8 FFF7FEFF 		bl	__aeabi_fmul
+ 1010 06cc 0346     		mov	r3, r0
+ 1011 06ce 1C46     		mov	r4, r3
+ 1012 06d0 4E4B     		ldr	r3, .L47+20
+ 1013 06d2 FA6C     		ldr	r2, [r7, #76]
+ 1014 06d4 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 1015 06d8 1BB2     		sxth	r3, r3
+ 1016 06da 1846     		mov	r0, r3
+ 1017 06dc FFF7FEFF 		bl	__aeabi_i2f
+ 1018 06e0 0546     		mov	r5, r0
+ 1019 06e2 484B     		ldr	r3, .L47+12
+ 1020 06e4 93F82D30 		ldrb	r3, [r3, #45]	@ zero_extendqisi2
+ 1021 06e8 1846     		mov	r0, r3
+ 1022 06ea FFF7FEFF 		bl	__aeabi_i2f
+ 1023 06ee 0346     		mov	r3, r0
+ 1024 06f0 4E48     		ldr	r0, .L47+52	@ float
+ 1025 06f2 1946     		mov	r1, r3
+ 1026 06f4 FFF7FEFF 		bl	__aeabi_fdiv
+ 1027 06f8 0346     		mov	r3, r0
+ 1028 06fa 2846     		mov	r0, r5
+ 1029 06fc 1946     		mov	r1, r3
+ 1030 06fe FFF7FEFF 		bl	__aeabi_fmul
+ 1031 0702 0346     		mov	r3, r0
+ 1032 0704 2046     		mov	r0, r4
+ 1033 0706 1946     		mov	r1, r3
+ 1034 0708 FFF7FEFF 		bl	__aeabi_fadd
+ 1035 070c 0346     		mov	r3, r0
+ 1036 070e 1946     		mov	r1, r3
+ 1037 0710 404B     		ldr	r3, .L47+28
+ 1038 0712 FA6C     		ldr	r2, [r7, #76]
+ 1039 0714 43F82210 		str	r1, [r3, r2, lsl #2]	@ float
+ 238:../src/imu.c  ****         accMag += (int32_t)accSmooth[axis] * accSmooth[axis];
+ 1040              		.loc 1 238 0
+ 1041 0718 3D4B     		ldr	r3, .L47+24
+ 1042 071a FA6C     		ldr	r2, [r7, #76]
+ 1043 071c 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 1044 0720 1BB2     		sxth	r3, r3
+ 1045 0722 3B4A     		ldr	r2, .L47+24
+ 1046 0724 F96C     		ldr	r1, [r7, #76]
+ 1047 0726 32F81120 		ldrh	r2, [r2, r1, lsl #1]
+ 1048 072a 12B2     		sxth	r2, r2
+ 1049 072c 02FB03F3 		mul	r3, r2, r3
+ 1050 0730 BA6C     		ldr	r2, [r7, #72]
+ 1051 0732 D318     		adds	r3, r2, r3
+ 1052 0734 BB64     		str	r3, [r7, #72]
+ 239:../src/imu.c  **** 
+ 240:../src/imu.c  ****         if (sensors(SENSOR_MAG)) {
+ 1053              		.loc 1 240 0
+ 1054 0736 4FF00400 		mov	r0, #4
+ 1055 073a FFF7FEFF 		bl	sensors
+ 229:../src/imu.c  ****     for (axis = 0; axis < 3; axis++) {
+ 1056              		.loc 1 229 0
+ 1057 073e FB6C     		ldr	r3, [r7, #76]
+ 1058 0740 03F10103 		add	r3, r3, #1
+ 1059 0744 FB64     		str	r3, [r7, #76]
+ 1060              	.L30:
+ 229:../src/imu.c  ****     for (axis = 0; axis < 3; axis++) {
+ 1061              		.loc 1 229 0 is_stmt 0 discriminator 1
+ 1062 0746 FB6C     		ldr	r3, [r7, #76]
+ 1063 0748 022B     		cmp	r3, #2
+ 1064 074a 7FF635AF 		bls	.L33
+ 241:../src/imu.c  **** #if defined(MG_LPF_FACTOR)
+ 242:../src/imu.c  ****             mgSmooth[axis] = (mgSmooth[axis] * (MG_LPF_FACTOR - 1) + magADC[axis]) / MG_LPF_FACTOR;
+ 243:../src/imu.c  **** #define MAG_VALUE mgSmooth[axis]
+ 244:../src/imu.c  **** #else
+ 245:../src/imu.c  **** #define MAG_VALUE magADC[axis]
+ 246:../src/imu.c  **** #endif
+ 247:../src/imu.c  ****         }
+ 248:../src/imu.c  ****     }
+ 249:../src/imu.c  ****     accMag = accMag * 100 / ((int32_t)acc_1G * acc_1G);
+ 1065              		.loc 1 249 0 is_stmt 1
+ 1066 074e BB6C     		ldr	r3, [r7, #72]
+ 1067 0750 4FF06402 		mov	r2, #100
+ 1068 0754 02FB03F2 		mul	r2, r2, r3
+ 1069 0758 2F4B     		ldr	r3, .L47+32
+ 1070 075a 1B88     		ldrh	r3, [r3, #0]
+ 1071 075c 2E49     		ldr	r1, .L47+32
+ 1072 075e 0988     		ldrh	r1, [r1, #0]
+ 1073 0760 01FB03F3 		mul	r3, r1, r3
+ 1074 0764 92FBF3F3 		sdiv	r3, r2, r3
+ 1075 0768 BB64     		str	r3, [r7, #72]
+ 250:../src/imu.c  **** 
+ 251:../src/imu.c  ****     rotateV(&EstG.V, deltaGyroAngle);
+ 1076              		.loc 1 251 0
+ 1077 076a 07F10403 		add	r3, r7, #4
+ 1078 076e 2B48     		ldr	r0, .L47+36
+ 1079 0770 1946     		mov	r1, r3
+ 1080 0772 FFF7FEFF 		bl	rotateV
+ 252:../src/imu.c  ****     if (sensors(SENSOR_MAG))
+ 1081              		.loc 1 252 0
+ 1082 0776 4FF00400 		mov	r0, #4
+ 1083 077a FFF7FEFF 		bl	sensors
+ 1084 077e 0346     		mov	r3, r0
+ 1085 0780 002B     		cmp	r3, #0
+ 1086 0782 05D0     		beq	.L34
+ 253:../src/imu.c  ****         rotateV(&EstM.V, deltaGyroAngle);
+ 1087              		.loc 1 253 0
+ 1088 0784 07F10403 		add	r3, r7, #4
+ 1089 0788 2548     		ldr	r0, .L47+40
+ 1090 078a 1946     		mov	r1, r3
+ 1091 078c FFF7FEFF 		bl	rotateV
+ 1092              	.L34:
+ 254:../src/imu.c  **** 
+ 255:../src/imu.c  ****     if (abs(accSmooth[ROLL]) < acc_25deg && abs(accSmooth[PITCH]) < acc_25deg && accSmooth[YAW] > 0
+ 1093              		.loc 1 255 0
+ 1094 0790 1F4B     		ldr	r3, .L47+24
+ 1095 0792 1B88     		ldrh	r3, [r3, #0]
+ 1096 0794 1BB2     		sxth	r3, r3
+ 1097 0796 83EAE372 		eor	r2, r3, r3, asr #31
+ 1098 079a A2EBE372 		sub	r2, r2, r3, asr #31
+ 1099 079e 214B     		ldr	r3, .L47+44
+ 1100 07a0 1B88     		ldrh	r3, [r3, #0]
+ 1101 07a2 1BB2     		sxth	r3, r3
+ 1102 07a4 9A42     		cmp	r2, r3
+ 1103 07a6 15DA     		bge	.L35
+ 1104              		.loc 1 255 0 is_stmt 0 discriminator 1
+ 1105 07a8 194B     		ldr	r3, .L47+24
+ 1106 07aa 5B88     		ldrh	r3, [r3, #2]
+ 1107 07ac 1BB2     		sxth	r3, r3
+ 1108 07ae 83EAE372 		eor	r2, r3, r3, asr #31
+ 1109 07b2 A2EBE372 		sub	r2, r2, r3, asr #31
+ 1110 07b6 1B4B     		ldr	r3, .L47+44
+ 1111 07b8 1B88     		ldrh	r3, [r3, #0]
+ 1112 07ba 1BB2     		sxth	r3, r3
+ 1113 07bc 9A42     		cmp	r2, r3
+ 1114 07be 09DA     		bge	.L35
+ 1115 07c0 134B     		ldr	r3, .L47+24
+ 1116 07c2 9B88     		ldrh	r3, [r3, #4]
+ 1117 07c4 1BB2     		sxth	r3, r3
+ 1118 07c6 002B     		cmp	r3, #0
+ 1119 07c8 04DD     		ble	.L35
+ 256:../src/imu.c  ****         f.SMALL_ANGLES_25 = 1;
+ 1120              		.loc 1 256 0 is_stmt 1
+ 1121 07ca 174B     		ldr	r3, .L47+48
+ 1122 07cc 4FF00102 		mov	r2, #1
+ 1123 07d0 5A73     		strb	r2, [r3, #13]
+ 1124 07d2 03E0     		b	.L36
+ 1125              	.L35:
+ 257:../src/imu.c  ****     else
+ 258:../src/imu.c  ****         f.SMALL_ANGLES_25 = 0;
+ 1126              		.loc 1 258 0
+ 1127 07d4 144B     		ldr	r3, .L47+48
+ 1128 07d6 4FF00002 		mov	r2, #0
+ 1129 07da 5A73     		strb	r2, [r3, #13]
+ 1130              	.L36:
+ 259:../src/imu.c  **** 
+ 260:../src/imu.c  ****     // Apply complimentary filter (Gyro drift correction)
+ 261:../src/imu.c  ****     // If accel magnitude >1.4G or <0.6G and ACC vector outside of the limit range => we neutralize
+ 262:../src/imu.c  ****     // To do that, we just skip filter, as EstV already rotated by Gyro
+ 263:../src/imu.c  ****     if ((36 < accMag && accMag < 196) || f.SMALL_ANGLES_25) {
+ 1131              		.loc 1 263 0
+ 1132 07dc BB6C     		ldr	r3, [r7, #72]
+ 1133 07de 242B     		cmp	r3, #36
+ 1134 07e0 02DD     		ble	.L37
+ 1135              		.loc 1 263 0 is_stmt 0 discriminator 1
+ 1136 07e2 BB6C     		ldr	r3, [r7, #72]
+ 1137 07e4 C32B     		cmp	r3, #195
+ 1138 07e6 03DD     		ble	.L38
+ 1139              	.L37:
+ 1140              		.loc 1 263 0 discriminator 2
+ 1141 07e8 0F4B     		ldr	r3, .L47+48
+ 1142 07ea 5B7B     		ldrb	r3, [r3, #13]	@ zero_extendqisi2
+ 1143 07ec 002B     		cmp	r3, #0
+ 1144 07ee 61D0     		beq	.L39
+ 1145              	.L38:
+ 264:../src/imu.c  ****         for (axis = 0; axis < 3; axis++)
+ 1146              		.loc 1 264 0 is_stmt 1
+ 1147 07f0 4FF00003 		mov	r3, #0
+ 1148 07f4 FB64     		str	r3, [r7, #76]
+ 1149 07f6 5AE0     		b	.L40
+ 1150              	.L48:
+ 1151              		.align	2
+ 1152              	.L47:
+ 1153 07f8 48000000 		.word	previousT.9114
+ 1154 07fc 00000000 		.word	gyro
+ 1155 0800 00000000 		.word	gyroADC
+ 1156 0804 00000000 		.word	cfg
+ 1157 0808 4C000000 		.word	accLPF.9113
+ 1158 080c 00000000 		.word	accADC
+ 1159 0810 00000000 		.word	accSmooth
+ 1160 0814 00000000 		.word	accLPFVel
+ 1161 0818 00000000 		.word	acc_1G
+ 1162 081c 00000000 		.word	EstG
+ 1163 0820 58000000 		.word	EstM.9112
+ 1164 0824 00000000 		.word	acc_25deg
+ 1165 0828 00000000 		.word	f
+ 1166 082c 0000803F 		.word	1065353216
+ 1167              	.L41:
+ 265:../src/imu.c  ****             EstG.A[axis] = (EstG.A[axis] * (float)mcfg.gyro_cmpf_factor + accSmooth[axis]) * INV_GY
+ 1168              		.loc 1 265 0 discriminator 2
+ 1169 0830 264B     		ldr	r3, .L49
+ 1170 0832 FA6C     		ldr	r2, [r7, #76]
+ 1171 0834 53F82240 		ldr	r4, [r3, r2, lsl #2]	@ float
+ 1172 0838 254B     		ldr	r3, .L49+4
+ 1173 083a B3F8E630 		ldrh	r3, [r3, #230]
+ 1174 083e 1846     		mov	r0, r3
+ 1175 0840 FFF7FEFF 		bl	__aeabi_ui2f
+ 1176 0844 0346     		mov	r3, r0
+ 1177 0846 2046     		mov	r0, r4
+ 1178 0848 1946     		mov	r1, r3
+ 1179 084a FFF7FEFF 		bl	__aeabi_fmul
+ 1180 084e 0346     		mov	r3, r0
+ 1181 0850 1C46     		mov	r4, r3
+ 1182 0852 204B     		ldr	r3, .L49+8
+ 1183 0854 FA6C     		ldr	r2, [r7, #76]
+ 1184 0856 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 1185 085a 1BB2     		sxth	r3, r3
+ 1186 085c 1846     		mov	r0, r3
+ 1187 085e FFF7FEFF 		bl	__aeabi_i2f
+ 1188 0862 0346     		mov	r3, r0
+ 1189 0864 2046     		mov	r0, r4
+ 1190 0866 1946     		mov	r1, r3
+ 1191 0868 FFF7FEFF 		bl	__aeabi_fadd
+ 1192 086c 0346     		mov	r3, r0
+ 1193 086e 1C46     		mov	r4, r3
+ 1194 0870 174B     		ldr	r3, .L49+4
+ 1195 0872 B3F8E630 		ldrh	r3, [r3, #230]
+ 1196 0876 1846     		mov	r0, r3
+ 1197 0878 FFF7FEFF 		bl	__aeabi_ui2f
+ 1198 087c 0346     		mov	r3, r0
+ 1199 087e 1846     		mov	r0, r3
+ 1200 0880 1549     		ldr	r1, .L49+12	@ float
+ 1201 0882 FFF7FEFF 		bl	__aeabi_fadd
+ 1202 0886 0346     		mov	r3, r0
+ 1203 0888 1348     		ldr	r0, .L49+12	@ float
+ 1204 088a 1946     		mov	r1, r3
+ 1205 088c FFF7FEFF 		bl	__aeabi_fdiv
+ 1206 0890 0346     		mov	r3, r0
+ 1207 0892 2046     		mov	r0, r4
+ 1208 0894 1946     		mov	r1, r3
+ 1209 0896 FFF7FEFF 		bl	__aeabi_fmul
+ 1210 089a 0346     		mov	r3, r0
+ 1211 089c 1946     		mov	r1, r3
+ 1212 089e 0B4B     		ldr	r3, .L49
+ 1213 08a0 FA6C     		ldr	r2, [r7, #76]
+ 1214 08a2 43F82210 		str	r1, [r3, r2, lsl #2]	@ float
+ 264:../src/imu.c  ****         for (axis = 0; axis < 3; axis++)
+ 1215              		.loc 1 264 0 discriminator 2
+ 1216 08a6 FB6C     		ldr	r3, [r7, #76]
+ 1217 08a8 03F10103 		add	r3, r3, #1
+ 1218 08ac FB64     		str	r3, [r7, #76]
+ 1219              	.L40:
+ 264:../src/imu.c  ****         for (axis = 0; axis < 3; axis++)
+ 1220              		.loc 1 264 0 is_stmt 0 discriminator 1
+ 1221 08ae FB6C     		ldr	r3, [r7, #76]
+ 1222 08b0 022B     		cmp	r3, #2
+ 1223 08b2 BDD9     		bls	.L41
+ 1224              	.L39:
+ 266:../src/imu.c  ****     }
+ 267:../src/imu.c  **** 
+ 268:../src/imu.c  ****     if (sensors(SENSOR_MAG)) {
+ 1225              		.loc 1 268 0 is_stmt 1
+ 1226 08b4 4FF00400 		mov	r0, #4
+ 1227 08b8 FFF7FEFF 		bl	sensors
+ 1228 08bc 0346     		mov	r3, r0
+ 1229 08be 002B     		cmp	r3, #0
+ 1230 08c0 35D0     		beq	.L42
+ 269:../src/imu.c  ****         for (axis = 0; axis < 3; axis++)
+ 1231              		.loc 1 269 0
+ 1232 08c2 4FF00003 		mov	r3, #0
+ 1233 08c6 FB64     		str	r3, [r7, #76]
+ 1234 08c8 2EE0     		b	.L43
+ 1235              	.L50:
+ 1236 08ca 00BF     		.align	2
+ 1237              	.L49:
+ 1238 08cc 00000000 		.word	EstG
+ 1239 08d0 00000000 		.word	mcfg
+ 1240 08d4 00000000 		.word	accSmooth
+ 1241 08d8 0000803F 		.word	1065353216
+ 1242              	.L44:
+ 270:../src/imu.c  ****             EstM.A[axis] = (EstM.A[axis] * GYR_CMPFM_FACTOR + MAG_VALUE) * INV_GYR_CMPFM_FACTOR;
+ 1243              		.loc 1 270 0 discriminator 2
+ 1244 08dc 9C4B     		ldr	r3, .L51+24
+ 1245 08de FA6C     		ldr	r2, [r7, #76]
+ 1246 08e0 53F82230 		ldr	r3, [r3, r2, lsl #2]	@ float
+ 1247 08e4 1846     		mov	r0, r3
+ 1248 08e6 9E49     		ldr	r1, .L51+40	@ float
+ 1249 08e8 FFF7FEFF 		bl	__aeabi_fmul
+ 1250 08ec 0346     		mov	r3, r0
+ 1251 08ee 1C46     		mov	r4, r3
+ 1252 08f0 984B     		ldr	r3, .L51+28
+ 1253 08f2 FA6C     		ldr	r2, [r7, #76]
+ 1254 08f4 33F81230 		ldrh	r3, [r3, r2, lsl #1]
+ 1255 08f8 1BB2     		sxth	r3, r3
+ 1256 08fa 1846     		mov	r0, r3
+ 1257 08fc FFF7FEFF 		bl	__aeabi_i2f
+ 1258 0900 0346     		mov	r3, r0
+ 1259 0902 2046     		mov	r0, r4
+ 1260 0904 1946     		mov	r1, r3
+ 1261 0906 FFF7FEFF 		bl	__aeabi_fadd
+ 1262 090a 0346     		mov	r3, r0
+ 1263 090c 1846     		mov	r0, r3
+ 1264 090e 9549     		ldr	r1, .L51+44	@ float
+ 1265 0910 FFF7FEFF 		bl	__aeabi_fmul
+ 1266 0914 0346     		mov	r3, r0
+ 1267 0916 1946     		mov	r1, r3
+ 1268 0918 8D4B     		ldr	r3, .L51+24
+ 1269 091a FA6C     		ldr	r2, [r7, #76]
+ 1270 091c 43F82210 		str	r1, [r3, r2, lsl #2]	@ float
+ 269:../src/imu.c  ****         for (axis = 0; axis < 3; axis++)
+ 1271              		.loc 1 269 0 discriminator 2
+ 1272 0920 FB6C     		ldr	r3, [r7, #76]
+ 1273 0922 03F10103 		add	r3, r3, #1
+ 1274 0926 FB64     		str	r3, [r7, #76]
+ 1275              	.L43:
+ 269:../src/imu.c  ****         for (axis = 0; axis < 3; axis++)
+ 1276              		.loc 1 269 0 is_stmt 0 discriminator 1
+ 1277 0928 FB6C     		ldr	r3, [r7, #76]
+ 1278 092a 022B     		cmp	r3, #2
+ 1279 092c D6D9     		bls	.L44
+ 1280              	.L42:
+ 271:../src/imu.c  ****     }
+ 272:../src/imu.c  **** 
+ 273:../src/imu.c  ****     // Attitude of the estimated vector
+ 274:../src/imu.c  **** #if INACCURATE
+ 275:../src/imu.c  ****     angle[ROLL] = _atan2f(EstG.V.X, EstG.V.Z);
+ 276:../src/imu.c  ****     angle[PITCH] = _atan2f(EstG.V.Y, EstG.V.Z);
+ 277:../src/imu.c  **** #else
+ 278:../src/imu.c  ****     // This hack removes gimbal lock (sorta) on pitch, so rolling around doesn't make pitch jump wh
+ 279:../src/imu.c  ****     angle[ROLL] = _atan2f(EstG.V.X, EstG.V.Z);
+ 1281              		.loc 1 279 0 is_stmt 1
+ 1282 092e 8A4B     		ldr	r3, .L51+32
+ 1283 0930 1A68     		ldr	r2, [r3, #0]	@ float
+ 1284 0932 894B     		ldr	r3, .L51+32
+ 1285 0934 9B68     		ldr	r3, [r3, #8]	@ float
+ 1286 0936 1046     		mov	r0, r2
+ 1287 0938 1946     		mov	r1, r3
+ 1288 093a FFF7F3FD 		bl	_atan2f
+ 1289 093e 0346     		mov	r3, r0
+ 1290 0940 1A46     		mov	r2, r3
+ 1291 0942 864B     		ldr	r3, .L51+36
+ 1292 0944 1A80     		strh	r2, [r3, #0]	@ movhi
+ 280:../src/imu.c  ****     angle[PITCH] = -asinf(EstG.V.Y / -sqrtf(EstG.V.X * EstG.V.X + EstG.V.Y * EstG.V.Y + EstG.V.Z * 
+ 1293              		.loc 1 280 0
+ 1294 0946 844B     		ldr	r3, .L51+32
+ 1295 0948 5C68     		ldr	r4, [r3, #4]	@ float
+ 1296 094a 834B     		ldr	r3, .L51+32
+ 1297 094c 1A68     		ldr	r2, [r3, #0]	@ float
+ 1298 094e 824B     		ldr	r3, .L51+32
+ 1299 0950 1B68     		ldr	r3, [r3, #0]	@ float
+ 1300 0952 1046     		mov	r0, r2
+ 1301 0954 1946     		mov	r1, r3
+ 1302 0956 FFF7FEFF 		bl	__aeabi_fmul
+ 1303 095a 0346     		mov	r3, r0
+ 1304 095c 1D46     		mov	r5, r3
+ 1305 095e 7E4B     		ldr	r3, .L51+32
+ 1306 0960 5A68     		ldr	r2, [r3, #4]	@ float
+ 1307 0962 7D4B     		ldr	r3, .L51+32
+ 1308 0964 5B68     		ldr	r3, [r3, #4]	@ float
+ 1309 0966 1046     		mov	r0, r2
+ 1310 0968 1946     		mov	r1, r3
+ 1311 096a FFF7FEFF 		bl	__aeabi_fmul
+ 1312 096e 0346     		mov	r3, r0
+ 1313 0970 2846     		mov	r0, r5
+ 1314 0972 1946     		mov	r1, r3
+ 1315 0974 FFF7FEFF 		bl	__aeabi_fadd
+ 1316 0978 0346     		mov	r3, r0
+ 1317 097a 1D46     		mov	r5, r3
+ 1318 097c 764B     		ldr	r3, .L51+32
+ 1319 097e 9A68     		ldr	r2, [r3, #8]	@ float
+ 1320 0980 754B     		ldr	r3, .L51+32
+ 1321 0982 9B68     		ldr	r3, [r3, #8]	@ float
+ 1322 0984 1046     		mov	r0, r2
+ 1323 0986 1946     		mov	r1, r3
+ 1324 0988 FFF7FEFF 		bl	__aeabi_fmul
+ 1325 098c 0346     		mov	r3, r0
+ 1326 098e 2846     		mov	r0, r5
+ 1327 0990 1946     		mov	r1, r3
+ 1328 0992 FFF7FEFF 		bl	__aeabi_fadd
+ 1329 0996 0346     		mov	r3, r0
+ 1330 0998 1846     		mov	r0, r3
+ 1331 099a FFF7FEFF 		bl	sqrtf
+ 1332 099e 0346     		mov	r3, r0
+ 1333 09a0 2046     		mov	r0, r4
+ 1334 09a2 1946     		mov	r1, r3
+ 1335 09a4 FFF7FEFF 		bl	__aeabi_fdiv
+ 1336 09a8 0346     		mov	r3, r0
+ 1337 09aa 1846     		mov	r0, r3
+ 1338 09ac FFF7FEFF 		bl	asinf
+ 1339 09b0 0346     		mov	r3, r0
+ 1340 09b2 1846     		mov	r0, r3
+ 1341 09b4 FFF7FEFF 		bl	__aeabi_f2d
+ 1342 09b8 0246     		mov	r2, r0
+ 1343 09ba 0B46     		mov	r3, r1
+ 1344 09bc 1046     		mov	r0, r2
+ 1345 09be 1946     		mov	r1, r3
+ 1346 09c0 5DA3     		adr	r3, .L51
+ 1347 09c2 D3E90023 		ldrd	r2, [r3]
+ 1348 09c6 FFF7FEFF 		bl	__aeabi_dmul
+ 1349 09ca 0246     		mov	r2, r0
+ 1350 09cc 0B46     		mov	r3, r1
+ 1351 09ce 1046     		mov	r0, r2
+ 1352 09d0 1946     		mov	r1, r3
+ 1353 09d2 FFF7FEFF 		bl	__aeabi_d2iz
+ 1354 09d6 0346     		mov	r3, r0
+ 1355 09d8 9AB2     		uxth	r2, r3
+ 1356 09da 604B     		ldr	r3, .L51+36
+ 1357 09dc 5A80     		strh	r2, [r3, #2]	@ movhi
+ 281:../src/imu.c  **** #endif
+ 282:../src/imu.c  **** 
+ 283:../src/imu.c  **** #ifdef MAG
+ 284:../src/imu.c  ****     if (sensors(SENSOR_MAG)) {
+ 1358              		.loc 1 284 0
+ 1359 09de 4FF00400 		mov	r0, #4
+ 1360 09e2 FFF7FEFF 		bl	sensors
+ 1361 09e6 0346     		mov	r3, r0
+ 1362 09e8 002B     		cmp	r3, #0
+ 1363 09ea 00F00581 		beq	.L29
+ 1364              	.LBB3:
+ 285:../src/imu.c  **** #if INACCURATE
+ 286:../src/imu.c  ****         heading = _atan2f(EstG.V.X * EstM.V.Z - EstG.V.Z * EstM.V.X, EstG.V.Z * EstM.V.Y - EstG.V.Y
+ 287:../src/imu.c  ****         heading = heading + magneticDeclination;
+ 288:../src/imu.c  ****         heading = heading / 10;
+ 289:../src/imu.c  **** #else
+ 290:../src/imu.c  ****         float rollRAD = (float)angle[ROLL] * RADX10;
+ 1365              		.loc 1 290 0
+ 1366 09ee 5B4B     		ldr	r3, .L51+36
+ 1367 09f0 1B88     		ldrh	r3, [r3, #0]
+ 1368 09f2 1BB2     		sxth	r3, r3
+ 1369 09f4 1846     		mov	r0, r3
+ 1370 09f6 FFF7FEFF 		bl	__aeabi_i2f
+ 1371 09fa 0346     		mov	r3, r0
+ 1372 09fc 1846     		mov	r0, r3
+ 1373 09fe FFF7FEFF 		bl	__aeabi_f2d
+ 1374 0a02 0246     		mov	r2, r0
+ 1375 0a04 0B46     		mov	r3, r1
+ 1376 0a06 1046     		mov	r0, r2
+ 1377 0a08 1946     		mov	r1, r3
+ 1378 0a0a 4DA3     		adr	r3, .L51+8
+ 1379 0a0c D3E90023 		ldrd	r2, [r3]
+ 1380 0a10 FFF7FEFF 		bl	__aeabi_dmul
+ 1381 0a14 0246     		mov	r2, r0
+ 1382 0a16 0B46     		mov	r3, r1
+ 1383 0a18 1046     		mov	r0, r2
+ 1384 0a1a 1946     		mov	r1, r3
+ 1385 0a1c FFF7FEFF 		bl	__aeabi_d2f
+ 1386 0a20 0346     		mov	r3, r0
+ 1387 0a22 FB63     		str	r3, [r7, #60]	@ float
+ 291:../src/imu.c  ****         float pitchRAD = -(float)angle[PITCH] * RADX10;
+ 1388              		.loc 1 291 0
+ 1389 0a24 4D4B     		ldr	r3, .L51+36
+ 1390 0a26 5B88     		ldrh	r3, [r3, #2]
+ 1391 0a28 1BB2     		sxth	r3, r3
+ 1392 0a2a 1846     		mov	r0, r3
+ 1393 0a2c FFF7FEFF 		bl	__aeabi_i2f
+ 1394 0a30 0346     		mov	r3, r0
+ 1395 0a32 83F00043 		eor	r3, r3, #-2147483648
+ 1396 0a36 1846     		mov	r0, r3
+ 1397 0a38 FFF7FEFF 		bl	__aeabi_f2d
+ 1398 0a3c 0246     		mov	r2, r0
+ 1399 0a3e 0B46     		mov	r3, r1
+ 1400 0a40 1046     		mov	r0, r2
+ 1401 0a42 1946     		mov	r1, r3
+ 1402 0a44 3EA3     		adr	r3, .L51+8
+ 1403 0a46 D3E90023 		ldrd	r2, [r3]
+ 1404 0a4a FFF7FEFF 		bl	__aeabi_dmul
+ 1405 0a4e 0246     		mov	r2, r0
+ 1406 0a50 0B46     		mov	r3, r1
+ 1407 0a52 1046     		mov	r0, r2
+ 1408 0a54 1946     		mov	r1, r3
+ 1409 0a56 FFF7FEFF 		bl	__aeabi_d2f
+ 1410 0a5a 0346     		mov	r3, r0
+ 1411 0a5c BB63     		str	r3, [r7, #56]	@ float
+ 292:../src/imu.c  ****         float magX = EstM.A[1];                         // Swap X/Y
+ 1412              		.loc 1 292 0
+ 1413 0a5e 3C4B     		ldr	r3, .L51+24
+ 1414 0a60 5B68     		ldr	r3, [r3, #4]	@ float
+ 1415 0a62 7B63     		str	r3, [r7, #52]	@ float
+ 293:../src/imu.c  ****         float magY = EstM.A[0];                         // Swap X/Y
+ 1416              		.loc 1 293 0
+ 1417 0a64 3A4B     		ldr	r3, .L51+24
+ 1418 0a66 1B68     		ldr	r3, [r3, #0]	@ float
+ 1419 0a68 3B63     		str	r3, [r7, #48]	@ float
+ 294:../src/imu.c  ****         float magZ = EstM.A[2];
+ 1420              		.loc 1 294 0
+ 1421 0a6a 394B     		ldr	r3, .L51+24
+ 1422 0a6c 9B68     		ldr	r3, [r3, #8]	@ float
+ 1423 0a6e FB62     		str	r3, [r7, #44]	@ float
+ 295:../src/imu.c  ****         float cr = cosf(rollRAD);
+ 1424              		.loc 1 295 0
+ 1425 0a70 F86B     		ldr	r0, [r7, #60]	@ float
+ 1426 0a72 FFF7FEFF 		bl	cosf
+ 1427 0a76 B862     		str	r0, [r7, #40]	@ float
+ 296:../src/imu.c  ****         float sr = sinf(rollRAD);
+ 1428              		.loc 1 296 0
+ 1429 0a78 F86B     		ldr	r0, [r7, #60]	@ float
+ 1430 0a7a FFF7FEFF 		bl	sinf
+ 1431 0a7e 7862     		str	r0, [r7, #36]	@ float
+ 297:../src/imu.c  ****         float cp = cosf(pitchRAD);
+ 1432              		.loc 1 297 0
+ 1433 0a80 B86B     		ldr	r0, [r7, #56]	@ float
+ 1434 0a82 FFF7FEFF 		bl	cosf
+ 1435 0a86 3862     		str	r0, [r7, #32]	@ float
+ 298:../src/imu.c  ****         float sp = sinf(pitchRAD);
+ 1436              		.loc 1 298 0
+ 1437 0a88 B86B     		ldr	r0, [r7, #56]	@ float
+ 1438 0a8a FFF7FEFF 		bl	sinf
+ 1439 0a8e F861     		str	r0, [r7, #28]	@ float
+ 299:../src/imu.c  ****         float Xh = magX * cp + magY * sr * sp + magZ * cr * sp;
+ 1440              		.loc 1 299 0
+ 1441 0a90 786B     		ldr	r0, [r7, #52]	@ float
+ 1442 0a92 396A     		ldr	r1, [r7, #32]	@ float
+ 1443 0a94 FFF7FEFF 		bl	__aeabi_fmul
+ 1444 0a98 0346     		mov	r3, r0
+ 1445 0a9a 1C46     		mov	r4, r3
+ 1446 0a9c 386B     		ldr	r0, [r7, #48]	@ float
+ 1447 0a9e 796A     		ldr	r1, [r7, #36]	@ float
+ 1448 0aa0 FFF7FEFF 		bl	__aeabi_fmul
+ 1449 0aa4 0346     		mov	r3, r0
+ 1450 0aa6 1846     		mov	r0, r3
+ 1451 0aa8 F969     		ldr	r1, [r7, #28]	@ float
+ 1452 0aaa FFF7FEFF 		bl	__aeabi_fmul
+ 1453 0aae 0346     		mov	r3, r0
+ 1454 0ab0 2046     		mov	r0, r4
+ 1455 0ab2 1946     		mov	r1, r3
+ 1456 0ab4 FFF7FEFF 		bl	__aeabi_fadd
+ 1457 0ab8 0346     		mov	r3, r0
+ 1458 0aba 1C46     		mov	r4, r3
+ 1459 0abc F86A     		ldr	r0, [r7, #44]	@ float
+ 1460 0abe B96A     		ldr	r1, [r7, #40]	@ float
+ 1461 0ac0 FFF7FEFF 		bl	__aeabi_fmul
+ 1462 0ac4 0346     		mov	r3, r0
+ 1463 0ac6 1846     		mov	r0, r3
+ 1464 0ac8 F969     		ldr	r1, [r7, #28]	@ float
+ 1465 0aca FFF7FEFF 		bl	__aeabi_fmul
+ 1466 0ace 0346     		mov	r3, r0
+ 1467 0ad0 2046     		mov	r0, r4
+ 1468 0ad2 1946     		mov	r1, r3
+ 1469 0ad4 FFF7FEFF 		bl	__aeabi_fadd
+ 1470 0ad8 0346     		mov	r3, r0
+ 1471 0ada BB61     		str	r3, [r7, #24]	@ float
+ 300:../src/imu.c  ****         float Yh = magY * cr - magZ * sr;
+ 1472              		.loc 1 300 0
+ 1473 0adc 386B     		ldr	r0, [r7, #48]	@ float
+ 1474 0ade B96A     		ldr	r1, [r7, #40]	@ float
+ 1475 0ae0 FFF7FEFF 		bl	__aeabi_fmul
+ 1476 0ae4 0346     		mov	r3, r0
+ 1477 0ae6 1C46     		mov	r4, r3
+ 1478 0ae8 F86A     		ldr	r0, [r7, #44]	@ float
+ 1479 0aea 796A     		ldr	r1, [r7, #36]	@ float
+ 1480 0aec FFF7FEFF 		bl	__aeabi_fmul
+ 1481 0af0 0346     		mov	r3, r0
+ 1482 0af2 2046     		mov	r0, r4
+ 1483 0af4 1946     		mov	r1, r3
+ 1484 0af6 FFF7FEFF 		bl	__aeabi_fsub
+ 1485 0afa 0346     		mov	r3, r0
+ 1486 0afc 7B61     		str	r3, [r7, #20]	@ float
+ 301:../src/imu.c  ****         float hd = (atan2f(-Yh, Xh) * 1800.0f / M_PI + magneticDeclination) / 10.0f;
+ 1487              		.loc 1 301 0
+ 1488 0afe 7B69     		ldr	r3, [r7, #20]
+ 1489 0b00 83F00043 		eor	r3, r3, #-2147483648
+ 1490 0b04 1846     		mov	r0, r3
+ 1491 0b06 B969     		ldr	r1, [r7, #24]	@ float
+ 1492 0b08 FFF7FEFF 		bl	atan2f
+ 1493 0b0c 0346     		mov	r3, r0
+ 1494 0b0e 1846     		mov	r0, r3
+ 1495 0b10 1549     		ldr	r1, .L51+48	@ float
+ 1496 0b12 FFF7FEFF 		bl	__aeabi_fmul
+ 1497 0b16 0346     		mov	r3, r0
+ 1498 0b18 1846     		mov	r0, r3
+ 1499 0b1a FFF7FEFF 		bl	__aeabi_f2d
+ 1500 0b1e 0246     		mov	r2, r0
+ 1501 0b20 0B46     		mov	r3, r1
+ 1502 0b22 1046     		mov	r0, r2
+ 1503 0b24 1946     		mov	r1, r3
+ 1504 0b26 08A3     		adr	r3, .L51+16
+ 1505 0b28 D3E90023 		ldrd	r2, [r3]
+ 1506 0b2c FFF7FEFF 		bl	__aeabi_ddiv
+ 1507 0b30 0246     		mov	r2, r0
+ 1508 0b32 0B46     		mov	r3, r1
+ 1509 0b34 1AE0     		b	.L52
+ 1510              	.L53:
+ 1511 0b36 00BF     		.align	3
+ 1512              	.L51:
+ 1513 0b38 3B597E90 		.word	-1870767813
+ 1514 0b3c A9E78140 		.word	1082255273
+ 1515 0b40 F561B703 		.word	62349813
+ 1516 0b44 71985C3F 		.word	1063032945
+ 1517 0b48 182D4454 		.word	1413754136
+ 1518 0b4c FB210940 		.word	1074340347
+ 1519 0b50 58000000 		.word	EstM.9112
+ 1520 0b54 00000000 		.word	magADC
+ 1521 0b58 00000000 		.word	EstG
+ 1522 0b5c 00000000 		.word	angle
+ 1523 0b60 00004843 		.word	1128792064
+ 1524 0b64 5E06A33B 		.word	1000539742
+ 1525 0b68 0000E144 		.word	1155596288
+ 1526              	.L52:
+ 1527 0b6c 1446     		mov	r4, r2
+ 1528 0b6e 1D46     		mov	r5, r3
+ 1529 0b70 234B     		ldr	r3, .L54
+ 1530 0b72 1B68     		ldr	r3, [r3, #0]	@ float
+ 1531 0b74 1846     		mov	r0, r3
+ 1532 0b76 FFF7FEFF 		bl	__aeabi_f2d
+ 1533 0b7a 0246     		mov	r2, r0
+ 1534 0b7c 0B46     		mov	r3, r1
+ 1535 0b7e 2046     		mov	r0, r4
+ 1536 0b80 2946     		mov	r1, r5
+ 1537 0b82 FFF7FEFF 		bl	__aeabi_dadd
+ 1538 0b86 0246     		mov	r2, r0
+ 1539 0b88 0B46     		mov	r3, r1
+ 1540 0b8a 1046     		mov	r0, r2
+ 1541 0b8c 1946     		mov	r1, r3
+ 1542 0b8e 4FF00002 		mov	r2, #0
+ 1543 0b92 4FF08043 		mov	r3, #1073741824
+ 1544 0b96 03F51013 		add	r3, r3, #2359296
+ 1545 0b9a FFF7FEFF 		bl	__aeabi_ddiv
+ 1546 0b9e 0246     		mov	r2, r0
+ 1547 0ba0 0B46     		mov	r3, r1
+ 1548 0ba2 1046     		mov	r0, r2
+ 1549 0ba4 1946     		mov	r1, r3
+ 1550 0ba6 FFF7FEFF 		bl	__aeabi_d2f
+ 1551 0baa 0346     		mov	r3, r0
+ 1552 0bac 3B61     		str	r3, [r7, #16]	@ float
+ 302:../src/imu.c  ****         heading = hd;
+ 1553              		.loc 1 302 0
+ 1554 0bae 3869     		ldr	r0, [r7, #16]	@ float
+ 1555 0bb0 FFF7FEFF 		bl	__aeabi_f2iz
+ 1556 0bb4 0346     		mov	r3, r0
+ 1557 0bb6 9AB2     		uxth	r2, r3
+ 1558 0bb8 124B     		ldr	r3, .L54+4
+ 1559 0bba 1A80     		strh	r2, [r3, #0]	@ movhi
+ 303:../src/imu.c  **** #endif
+ 304:../src/imu.c  ****         if (heading > 180)
+ 1560              		.loc 1 304 0
+ 1561 0bbc 114B     		ldr	r3, .L54+4
+ 1562 0bbe 1B88     		ldrh	r3, [r3, #0]
+ 1563 0bc0 1BB2     		sxth	r3, r3
+ 1564 0bc2 B42B     		cmp	r3, #180
+ 1565 0bc4 09DD     		ble	.L46
+ 305:../src/imu.c  ****             heading = heading - 360;
+ 1566              		.loc 1 305 0
+ 1567 0bc6 0F4B     		ldr	r3, .L54+4
+ 1568 0bc8 1B88     		ldrh	r3, [r3, #0]
+ 1569 0bca 9BB2     		uxth	r3, r3
+ 1570 0bcc A3F5B473 		sub	r3, r3, #360
+ 1571 0bd0 9BB2     		uxth	r3, r3
+ 1572 0bd2 9AB2     		uxth	r2, r3
+ 1573 0bd4 0B4B     		ldr	r3, .L54+4
+ 1574 0bd6 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1575 0bd8 0EE0     		b	.L29
+ 1576              	.L46:
+ 306:../src/imu.c  ****         else if (heading < -180)
+ 1577              		.loc 1 306 0
+ 1578 0bda 0A4B     		ldr	r3, .L54+4
+ 1579 0bdc 1B88     		ldrh	r3, [r3, #0]
+ 1580 0bde 1BB2     		sxth	r3, r3
+ 1581 0be0 13F1B40F 		cmn	r3, #180
+ 1582 0be4 08DA     		bge	.L29
+ 307:../src/imu.c  ****             heading = heading + 360;
+ 1583              		.loc 1 307 0
+ 1584 0be6 074B     		ldr	r3, .L54+4
+ 1585 0be8 1B88     		ldrh	r3, [r3, #0]
+ 1586 0bea 9BB2     		uxth	r3, r3
+ 1587 0bec 03F5B473 		add	r3, r3, #360
+ 1588 0bf0 9BB2     		uxth	r3, r3
+ 1589 0bf2 9AB2     		uxth	r2, r3
+ 1590 0bf4 034B     		ldr	r3, .L54+4
+ 1591 0bf6 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1592              	.L29:
+ 1593              	.LBE3:
+ 308:../src/imu.c  ****     }
+ 309:../src/imu.c  **** #endif
+ 310:../src/imu.c  **** }
+ 1594              		.loc 1 310 0
+ 1595 0bf8 07F15007 		add	r7, r7, #80
+ 1596 0bfc BD46     		mov	sp, r7
+ 1597 0bfe B0BD     		pop	{r4, r5, r7, pc}
+ 1598              	.L55:
+ 1599              		.align	2
+ 1600              	.L54:
+ 1601 0c00 00000000 		.word	magneticDeclination
+ 1602 0c04 00000000 		.word	heading
+ 1603              		.cfi_endproc
+ 1604              	.LFE33:
+ 1606              		.align	2
+ 1607              		.global	applyDeadband16
+ 1608              		.thumb
+ 1609              		.thumb_func
+ 1611              	applyDeadband16:
+ 1612              	.LFB34:
+ 311:../src/imu.c  **** 
+ 312:../src/imu.c  **** #ifdef BARO
+ 313:../src/imu.c  **** #define UPDATE_INTERVAL 25000   // 40hz update rate (20hz LPF on acc)
+ 314:../src/imu.c  **** #define INIT_DELAY      4000000 // 4 sec initialization delay
+ 315:../src/imu.c  **** 
+ 316:../src/imu.c  **** int16_t applyDeadband16(int16_t value, int16_t deadband)
+ 317:../src/imu.c  **** {
+ 1613              		.loc 1 317 0
+ 1614              		.cfi_startproc
+ 1615              		@ args = 0, pretend = 0, frame = 8
+ 1616              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1617              		@ link register save eliminated.
+ 1618 0c08 80B4     		push	{r7}
+ 1619              	.LCFI14:
+ 1620              		.cfi_def_cfa_offset 4
+ 1621              		.cfi_offset 7, -4
+ 1622 0c0a 83B0     		sub	sp, sp, #12
+ 1623              	.LCFI15:
+ 1624              		.cfi_def_cfa_offset 16
+ 1625 0c0c 00AF     		add	r7, sp, #0
+ 1626              	.LCFI16:
+ 1627              		.cfi_def_cfa_register 7
+ 1628 0c0e 0246     		mov	r2, r0
+ 1629 0c10 0B46     		mov	r3, r1
+ 1630 0c12 FA80     		strh	r2, [r7, #6]	@ movhi
+ 1631 0c14 BB80     		strh	r3, [r7, #4]	@ movhi
+ 318:../src/imu.c  ****     if (abs(value) < deadband) {
+ 1632              		.loc 1 318 0
+ 1633 0c16 B7F90630 		ldrsh	r3, [r7, #6]
+ 1634 0c1a 83EAE372 		eor	r2, r3, r3, asr #31
+ 1635 0c1e A2EBE372 		sub	r2, r2, r3, asr #31
+ 1636 0c22 B7F90430 		ldrsh	r3, [r7, #4]
+ 1637 0c26 9A42     		cmp	r2, r3
+ 1638 0c28 03DA     		bge	.L57
+ 319:../src/imu.c  ****         value = 0;
+ 1639              		.loc 1 319 0
+ 1640 0c2a 4FF00003 		mov	r3, #0
+ 1641 0c2e FB80     		strh	r3, [r7, #6]	@ movhi
+ 1642 0c30 12E0     		b	.L58
+ 1643              	.L57:
+ 320:../src/imu.c  ****     } else if (value > 0) {
+ 1644              		.loc 1 320 0
+ 1645 0c32 B7F90630 		ldrsh	r3, [r7, #6]
+ 1646 0c36 002B     		cmp	r3, #0
+ 1647 0c38 05DD     		ble	.L59
+ 321:../src/imu.c  ****         value -= deadband;
+ 1648              		.loc 1 321 0
+ 1649 0c3a FA88     		ldrh	r2, [r7, #6]
+ 1650 0c3c BB88     		ldrh	r3, [r7, #4]
+ 1651 0c3e D31A     		subs	r3, r2, r3
+ 1652 0c40 9BB2     		uxth	r3, r3
+ 1653 0c42 FB80     		strh	r3, [r7, #6]	@ movhi
+ 1654 0c44 08E0     		b	.L58
+ 1655              	.L59:
+ 322:../src/imu.c  ****     } else if (value < 0) {
+ 1656              		.loc 1 322 0
+ 1657 0c46 B7F90630 		ldrsh	r3, [r7, #6]
+ 1658 0c4a 002B     		cmp	r3, #0
+ 1659 0c4c 04DA     		bge	.L58
+ 323:../src/imu.c  ****         value += deadband;
+ 1660              		.loc 1 323 0
+ 1661 0c4e FA88     		ldrh	r2, [r7, #6]
+ 1662 0c50 BB88     		ldrh	r3, [r7, #4]
+ 1663 0c52 D318     		adds	r3, r2, r3
+ 1664 0c54 9BB2     		uxth	r3, r3
+ 1665 0c56 FB80     		strh	r3, [r7, #6]	@ movhi
+ 1666              	.L58:
+ 324:../src/imu.c  ****     }
+ 325:../src/imu.c  ****     return value;
+ 1667              		.loc 1 325 0
+ 1668 0c58 FB88     		ldrh	r3, [r7, #6]
+ 1669 0c5a 1BB2     		sxth	r3, r3
+ 326:../src/imu.c  **** }
+ 1670              		.loc 1 326 0
+ 1671 0c5c 1846     		mov	r0, r3
+ 1672 0c5e 07F10C07 		add	r7, r7, #12
+ 1673 0c62 BD46     		mov	sp, r7
+ 1674 0c64 80BC     		pop	{r7}
+ 1675 0c66 7047     		bx	lr
+ 1676              		.cfi_endproc
+ 1677              	.LFE34:
+ 1679              		.global	__aeabi_fcmpgt
+ 1680              		.global	__aeabi_fcmplt
+ 1681              		.align	2
+ 1682              		.global	applyDeadbandFloat
+ 1683              		.thumb
+ 1684              		.thumb_func
+ 1686              	applyDeadbandFloat:
+ 1687              	.LFB35:
+ 327:../src/imu.c  **** 
+ 328:../src/imu.c  **** float applyDeadbandFloat(float value, int16_t deadband)
+ 329:../src/imu.c  **** {
+ 1688              		.loc 1 329 0
+ 1689              		.cfi_startproc
+ 1690              		@ args = 0, pretend = 0, frame = 8
+ 1691              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1692 0c68 90B5     		push	{r4, r7, lr}
+ 1693              	.LCFI17:
+ 1694              		.cfi_def_cfa_offset 12
+ 1695              		.cfi_offset 4, -12
+ 1696              		.cfi_offset 7, -8
+ 1697              		.cfi_offset 14, -4
+ 1698 0c6a 83B0     		sub	sp, sp, #12
+ 1699              	.LCFI18:
+ 1700              		.cfi_def_cfa_offset 24
+ 1701 0c6c 00AF     		add	r7, sp, #0
+ 1702              	.LCFI19:
+ 1703              		.cfi_def_cfa_register 7
+ 1704 0c6e 7860     		str	r0, [r7, #4]	@ float
+ 1705 0c70 0B46     		mov	r3, r1
+ 1706 0c72 7B80     		strh	r3, [r7, #2]	@ movhi
+ 330:../src/imu.c  ****     if (abs(value) < deadband) {
+ 1707              		.loc 1 330 0
+ 1708 0c74 7868     		ldr	r0, [r7, #4]	@ float
+ 1709 0c76 2449     		ldr	r1, .L79	@ float
+ 1710 0c78 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 1711 0c7c 0346     		mov	r3, r0
+ 1712 0c7e 002B     		cmp	r3, #0
+ 1713 0c80 01D0     		beq	.L76
+ 1714              	.L72:
+ 1715              		.loc 1 330 0 is_stmt 0 discriminator 1
+ 1716 0c82 7C68     		ldr	r4, [r7, #4]	@ float
+ 1717 0c84 02E0     		b	.L64
+ 1718              	.L76:
+ 1719              		.loc 1 330 0 discriminator 2
+ 1720 0c86 7B68     		ldr	r3, [r7, #4]
+ 1721 0c88 83F00044 		eor	r4, r3, #-2147483648
+ 1722              	.L64:
+ 1723              		.loc 1 330 0 discriminator 3
+ 1724 0c8c B7F90230 		ldrsh	r3, [r7, #2]
+ 1725 0c90 1846     		mov	r0, r3
+ 1726 0c92 FFF7FEFF 		bl	__aeabi_i2f
+ 1727 0c96 0346     		mov	r3, r0
+ 1728 0c98 2046     		mov	r0, r4
+ 1729 0c9a 1946     		mov	r1, r3
+ 1730 0c9c FFF7FEFF 		bl	__aeabi_fcmplt
+ 1731 0ca0 0346     		mov	r3, r0
+ 1732 0ca2 002B     		cmp	r3, #0
+ 1733 0ca4 02D0     		beq	.L77
+ 1734              	.L73:
+ 331:../src/imu.c  ****         value = 0;
+ 1735              		.loc 1 331 0 is_stmt 1
+ 1736 0ca6 184B     		ldr	r3, .L79	@ float
+ 1737 0ca8 7B60     		str	r3, [r7, #4]	@ float
+ 1738 0caa 26E0     		b	.L67
+ 1739              	.L77:
+ 332:../src/imu.c  ****     } else if (value > 0) {
+ 1740              		.loc 1 332 0
+ 1741 0cac 7868     		ldr	r0, [r7, #4]	@ float
+ 1742 0cae 1649     		ldr	r1, .L79	@ float
+ 1743 0cb0 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 1744 0cb4 0346     		mov	r3, r0
+ 1745 0cb6 002B     		cmp	r3, #0
+ 1746 0cb8 0CD0     		beq	.L78
+ 1747              	.L74:
+ 333:../src/imu.c  ****         value -= deadband;
+ 1748              		.loc 1 333 0
+ 1749 0cba B7F90230 		ldrsh	r3, [r7, #2]
+ 1750 0cbe 1846     		mov	r0, r3
+ 1751 0cc0 FFF7FEFF 		bl	__aeabi_i2f
+ 1752 0cc4 0346     		mov	r3, r0
+ 1753 0cc6 7868     		ldr	r0, [r7, #4]	@ float
+ 1754 0cc8 1946     		mov	r1, r3
+ 1755 0cca FFF7FEFF 		bl	__aeabi_fsub
+ 1756 0cce 0346     		mov	r3, r0
+ 1757 0cd0 7B60     		str	r3, [r7, #4]	@ float
+ 1758 0cd2 12E0     		b	.L67
+ 1759              	.L78:
+ 334:../src/imu.c  ****     } else if (value < 0) {
+ 1760              		.loc 1 334 0
+ 1761 0cd4 7868     		ldr	r0, [r7, #4]	@ float
+ 1762 0cd6 0C49     		ldr	r1, .L79	@ float
+ 1763 0cd8 FFF7FEFF 		bl	__aeabi_fcmplt
+ 1764 0cdc 0346     		mov	r3, r0
+ 1765 0cde 002B     		cmp	r3, #0
+ 1766 0ce0 0BD0     		beq	.L67
+ 1767              	.L75:
+ 335:../src/imu.c  ****         value += deadband;
+ 1768              		.loc 1 335 0
+ 1769 0ce2 B7F90230 		ldrsh	r3, [r7, #2]
+ 1770 0ce6 1846     		mov	r0, r3
+ 1771 0ce8 FFF7FEFF 		bl	__aeabi_i2f
+ 1772 0cec 0346     		mov	r3, r0
+ 1773 0cee 7868     		ldr	r0, [r7, #4]	@ float
+ 1774 0cf0 1946     		mov	r1, r3
+ 1775 0cf2 FFF7FEFF 		bl	__aeabi_fadd
+ 1776 0cf6 0346     		mov	r3, r0
+ 1777 0cf8 7B60     		str	r3, [r7, #4]	@ float
+ 1778              	.L67:
+ 336:../src/imu.c  ****     }
+ 337:../src/imu.c  ****     return value;
+ 1779              		.loc 1 337 0
+ 1780 0cfa 7B68     		ldr	r3, [r7, #4]	@ float
+ 338:../src/imu.c  **** }
+ 1781              		.loc 1 338 0
+ 1782 0cfc 1846     		mov	r0, r3
+ 1783 0cfe 07F10C07 		add	r7, r7, #12
+ 1784 0d02 BD46     		mov	sp, r7
+ 1785 0d04 90BD     		pop	{r4, r7, pc}
+ 1786              	.L80:
+ 1787 0d06 00BF     		.align	2
+ 1788              	.L79:
+ 1789 0d08 00000000 		.word	0
+ 1790              		.cfi_endproc
+ 1791              	.LFE35:
+ 1793              		.align	2
+ 1794              		.global	InvSqrt
+ 1795              		.thumb
+ 1796              		.thumb_func
+ 1798              	InvSqrt:
+ 1799              	.LFB36:
+ 339:../src/imu.c  **** 
+ 340:../src/imu.c  **** float InvSqrt(float x)
+ 341:../src/imu.c  **** {
+ 1800              		.loc 1 341 0
+ 1801              		.cfi_startproc
+ 1802              		@ args = 0, pretend = 0, frame = 16
+ 1803              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1804 0d0c 90B5     		push	{r4, r7, lr}
+ 1805              	.LCFI20:
+ 1806              		.cfi_def_cfa_offset 12
+ 1807              		.cfi_offset 4, -12
+ 1808              		.cfi_offset 7, -8
+ 1809              		.cfi_offset 14, -4
+ 1810 0d0e 85B0     		sub	sp, sp, #20
+ 1811              	.LCFI21:
+ 1812              		.cfi_def_cfa_offset 32
+ 1813 0d10 00AF     		add	r7, sp, #0
+ 1814              	.LCFI22:
+ 1815              		.cfi_def_cfa_register 7
+ 1816 0d12 7860     		str	r0, [r7, #4]	@ float
+ 342:../src/imu.c  ****     union {
+ 343:../src/imu.c  ****         int32_t i;
+ 344:../src/imu.c  ****         float f;
+ 345:../src/imu.c  ****     } conv;
+ 346:../src/imu.c  ****     conv.f = x;
+ 1817              		.loc 1 346 0
+ 1818 0d14 7B68     		ldr	r3, [r7, #4]	@ float
+ 1819 0d16 FB60     		str	r3, [r7, #12]	@ float
+ 347:../src/imu.c  ****     conv.i = 0x5f3759df - (conv.i >> 1);
+ 1820              		.loc 1 347 0
+ 1821 0d18 FB68     		ldr	r3, [r7, #12]
+ 1822 0d1a 4FEA6302 		asr	r2, r3, #1
+ 1823 0d1e 134B     		ldr	r3, .L83
+ 1824 0d20 9B1A     		subs	r3, r3, r2
+ 1825 0d22 FB60     		str	r3, [r7, #12]
+ 348:../src/imu.c  ****     return 0.5f * conv.f * (3.0f - x * conv.f * conv.f);
+ 1826              		.loc 1 348 0
+ 1827 0d24 FB68     		ldr	r3, [r7, #12]	@ float
+ 1828 0d26 1846     		mov	r0, r3
+ 1829 0d28 1149     		ldr	r1, .L83+4	@ float
+ 1830 0d2a FFF7FEFF 		bl	__aeabi_fmul
+ 1831 0d2e 0346     		mov	r3, r0
+ 1832 0d30 1C46     		mov	r4, r3
+ 1833 0d32 FB68     		ldr	r3, [r7, #12]	@ float
+ 1834 0d34 1846     		mov	r0, r3
+ 1835 0d36 7968     		ldr	r1, [r7, #4]	@ float
+ 1836 0d38 FFF7FEFF 		bl	__aeabi_fmul
+ 1837 0d3c 0346     		mov	r3, r0
+ 1838 0d3e 1A46     		mov	r2, r3
+ 1839 0d40 FB68     		ldr	r3, [r7, #12]	@ float
+ 1840 0d42 1046     		mov	r0, r2
+ 1841 0d44 1946     		mov	r1, r3
+ 1842 0d46 FFF7FEFF 		bl	__aeabi_fmul
+ 1843 0d4a 0346     		mov	r3, r0
+ 1844 0d4c 0948     		ldr	r0, .L83+8	@ float
+ 1845 0d4e 1946     		mov	r1, r3
+ 1846 0d50 FFF7FEFF 		bl	__aeabi_fsub
+ 1847 0d54 0346     		mov	r3, r0
+ 1848 0d56 2046     		mov	r0, r4
+ 1849 0d58 1946     		mov	r1, r3
+ 1850 0d5a FFF7FEFF 		bl	__aeabi_fmul
+ 1851 0d5e 0346     		mov	r3, r0
+ 349:../src/imu.c  **** }
+ 1852              		.loc 1 349 0
+ 1853 0d60 1846     		mov	r0, r3
+ 1854 0d62 07F11407 		add	r7, r7, #20
+ 1855 0d66 BD46     		mov	sp, r7
+ 1856 0d68 90BD     		pop	{r4, r7, pc}
+ 1857              	.L84:
+ 1858 0d6a 00BF     		.align	2
+ 1859              	.L83:
+ 1860 0d6c DF59375F 		.word	1597463007
+ 1861 0d70 0000003F 		.word	1056964608
+ 1862 0d74 00004040 		.word	1077936128
+ 1863              		.cfi_endproc
+ 1864              	.LFE36:
+ 1866              		.align	2
+ 1867              		.global	isq
+ 1868              		.thumb
+ 1869              		.thumb_func
+ 1871              	isq:
+ 1872              	.LFB37:
+ 350:../src/imu.c  **** 
+ 351:../src/imu.c  **** int32_t isq(int32_t x)
+ 352:../src/imu.c  **** {
+ 1873              		.loc 1 352 0
+ 1874              		.cfi_startproc
+ 1875              		@ args = 0, pretend = 0, frame = 8
+ 1876              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1877              		@ link register save eliminated.
+ 1878 0d78 80B4     		push	{r7}
+ 1879              	.LCFI23:
+ 1880              		.cfi_def_cfa_offset 4
+ 1881              		.cfi_offset 7, -4
+ 1882 0d7a 83B0     		sub	sp, sp, #12
+ 1883              	.LCFI24:
+ 1884              		.cfi_def_cfa_offset 16
+ 1885 0d7c 00AF     		add	r7, sp, #0
+ 1886              	.LCFI25:
+ 1887              		.cfi_def_cfa_register 7
+ 1888 0d7e 7860     		str	r0, [r7, #4]
+ 353:../src/imu.c  ****     return x * x;
+ 1889              		.loc 1 353 0
+ 1890 0d80 7B68     		ldr	r3, [r7, #4]
+ 1891 0d82 7A68     		ldr	r2, [r7, #4]
+ 1892 0d84 02FB03F3 		mul	r3, r2, r3
+ 354:../src/imu.c  **** }
+ 1893              		.loc 1 354 0
+ 1894 0d88 1846     		mov	r0, r3
+ 1895 0d8a 07F10C07 		add	r7, r7, #12
+ 1896 0d8e BD46     		mov	sp, r7
+ 1897 0d90 80BC     		pop	{r7}
+ 1898 0d92 7047     		bx	lr
+ 1899              		.cfi_endproc
+ 1900              	.LFE37:
+ 1902              		.global	__aeabi_i2d
+ 1903              		.align	2
+ 1904              		.global	getEstimatedAltitude
+ 1905              		.thumb
+ 1906              		.thumb_func
+ 1908              	getEstimatedAltitude:
+ 1909              	.LFB38:
+ 355:../src/imu.c  **** 
+ 356:../src/imu.c  **** #define applyDeadband(value, deadband)  \
+ 357:../src/imu.c  ****   if(abs(value) < deadband) {           \
+ 358:../src/imu.c  ****     value = 0;                          \
+ 359:../src/imu.c  ****   } else if(value > 0){                 \
+ 360:../src/imu.c  ****     value -= deadband;                  \
+ 361:../src/imu.c  ****   } else if(value < 0){                 \
+ 362:../src/imu.c  ****     value += deadband;                  \
+ 363:../src/imu.c  ****   }
+ 364:../src/imu.c  **** 
+ 365:../src/imu.c  **** int getEstimatedAltitude(void)
+ 366:../src/imu.c  **** {
+ 1910              		.loc 1 366 0
+ 1911              		.cfi_startproc
+ 1912              		@ args = 0, pretend = 0, frame = 16
+ 1913              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1914 0d94 B0B5     		push	{r4, r5, r7, lr}
+ 1915              	.LCFI26:
+ 1916              		.cfi_def_cfa_offset 16
+ 1917              		.cfi_offset 4, -16
+ 1918              		.cfi_offset 5, -12
+ 1919              		.cfi_offset 7, -8
+ 1920              		.cfi_offset 14, -4
+ 1921 0d96 84B0     		sub	sp, sp, #16
+ 1922              	.LCFI27:
+ 1923              		.cfi_def_cfa_offset 32
+ 1924 0d98 00AF     		add	r7, sp, #0
+ 1925              	.LCFI28:
+ 1926              		.cfi_def_cfa_register 7
+ 367:../src/imu.c  ****     static int32_t baroGroundPressure;
+ 368:../src/imu.c  ****     static uint16_t previousT;
+ 369:../src/imu.c  ****     uint16_t currentT = micros();
+ 1927              		.loc 1 369 0
+ 1928 0d9a FFF7FEFF 		bl	micros
+ 1929 0d9e 0346     		mov	r3, r0
+ 1930 0da0 FB80     		strh	r3, [r7, #6]	@ movhi
+ 370:../src/imu.c  ****     uint16_t dTime;
+ 371:../src/imu.c  ****     float invG;
+ 372:../src/imu.c  ****     int16_t error16;
+ 373:../src/imu.c  ****     int16_t baroVel;
+ 374:../src/imu.c  ****     int16_t accZ;
+ 375:../src/imu.c  ****     static int16_t accZoffset = 0;      // = acc_1G*6; //58 bytes saved and convergence is fast eno
+ 376:../src/imu.c  ****     static float vel = 0.0f;
+ 377:../src/imu.c  ****     static int32_t lastBaroAlt;
+ 378:../src/imu.c  ****     int16_t vel_tmp;
+ 379:../src/imu.c  **** 
+ 380:../src/imu.c  ****     dTime = currentT - previousT;
+ 1931              		.loc 1 380 0
+ 1932 0da2 794B     		ldr	r3, .L114+8
+ 1933 0da4 1B88     		ldrh	r3, [r3, #0]
+ 1934 0da6 FA88     		ldrh	r2, [r7, #6]	@ movhi
+ 1935 0da8 D31A     		subs	r3, r2, r3
+ 1936 0daa BB80     		strh	r3, [r7, #4]	@ movhi
+ 381:../src/imu.c  ****     if (dTime < UPDATE_INTERVAL)
+ 1937              		.loc 1 381 0
+ 1938 0dac BA88     		ldrh	r2, [r7, #4]
+ 1939 0dae 46F2A713 		movw	r3, #24999
+ 1940 0db2 9A42     		cmp	r2, r3
+ 1941 0db4 02D8     		bhi	.L88
+ 382:../src/imu.c  ****         return 0;
+ 1942              		.loc 1 382 0
+ 1943 0db6 4FF00003 		mov	r3, #0
+ 1944 0dba BDE2     		b	.L89
+ 1945              	.L88:
+ 383:../src/imu.c  ****     previousT = currentT;
+ 1946              		.loc 1 383 0
+ 1947 0dbc 724B     		ldr	r3, .L114+8
+ 1948 0dbe FA88     		ldrh	r2, [r7, #6]	@ movhi
+ 1949 0dc0 1A80     		strh	r2, [r3, #0]	@ movhi
+ 384:../src/imu.c  **** 
+ 385:../src/imu.c  ****     if (calibratingB > 0) {
+ 1950              		.loc 1 385 0
+ 1951 0dc2 724B     		ldr	r3, .L114+12
+ 1952 0dc4 1B88     		ldrh	r3, [r3, #0]
+ 1953 0dc6 002B     		cmp	r3, #0
+ 1954 0dc8 11D0     		beq	.L90
+ 386:../src/imu.c  ****         baroGroundPressure = baroPressureSum / (cfg.baro_tab_size - 1);
+ 1955              		.loc 1 386 0
+ 1956 0dca 714B     		ldr	r3, .L114+16
+ 1957 0dcc 1A68     		ldr	r2, [r3, #0]
+ 1958 0dce 714B     		ldr	r3, .L114+20
+ 1959 0dd0 93F82F30 		ldrb	r3, [r3, #47]	@ zero_extendqisi2
+ 1960 0dd4 03F1FF33 		add	r3, r3, #-1
+ 1961 0dd8 92FBF3F2 		sdiv	r2, r2, r3
+ 1962 0ddc 6E4B     		ldr	r3, .L114+24
+ 1963 0dde 1A60     		str	r2, [r3, #0]
+ 387:../src/imu.c  ****         calibratingB--;
+ 1964              		.loc 1 387 0
+ 1965 0de0 6A4B     		ldr	r3, .L114+12
+ 1966 0de2 1B88     		ldrh	r3, [r3, #0]
+ 1967 0de4 03F1FF33 		add	r3, r3, #-1
+ 1968 0de8 9AB2     		uxth	r2, r3
+ 1969 0dea 684B     		ldr	r3, .L114+12
+ 1970 0dec 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1971              	.L90:
+ 388:../src/imu.c  ****     }
+ 389:../src/imu.c  **** 
+ 390:../src/imu.c  ****     // pressure relative to ground pressure with temperature compensation (fast!)
+ 391:../src/imu.c  ****     // baroGroundPressure is not supposed to be 0 here
+ 392:../src/imu.c  ****     // see: https://code.google.com/p/ardupilot-mega/source/browse/libraries/AP_Baro/AP_Baro.cpp
+ 393:../src/imu.c  ****     BaroAlt = log(baroGroundPressure * (cfg.baro_tab_size - 1) / (float)baroPressureSum) * (baroTem
+ 1972              		.loc 1 393 0
+ 1973 0dee 694B     		ldr	r3, .L114+20
+ 1974 0df0 93F82F30 		ldrb	r3, [r3, #47]	@ zero_extendqisi2
+ 1975 0df4 03F1FF33 		add	r3, r3, #-1
+ 1976 0df8 674A     		ldr	r2, .L114+24
+ 1977 0dfa 1268     		ldr	r2, [r2, #0]
+ 1978 0dfc 02FB03F3 		mul	r3, r2, r3
+ 1979 0e00 1846     		mov	r0, r3
+ 1980 0e02 FFF7FEFF 		bl	__aeabi_i2f
+ 1981 0e06 0446     		mov	r4, r0
+ 1982 0e08 614B     		ldr	r3, .L114+16
+ 1983 0e0a 1B68     		ldr	r3, [r3, #0]
+ 1984 0e0c 1846     		mov	r0, r3
+ 1985 0e0e FFF7FEFF 		bl	__aeabi_i2f
+ 1986 0e12 0346     		mov	r3, r0
+ 1987 0e14 2046     		mov	r0, r4
+ 1988 0e16 1946     		mov	r1, r3
+ 1989 0e18 FFF7FEFF 		bl	__aeabi_fdiv
+ 1990 0e1c 0346     		mov	r3, r0
+ 1991 0e1e 1846     		mov	r0, r3
+ 1992 0e20 FFF7FEFF 		bl	__aeabi_f2d
+ 1993 0e24 0246     		mov	r2, r0
+ 1994 0e26 0B46     		mov	r3, r1
+ 1995 0e28 1046     		mov	r0, r2
+ 1996 0e2a 1946     		mov	r1, r3
+ 1997 0e2c FFF7FEFF 		bl	log
+ 1998 0e30 0446     		mov	r4, r0
+ 1999 0e32 0D46     		mov	r5, r1
+ 2000 0e34 594B     		ldr	r3, .L114+28
+ 2001 0e36 1B68     		ldr	r3, [r3, #0]
+ 2002 0e38 03F5D543 		add	r3, r3, #27264
+ 2003 0e3c 03F13303 		add	r3, r3, #51
+ 2004 0e40 1846     		mov	r0, r3
+ 2005 0e42 FFF7FEFF 		bl	__aeabi_i2d
+ 2006 0e46 0246     		mov	r2, r0
+ 2007 0e48 0B46     		mov	r3, r1
+ 2008 0e4a 2046     		mov	r0, r4
+ 2009 0e4c 2946     		mov	r1, r5
+ 2010 0e4e FFF7FEFF 		bl	__aeabi_dmul
+ 2011 0e52 0246     		mov	r2, r0
+ 2012 0e54 0B46     		mov	r3, r1
+ 2013 0e56 1046     		mov	r0, r2
+ 2014 0e58 1946     		mov	r1, r3
+ 2015 0e5a 49A3     		adr	r3, .L114
+ 2016 0e5c D3E90023 		ldrd	r2, [r3]
+ 2017 0e60 FFF7FEFF 		bl	__aeabi_dmul
+ 2018 0e64 0246     		mov	r2, r0
+ 2019 0e66 0B46     		mov	r3, r1
+ 2020 0e68 1046     		mov	r0, r2
+ 2021 0e6a 1946     		mov	r1, r3
+ 2022 0e6c FFF7FEFF 		bl	__aeabi_d2iz
+ 2023 0e70 0246     		mov	r2, r0
+ 2024 0e72 4B4B     		ldr	r3, .L114+32
+ 2025 0e74 1A60     		str	r2, [r3, #0]
+ 394:../src/imu.c  ****     EstAlt = (EstAlt * 6 + BaroAlt * 2) >> 3;   // additional LPF to reduce baro noise
+ 2026              		.loc 1 394 0
+ 2027 0e76 4B4B     		ldr	r3, .L114+36
+ 2028 0e78 1A68     		ldr	r2, [r3, #0]
+ 2029 0e7a 1346     		mov	r3, r2
+ 2030 0e7c 4FEA4303 		lsl	r3, r3, #1
+ 2031 0e80 9A18     		adds	r2, r3, r2
+ 2032 0e82 474B     		ldr	r3, .L114+32
+ 2033 0e84 1B68     		ldr	r3, [r3, #0]
+ 2034 0e86 D318     		adds	r3, r2, r3
+ 2035 0e88 4FEA4303 		lsl	r3, r3, #1
+ 2036 0e8c 4FEAE302 		asr	r2, r3, #3
+ 2037 0e90 444B     		ldr	r3, .L114+36
+ 2038 0e92 1A60     		str	r2, [r3, #0]
+ 395:../src/imu.c  **** 
+ 396:../src/imu.c  ****     //P
+ 397:../src/imu.c  ****     error16 = constrain(AltHold - EstAlt, -300, 300);
+ 2039              		.loc 1 397 0
+ 2040 0e94 444B     		ldr	r3, .L114+40
+ 2041 0e96 1A68     		ldr	r2, [r3, #0]
+ 2042 0e98 424B     		ldr	r3, .L114+36
+ 2043 0e9a 1B68     		ldr	r3, [r3, #0]
+ 2044 0e9c D31A     		subs	r3, r2, r3
+ 2045 0e9e 13F5967F 		cmn	r3, #300
+ 2046 0ea2 0BDB     		blt	.L91
+ 2047              		.loc 1 397 0 is_stmt 0 discriminator 1
+ 2048 0ea4 404B     		ldr	r3, .L114+40
+ 2049 0ea6 1A68     		ldr	r2, [r3, #0]
+ 2050 0ea8 3E4B     		ldr	r3, .L114+36
+ 2051 0eaa 1B68     		ldr	r3, [r3, #0]
+ 2052 0eac D31A     		subs	r3, r2, r3
+ 2053 0eae B3F5967F 		cmp	r3, #300
+ 2054 0eb2 A8BF     		it	ge
+ 2055 0eb4 4FF49673 		movge	r3, #300
+ 2056 0eb8 9BB2     		uxth	r3, r3
+ 2057 0eba 01E0     		b	.L92
+ 2058              	.L91:
+ 2059              		.loc 1 397 0 discriminator 2
+ 2060 0ebc 4FF6D463 		movw	r3, #65236
+ 2061              	.L92:
+ 2062              		.loc 1 397 0 discriminator 3
+ 2063 0ec0 FB81     		strh	r3, [r7, #14]	@ movhi
+ 398:../src/imu.c  ****     applyDeadband(error16, 10); // remove small P parametr to reduce noise near zero position
+ 2064              		.loc 1 398 0 is_stmt 1 discriminator 3
+ 2065 0ec2 B7F90E30 		ldrsh	r3, [r7, #14]
+ 2066 0ec6 13F1090F 		cmn	r3, #9
+ 2067 0eca 07DB     		blt	.L93
+ 2068              		.loc 1 398 0 is_stmt 0 discriminator 1
+ 2069 0ecc B7F90E30 		ldrsh	r3, [r7, #14]
+ 2070 0ed0 092B     		cmp	r3, #9
+ 2071 0ed2 03DC     		bgt	.L93
+ 2072              		.loc 1 398 0 discriminator 3
+ 2073 0ed4 4FF00003 		mov	r3, #0
+ 2074 0ed8 FB81     		strh	r3, [r7, #14]	@ movhi
+ 2075 0eda 12E0     		b	.L94
+ 2076              	.L93:
+ 2077              		.loc 1 398 0 discriminator 2
+ 2078 0edc B7F90E30 		ldrsh	r3, [r7, #14]
+ 2079 0ee0 002B     		cmp	r3, #0
+ 2080 0ee2 05DD     		ble	.L95
+ 2081              		.loc 1 398 0 discriminator 4
+ 2082 0ee4 FB89     		ldrh	r3, [r7, #14]
+ 2083 0ee6 A3F10A03 		sub	r3, r3, #10
+ 2084 0eea 9BB2     		uxth	r3, r3
+ 2085 0eec FB81     		strh	r3, [r7, #14]	@ movhi
+ 2086 0eee 08E0     		b	.L94
+ 2087              	.L95:
+ 2088              		.loc 1 398 0 discriminator 5
+ 2089 0ef0 B7F90E30 		ldrsh	r3, [r7, #14]
+ 2090 0ef4 002B     		cmp	r3, #0
+ 2091 0ef6 04DA     		bge	.L94
+ 2092              		.loc 1 398 0 discriminator 6
+ 2093 0ef8 FB89     		ldrh	r3, [r7, #14]
+ 2094 0efa 03F10A03 		add	r3, r3, #10
+ 2095 0efe 9BB2     		uxth	r3, r3
+ 2096 0f00 FB81     		strh	r3, [r7, #14]	@ movhi
+ 2097              	.L94:
+ 399:../src/imu.c  ****     BaroPID = constrain((cfg.P8[PIDALT] * error16 >> 7), -150, +150);
+ 2098              		.loc 1 399 0 is_stmt 1
+ 2099 0f02 244B     		ldr	r3, .L114+20
+ 2100 0f04 DB78     		ldrb	r3, [r3, #3]	@ zero_extendqisi2
+ 2101 0f06 B7F90E20 		ldrsh	r2, [r7, #14]
+ 2102 0f0a 02FB03F3 		mul	r3, r2, r3
+ 2103 0f0e 4FEAE313 		asr	r3, r3, #7
+ 2104 0f12 13F1960F 		cmn	r3, #150
+ 2105 0f16 0CDB     		blt	.L96
+ 2106              		.loc 1 399 0 is_stmt 0 discriminator 1
+ 2107 0f18 1E4B     		ldr	r3, .L114+20
+ 2108 0f1a DB78     		ldrb	r3, [r3, #3]	@ zero_extendqisi2
+ 2109 0f1c B7F90E20 		ldrsh	r2, [r7, #14]
+ 2110 0f20 02FB03F3 		mul	r3, r2, r3
+ 2111 0f24 4FEAE313 		asr	r3, r3, #7
+ 2112 0f28 962B     		cmp	r3, #150
+ 2113 0f2a A8BF     		it	ge
+ 2114 0f2c 9623     		movge	r3, #150
+ 2115 0f2e 9BB2     		uxth	r3, r3
+ 2116 0f30 01E0     		b	.L97
+ 2117              	.L96:
+ 2118              		.loc 1 399 0 discriminator 2
+ 2119 0f32 4FF66A73 		movw	r3, #65386
+ 2120              	.L97:
+ 2121              		.loc 1 399 0 discriminator 3
+ 2122 0f36 1D4A     		ldr	r2, .L114+44
+ 2123 0f38 1380     		strh	r3, [r2, #0]	@ movhi
+ 400:../src/imu.c  **** 
+ 401:../src/imu.c  ****     //I
+ 402:../src/imu.c  ****     errorAltitudeI += cfg.I8[PIDALT] * error16 >> 6;
+ 2124              		.loc 1 402 0 is_stmt 1 discriminator 3
+ 2125 0f3a 164B     		ldr	r3, .L114+20
+ 2126 0f3c 5B7B     		ldrb	r3, [r3, #13]	@ zero_extendqisi2
+ 2127 0f3e B7F90E20 		ldrsh	r2, [r7, #14]
+ 2128 0f42 02FB03F3 		mul	r3, r2, r3
+ 2129 0f46 4FEAA313 		asr	r3, r3, #6
+ 2130 0f4a 9AB2     		uxth	r2, r3
+ 2131 0f4c 184B     		ldr	r3, .L114+48
+ 2132 0f4e 1B88     		ldrh	r3, [r3, #0]
+ 2133 0f50 9BB2     		uxth	r3, r3
+ 2134 0f52 D318     		adds	r3, r2, r3
+ 2135 0f54 9BB2     		uxth	r3, r3
+ 2136 0f56 9AB2     		uxth	r2, r3
+ 2137 0f58 154B     		ldr	r3, .L114+48
+ 2138 0f5a 1A80     		strh	r2, [r3, #0]	@ movhi
+ 403:../src/imu.c  ****     errorAltitudeI = constrain(errorAltitudeI, -30000, 30000);
+ 2139              		.loc 1 403 0 discriminator 3
+ 2140 0f5c 144B     		ldr	r3, .L114+48
+ 2141 0f5e 1B88     		ldrh	r3, [r3, #0]
+ 2142 0f60 1AB2     		sxth	r2, r3
+ 2143 0f62 144B     		ldr	r3, .L114+52
+ 2144 0f64 9A42     		cmp	r2, r3
+ 2145 0f66 27DB     		blt	.L98
+ 2146              		.loc 1 403 0 is_stmt 0 discriminator 1
+ 2147 0f68 114B     		ldr	r3, .L114+48
+ 2148 0f6a 1B88     		ldrh	r3, [r3, #0]
+ 2149 0f6c 1AB2     		sxth	r2, r3
+ 2150 0f6e 47F23053 		movw	r3, #30000
+ 2151 0f72 9A42     		cmp	r2, r3
+ 2152 0f74 B8BF     		it	lt
+ 2153 0f76 1346     		movlt	r3, r2
+ 2154 0f78 9BB2     		uxth	r3, r3
+ 2155 0f7a 1FE0     		b	.L99
+ 2156              	.L115:
+ 2157 0f7c AFF30080 		.align	3
+ 2158              	.L114:
+ 2159 0f80 000000C0 		.word	-1073741824
+ 2160 0f84 71453D40 		.word	1077757297
+ 2161 0f88 34000000 		.word	previousT.9161
+ 2162 0f8c 00000000 		.word	calibratingB
+ 2163 0f90 00000000 		.word	baroPressureSum
+ 2164 0f94 00000000 		.word	cfg
+ 2165 0f98 38000000 		.word	baroGroundPressure.9160
+ 2166 0f9c 00000000 		.word	baroTemperature
+ 2167 0fa0 00000000 		.word	BaroAlt
+ 2168 0fa4 00000000 		.word	EstAlt
+ 2169 0fa8 00000000 		.word	AltHold
+ 2170 0fac 00000000 		.word	BaroPID
+ 2171 0fb0 00000000 		.word	errorAltitudeI
+ 2172 0fb4 D08AFFFF 		.word	-30000
+ 2173              	.L98:
+ 2174              		.loc 1 403 0 discriminator 2
+ 2175 0fb8 48F6D023 		movw	r3, #35536
+ 2176              	.L99:
+ 2177              		.loc 1 403 0 discriminator 3
+ 2178 0fbc 944A     		ldr	r2, .L116
+ 2179 0fbe 1380     		strh	r3, [r2, #0]	@ movhi
+ 404:../src/imu.c  ****     BaroPID += errorAltitudeI >> 9;     // I in range +/-60
+ 2180              		.loc 1 404 0 is_stmt 1 discriminator 3
+ 2181 0fc0 934B     		ldr	r3, .L116
+ 2182 0fc2 1B88     		ldrh	r3, [r3, #0]
+ 2183 0fc4 1BB2     		sxth	r3, r3
+ 2184 0fc6 4FEA6323 		asr	r3, r3, #9
+ 2185 0fca 9BB2     		uxth	r3, r3
+ 2186 0fcc 9AB2     		uxth	r2, r3
+ 2187 0fce 914B     		ldr	r3, .L116+4
+ 2188 0fd0 1B88     		ldrh	r3, [r3, #0]
+ 2189 0fd2 9BB2     		uxth	r3, r3
+ 2190 0fd4 D318     		adds	r3, r2, r3
+ 2191 0fd6 9BB2     		uxth	r3, r3
+ 2192 0fd8 9AB2     		uxth	r2, r3
+ 2193 0fda 8E4B     		ldr	r3, .L116+4
+ 2194 0fdc 1A80     		strh	r2, [r3, #0]	@ movhi
+ 405:../src/imu.c  **** 
+ 406:../src/imu.c  ****     // projection of ACC vector to global Z, with 1G subtructed
+ 407:../src/imu.c  ****     // Math: accZ = A * G / |G| - 1G
+ 408:../src/imu.c  ****     invG = InvSqrt(isq(EstG.V.X) + isq(EstG.V.Y) + isq(EstG.V.Z));
+ 2195              		.loc 1 408 0 discriminator 3
+ 2196 0fde 8E4B     		ldr	r3, .L116+8
+ 2197 0fe0 1B68     		ldr	r3, [r3, #0]	@ float
+ 2198 0fe2 1846     		mov	r0, r3
+ 2199 0fe4 FFF7FEFF 		bl	__aeabi_f2iz
+ 2200 0fe8 0346     		mov	r3, r0
+ 2201 0fea 1846     		mov	r0, r3
+ 2202 0fec FFF7FEFF 		bl	isq
+ 2203 0ff0 0446     		mov	r4, r0
+ 2204 0ff2 894B     		ldr	r3, .L116+8
+ 2205 0ff4 5B68     		ldr	r3, [r3, #4]	@ float
+ 2206 0ff6 1846     		mov	r0, r3
+ 2207 0ff8 FFF7FEFF 		bl	__aeabi_f2iz
+ 2208 0ffc 0346     		mov	r3, r0
+ 2209 0ffe 1846     		mov	r0, r3
+ 2210 1000 FFF7FEFF 		bl	isq
+ 2211 1004 0346     		mov	r3, r0
+ 2212 1006 E418     		adds	r4, r4, r3
+ 2213 1008 834B     		ldr	r3, .L116+8
+ 2214 100a 9B68     		ldr	r3, [r3, #8]	@ float
+ 2215 100c 1846     		mov	r0, r3
+ 2216 100e FFF7FEFF 		bl	__aeabi_f2iz
+ 2217 1012 0346     		mov	r3, r0
+ 2218 1014 1846     		mov	r0, r3
+ 2219 1016 FFF7FEFF 		bl	isq
+ 2220 101a 0346     		mov	r3, r0
+ 2221 101c E318     		adds	r3, r4, r3
+ 2222 101e 1846     		mov	r0, r3
+ 2223 1020 FFF7FEFF 		bl	__aeabi_i2f
+ 2224 1024 0346     		mov	r3, r0
+ 2225 1026 1846     		mov	r0, r3
+ 2226 1028 FFF7FEFF 		bl	InvSqrt
+ 2227 102c 3860     		str	r0, [r7, #0]	@ float
+ 409:../src/imu.c  ****     accZ = (accSmooth[ROLL] * EstG.V.X + accSmooth[PITCH] * EstG.V.Y + accSmooth[YAW] * EstG.V.Z) *
+ 2228              		.loc 1 409 0 discriminator 3
+ 2229 102e 7B4B     		ldr	r3, .L116+12
+ 2230 1030 1B88     		ldrh	r3, [r3, #0]
+ 2231 1032 1BB2     		sxth	r3, r3
+ 2232 1034 1846     		mov	r0, r3
+ 2233 1036 FFF7FEFF 		bl	__aeabi_i2f
+ 2234 103a 0246     		mov	r2, r0
+ 2235 103c 764B     		ldr	r3, .L116+8
+ 2236 103e 1B68     		ldr	r3, [r3, #0]	@ float
+ 2237 1040 1046     		mov	r0, r2
+ 2238 1042 1946     		mov	r1, r3
+ 2239 1044 FFF7FEFF 		bl	__aeabi_fmul
+ 2240 1048 0346     		mov	r3, r0
+ 2241 104a 1C46     		mov	r4, r3
+ 2242 104c 734B     		ldr	r3, .L116+12
+ 2243 104e 5B88     		ldrh	r3, [r3, #2]
+ 2244 1050 1BB2     		sxth	r3, r3
+ 2245 1052 1846     		mov	r0, r3
+ 2246 1054 FFF7FEFF 		bl	__aeabi_i2f
+ 2247 1058 0246     		mov	r2, r0
+ 2248 105a 6F4B     		ldr	r3, .L116+8
+ 2249 105c 5B68     		ldr	r3, [r3, #4]	@ float
+ 2250 105e 1046     		mov	r0, r2
+ 2251 1060 1946     		mov	r1, r3
+ 2252 1062 FFF7FEFF 		bl	__aeabi_fmul
+ 2253 1066 0346     		mov	r3, r0
+ 2254 1068 2046     		mov	r0, r4
+ 2255 106a 1946     		mov	r1, r3
+ 2256 106c FFF7FEFF 		bl	__aeabi_fadd
+ 2257 1070 0346     		mov	r3, r0
+ 2258 1072 1C46     		mov	r4, r3
+ 2259 1074 694B     		ldr	r3, .L116+12
+ 2260 1076 9B88     		ldrh	r3, [r3, #4]
+ 2261 1078 1BB2     		sxth	r3, r3
+ 2262 107a 1846     		mov	r0, r3
+ 2263 107c FFF7FEFF 		bl	__aeabi_i2f
+ 2264 1080 0246     		mov	r2, r0
+ 2265 1082 654B     		ldr	r3, .L116+8
+ 2266 1084 9B68     		ldr	r3, [r3, #8]	@ float
+ 2267 1086 1046     		mov	r0, r2
+ 2268 1088 1946     		mov	r1, r3
+ 2269 108a FFF7FEFF 		bl	__aeabi_fmul
+ 2270 108e 0346     		mov	r3, r0
+ 2271 1090 2046     		mov	r0, r4
+ 2272 1092 1946     		mov	r1, r3
+ 2273 1094 FFF7FEFF 		bl	__aeabi_fadd
+ 2274 1098 0346     		mov	r3, r0
+ 2275 109a 1846     		mov	r0, r3
+ 2276 109c 3968     		ldr	r1, [r7, #0]	@ float
+ 2277 109e FFF7FEFF 		bl	__aeabi_fmul
+ 2278 10a2 0346     		mov	r3, r0
+ 2279 10a4 1846     		mov	r0, r3
+ 2280 10a6 FFF7FEFF 		bl	__aeabi_f2iz
+ 2281 10aa 0346     		mov	r3, r0
+ 2282 10ac 7B81     		strh	r3, [r7, #10]	@ movhi
+ 410:../src/imu.c  **** 
+ 411:../src/imu.c  ****     if (!f.ARMED) {
+ 2283              		.loc 1 411 0 discriminator 3
+ 2284 10ae 5C4B     		ldr	r3, .L116+16
+ 2285 10b0 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 2286 10b2 002B     		cmp	r3, #0
+ 2287 10b4 17D1     		bne	.L100
+ 412:../src/imu.c  ****         accZoffset -= accZoffset >> 3;
+ 2288              		.loc 1 412 0
+ 2289 10b6 5B4B     		ldr	r3, .L116+20
+ 2290 10b8 1B88     		ldrh	r3, [r3, #0]
+ 2291 10ba 9AB2     		uxth	r2, r3
+ 2292 10bc 594B     		ldr	r3, .L116+20
+ 2293 10be 1B88     		ldrh	r3, [r3, #0]
+ 2294 10c0 1BB2     		sxth	r3, r3
+ 2295 10c2 4FEAE303 		asr	r3, r3, #3
+ 2296 10c6 9BB2     		uxth	r3, r3
+ 2297 10c8 9BB2     		uxth	r3, r3
+ 2298 10ca D31A     		subs	r3, r2, r3
+ 2299 10cc 9BB2     		uxth	r3, r3
+ 2300 10ce 9AB2     		uxth	r2, r3
+ 2301 10d0 544B     		ldr	r3, .L116+20
+ 2302 10d2 1A80     		strh	r2, [r3, #0]	@ movhi
+ 413:../src/imu.c  ****         accZoffset += accZ;
+ 2303              		.loc 1 413 0
+ 2304 10d4 534B     		ldr	r3, .L116+20
+ 2305 10d6 1B88     		ldrh	r3, [r3, #0]
+ 2306 10d8 9AB2     		uxth	r2, r3
+ 2307 10da 7B89     		ldrh	r3, [r7, #10]
+ 2308 10dc D318     		adds	r3, r2, r3
+ 2309 10de 9BB2     		uxth	r3, r3
+ 2310 10e0 9AB2     		uxth	r2, r3
+ 2311 10e2 504B     		ldr	r3, .L116+20
+ 2312 10e4 1A80     		strh	r2, [r3, #0]	@ movhi
+ 2313              	.L100:
+ 414:../src/imu.c  ****     }
+ 415:../src/imu.c  ****     accZ -= accZoffset >> 3;
+ 2314              		.loc 1 415 0
+ 2315 10e6 7A89     		ldrh	r2, [r7, #10]
+ 2316 10e8 4E4B     		ldr	r3, .L116+20
+ 2317 10ea 1B88     		ldrh	r3, [r3, #0]
+ 2318 10ec 1BB2     		sxth	r3, r3
+ 2319 10ee 4FEAE303 		asr	r3, r3, #3
+ 2320 10f2 9BB2     		uxth	r3, r3
+ 2321 10f4 9BB2     		uxth	r3, r3
+ 2322 10f6 D31A     		subs	r3, r2, r3
+ 2323 10f8 9BB2     		uxth	r3, r3
+ 2324 10fa 7B81     		strh	r3, [r7, #10]	@ movhi
+ 416:../src/imu.c  ****     applyDeadband(accZ, cfg.accz_deadband);
+ 2325              		.loc 1 416 0
+ 2326 10fc B7F90A30 		ldrsh	r3, [r7, #10]
+ 2327 1100 83EAE372 		eor	r2, r3, r3, asr #31
+ 2328 1104 A2EBE372 		sub	r2, r2, r3, asr #31
+ 2329 1108 474B     		ldr	r3, .L116+24
+ 2330 110a 93F82E30 		ldrb	r3, [r3, #46]	@ zero_extendqisi2
+ 2331 110e 9A42     		cmp	r2, r3
+ 2332 1110 03DA     		bge	.L101
+ 2333              		.loc 1 416 0 is_stmt 0 discriminator 1
+ 2334 1112 4FF00003 		mov	r3, #0
+ 2335 1116 7B81     		strh	r3, [r7, #10]	@ movhi
+ 2336 1118 17E0     		b	.L102
+ 2337              	.L101:
+ 2338              		.loc 1 416 0 discriminator 2
+ 2339 111a B7F90A30 		ldrsh	r3, [r7, #10]
+ 2340 111e 002B     		cmp	r3, #0
+ 2341 1120 07DD     		ble	.L103
+ 2342              		.loc 1 416 0 discriminator 3
+ 2343 1122 7A89     		ldrh	r2, [r7, #10]
+ 2344 1124 404B     		ldr	r3, .L116+24
+ 2345 1126 93F82E30 		ldrb	r3, [r3, #46]	@ zero_extendqisi2
+ 2346 112a D31A     		subs	r3, r2, r3
+ 2347 112c 9BB2     		uxth	r3, r3
+ 2348 112e 7B81     		strh	r3, [r7, #10]	@ movhi
+ 2349 1130 0BE0     		b	.L102
+ 2350              	.L103:
+ 2351              		.loc 1 416 0 discriminator 4
+ 2352 1132 B7F90A30 		ldrsh	r3, [r7, #10]
+ 2353 1136 002B     		cmp	r3, #0
+ 2354 1138 07DA     		bge	.L102
+ 2355              		.loc 1 416 0 discriminator 5
+ 2356 113a 3B4B     		ldr	r3, .L116+24
+ 2357 113c 93F82E30 		ldrb	r3, [r3, #46]	@ zero_extendqisi2
+ 2358 1140 1A46     		mov	r2, r3
+ 2359 1142 7B89     		ldrh	r3, [r7, #10]
+ 2360 1144 D318     		adds	r3, r2, r3
+ 2361 1146 9BB2     		uxth	r3, r3
+ 2362 1148 7B81     		strh	r3, [r7, #10]	@ movhi
+ 2363              	.L102:
+ 417:../src/imu.c  **** 
+ 418:../src/imu.c  ****     // Integrator - velocity, cm/sec
+ 419:../src/imu.c  ****     vel += accZ * accVelScale * dTime;
+ 2364              		.loc 1 419 0 is_stmt 1
+ 2365 114a B7F90A30 		ldrsh	r3, [r7, #10]
+ 2366 114e 1846     		mov	r0, r3
+ 2367 1150 FFF7FEFF 		bl	__aeabi_i2f
+ 2368 1154 0246     		mov	r2, r0
+ 2369 1156 354B     		ldr	r3, .L116+28
+ 2370 1158 1B68     		ldr	r3, [r3, #0]	@ float
+ 2371 115a 1046     		mov	r0, r2
+ 2372 115c 1946     		mov	r1, r3
+ 2373 115e FFF7FEFF 		bl	__aeabi_fmul
+ 2374 1162 0346     		mov	r3, r0
+ 2375 1164 1C46     		mov	r4, r3
+ 2376 1166 BB88     		ldrh	r3, [r7, #4]
+ 2377 1168 1846     		mov	r0, r3
+ 2378 116a FFF7FEFF 		bl	__aeabi_i2f
+ 2379 116e 0346     		mov	r3, r0
+ 2380 1170 2046     		mov	r0, r4
+ 2381 1172 1946     		mov	r1, r3
+ 2382 1174 FFF7FEFF 		bl	__aeabi_fmul
+ 2383 1178 0346     		mov	r3, r0
+ 2384 117a 1A46     		mov	r2, r3
+ 2385 117c 2C4B     		ldr	r3, .L116+32
+ 2386 117e 1B68     		ldr	r3, [r3, #0]	@ float
+ 2387 1180 1046     		mov	r0, r2
+ 2388 1182 1946     		mov	r1, r3
+ 2389 1184 FFF7FEFF 		bl	__aeabi_fadd
+ 2390 1188 0346     		mov	r3, r0
+ 2391 118a 1A46     		mov	r2, r3
+ 2392 118c 284B     		ldr	r3, .L116+32
+ 2393 118e 1A60     		str	r2, [r3, #0]	@ float
+ 420:../src/imu.c  **** 
+ 421:../src/imu.c  ****     baroVel = (EstAlt - lastBaroAlt) * 1000000.0f / dTime;
+ 2394              		.loc 1 421 0
+ 2395 1190 284B     		ldr	r3, .L116+36
+ 2396 1192 1A68     		ldr	r2, [r3, #0]
+ 2397 1194 284B     		ldr	r3, .L116+40
+ 2398 1196 1B68     		ldr	r3, [r3, #0]
+ 2399 1198 D31A     		subs	r3, r2, r3
+ 2400 119a 1846     		mov	r0, r3
+ 2401 119c FFF7FEFF 		bl	__aeabi_i2f
+ 2402 11a0 0346     		mov	r3, r0
+ 2403 11a2 1846     		mov	r0, r3
+ 2404 11a4 2549     		ldr	r1, .L116+44	@ float
+ 2405 11a6 FFF7FEFF 		bl	__aeabi_fmul
+ 2406 11aa 0346     		mov	r3, r0
+ 2407 11ac 1C46     		mov	r4, r3
+ 2408 11ae BB88     		ldrh	r3, [r7, #4]
+ 2409 11b0 1846     		mov	r0, r3
+ 2410 11b2 FFF7FEFF 		bl	__aeabi_i2f
+ 2411 11b6 0346     		mov	r3, r0
+ 2412 11b8 2046     		mov	r0, r4
+ 2413 11ba 1946     		mov	r1, r3
+ 2414 11bc FFF7FEFF 		bl	__aeabi_fdiv
+ 2415 11c0 0346     		mov	r3, r0
+ 2416 11c2 1846     		mov	r0, r3
+ 2417 11c4 FFF7FEFF 		bl	__aeabi_f2iz
+ 2418 11c8 0346     		mov	r3, r0
+ 2419 11ca BB81     		strh	r3, [r7, #12]	@ movhi
+ 422:../src/imu.c  ****     lastBaroAlt = EstAlt;
+ 2420              		.loc 1 422 0
+ 2421 11cc 194B     		ldr	r3, .L116+36
+ 2422 11ce 1A68     		ldr	r2, [r3, #0]
+ 2423 11d0 194B     		ldr	r3, .L116+40
+ 2424 11d2 1A60     		str	r2, [r3, #0]
+ 423:../src/imu.c  **** 
+ 424:../src/imu.c  ****     baroVel = constrain(baroVel, -300, 300);    // constrain baro velocity +/- 300cm/s
+ 2425              		.loc 1 424 0
+ 2426 11d4 B7F90C30 		ldrsh	r3, [r7, #12]
+ 2427 11d8 13F5967F 		cmn	r3, #300
+ 2428 11dc 08DB     		blt	.L104
+ 2429              		.loc 1 424 0 is_stmt 0 discriminator 1
+ 2430 11de B7F90C30 		ldrsh	r3, [r7, #12]
+ 2431 11e2 B3F5967F 		cmp	r3, #300
+ 2432 11e6 A8BF     		it	ge
+ 2433 11e8 4FF49673 		movge	r3, #300
+ 2434 11ec 9BB2     		uxth	r3, r3
+ 2435 11ee 01E0     		b	.L105
+ 2436              	.L104:
+ 2437              		.loc 1 424 0 discriminator 2
+ 2438 11f0 4FF6D463 		movw	r3, #65236
+ 2439              	.L105:
+ 2440              		.loc 1 424 0 discriminator 3
+ 2441 11f4 BB81     		strh	r3, [r7, #12]	@ movhi
+ 425:../src/imu.c  ****     applyDeadband(baroVel, 10); // to reduce noise near zero
+ 2442              		.loc 1 425 0 is_stmt 1 discriminator 3
+ 2443 11f6 B7F90C30 		ldrsh	r3, [r7, #12]
+ 2444 11fa 13F1090F 		cmn	r3, #9
+ 2445 11fe 1FDB     		blt	.L106
+ 2446              		.loc 1 425 0 is_stmt 0 discriminator 1
+ 2447 1200 B7F90C30 		ldrsh	r3, [r7, #12]
+ 2448 1204 092B     		cmp	r3, #9
+ 2449 1206 1BDC     		bgt	.L106
+ 2450              		.loc 1 425 0 discriminator 3
+ 2451 1208 4FF00003 		mov	r3, #0
+ 2452 120c BB81     		strh	r3, [r7, #12]	@ movhi
+ 2453 120e 2AE0     		b	.L107
+ 2454              	.L117:
+ 2455              		.align	2
+ 2456              	.L116:
+ 2457 1210 00000000 		.word	errorAltitudeI
+ 2458 1214 00000000 		.word	BaroPID
+ 2459 1218 00000000 		.word	EstG
+ 2460 121c 00000000 		.word	accSmooth
+ 2461 1220 00000000 		.word	f
+ 2462 1224 3C000000 		.word	accZoffset.9168
+ 2463 1228 00000000 		.word	cfg
+ 2464 122c 00000000 		.word	accVelScale
+ 2465 1230 40000000 		.word	vel.9169
+ 2466 1234 00000000 		.word	EstAlt
+ 2467 1238 44000000 		.word	lastBaroAlt.9170
+ 2468 123c 00247449 		.word	1232348160
+ 2469              	.L106:
+ 2470              		.loc 1 425 0 discriminator 2
+ 2471 1240 B7F90C30 		ldrsh	r3, [r7, #12]
+ 2472 1244 002B     		cmp	r3, #0
+ 2473 1246 05DD     		ble	.L108
+ 2474              		.loc 1 425 0 discriminator 4
+ 2475 1248 BB89     		ldrh	r3, [r7, #12]
+ 2476 124a A3F10A03 		sub	r3, r3, #10
+ 2477 124e 9BB2     		uxth	r3, r3
+ 2478 1250 BB81     		strh	r3, [r7, #12]	@ movhi
+ 2479 1252 08E0     		b	.L107
+ 2480              	.L108:
+ 2481              		.loc 1 425 0 discriminator 5
+ 2482 1254 B7F90C30 		ldrsh	r3, [r7, #12]
+ 2483 1258 002B     		cmp	r3, #0
+ 2484 125a 04DA     		bge	.L107
+ 2485              		.loc 1 425 0 discriminator 6
+ 2486 125c BB89     		ldrh	r3, [r7, #12]
+ 2487 125e 03F10A03 		add	r3, r3, #10
+ 2488 1262 9BB2     		uxth	r3, r3
+ 2489 1264 BB81     		strh	r3, [r7, #12]	@ movhi
+ 2490              	.L107:
+ 426:../src/imu.c  **** 
+ 427:../src/imu.c  ****     // apply Complimentary Filter to keep the calculated velocity based on baro velocity (i.e. near
+ 428:../src/imu.c  ****     // By using CF it's possible to correct the drift of integrated accZ (velocity) without loosing
+ 429:../src/imu.c  ****     vel = vel * 0.985f + baroVel * 0.015f;
+ 2491              		.loc 1 429 0 is_stmt 1
+ 2492 1266 374B     		ldr	r3, .L118
+ 2493 1268 1B68     		ldr	r3, [r3, #0]	@ float
+ 2494 126a 1846     		mov	r0, r3
+ 2495 126c 3949     		ldr	r1, .L118+16	@ float
+ 2496 126e FFF7FEFF 		bl	__aeabi_fmul
+ 2497 1272 0346     		mov	r3, r0
+ 2498 1274 1C46     		mov	r4, r3
+ 2499 1276 B7F90C30 		ldrsh	r3, [r7, #12]
+ 2500 127a 1846     		mov	r0, r3
+ 2501 127c FFF7FEFF 		bl	__aeabi_i2f
+ 2502 1280 0346     		mov	r3, r0
+ 2503 1282 1846     		mov	r0, r3
+ 2504 1284 3449     		ldr	r1, .L118+20	@ float
+ 2505 1286 FFF7FEFF 		bl	__aeabi_fmul
+ 2506 128a 0346     		mov	r3, r0
+ 2507 128c 2046     		mov	r0, r4
+ 2508 128e 1946     		mov	r1, r3
+ 2509 1290 FFF7FEFF 		bl	__aeabi_fadd
+ 2510 1294 0346     		mov	r3, r0
+ 2511 1296 1A46     		mov	r2, r3
+ 2512 1298 2A4B     		ldr	r3, .L118
+ 2513 129a 1A60     		str	r2, [r3, #0]	@ float
+ 430:../src/imu.c  **** 
+ 431:../src/imu.c  ****     // D
+ 432:../src/imu.c  ****     vel_tmp = vel;
+ 2514              		.loc 1 432 0
+ 2515 129c 294B     		ldr	r3, .L118
+ 2516 129e 1B68     		ldr	r3, [r3, #0]	@ float
+ 2517 12a0 1846     		mov	r0, r3
+ 2518 12a2 FFF7FEFF 		bl	__aeabi_f2iz
+ 2519 12a6 0346     		mov	r3, r0
+ 2520 12a8 3B81     		strh	r3, [r7, #8]	@ movhi
+ 433:../src/imu.c  ****     applyDeadband(vel_tmp, 5);
+ 2521              		.loc 1 433 0
+ 2522 12aa B7F90830 		ldrsh	r3, [r7, #8]
+ 2523 12ae 13F1040F 		cmn	r3, #4
+ 2524 12b2 07DB     		blt	.L109
+ 2525              		.loc 1 433 0 is_stmt 0 discriminator 1
+ 2526 12b4 B7F90830 		ldrsh	r3, [r7, #8]
+ 2527 12b8 042B     		cmp	r3, #4
+ 2528 12ba 03DC     		bgt	.L109
+ 2529              		.loc 1 433 0 discriminator 3
+ 2530 12bc 4FF00003 		mov	r3, #0
+ 2531 12c0 3B81     		strh	r3, [r7, #8]	@ movhi
+ 2532 12c2 12E0     		b	.L110
+ 2533              	.L109:
+ 2534              		.loc 1 433 0 discriminator 2
+ 2535 12c4 B7F90830 		ldrsh	r3, [r7, #8]
+ 2536 12c8 002B     		cmp	r3, #0
+ 2537 12ca 05DD     		ble	.L111
+ 2538              		.loc 1 433 0 discriminator 4
+ 2539 12cc 3B89     		ldrh	r3, [r7, #8]
+ 2540 12ce A3F10503 		sub	r3, r3, #5
+ 2541 12d2 9BB2     		uxth	r3, r3
+ 2542 12d4 3B81     		strh	r3, [r7, #8]	@ movhi
+ 2543 12d6 08E0     		b	.L110
+ 2544              	.L111:
+ 2545              		.loc 1 433 0 discriminator 5
+ 2546 12d8 B7F90830 		ldrsh	r3, [r7, #8]
+ 2547 12dc 002B     		cmp	r3, #0
+ 2548 12de 04DA     		bge	.L110
+ 2549              		.loc 1 433 0 discriminator 6
+ 2550 12e0 3B89     		ldrh	r3, [r7, #8]
+ 2551 12e2 03F10503 		add	r3, r3, #5
+ 2552 12e6 9BB2     		uxth	r3, r3
+ 2553 12e8 3B81     		strh	r3, [r7, #8]	@ movhi
+ 2554              	.L110:
+ 434:../src/imu.c  ****     vario = vel_tmp;
+ 2555              		.loc 1 434 0 is_stmt 1
+ 2556 12ea 174B     		ldr	r3, .L118+4
+ 2557 12ec 3A89     		ldrh	r2, [r7, #8]	@ movhi
+ 2558 12ee 1A80     		strh	r2, [r3, #0]	@ movhi
+ 435:../src/imu.c  ****     BaroPID -= constrain(cfg.D8[PIDALT] * vel_tmp >> 4, -150, 150);
+ 2559              		.loc 1 435 0
+ 2560 12f0 164B     		ldr	r3, .L118+8
+ 2561 12f2 1B88     		ldrh	r3, [r3, #0]
+ 2562 12f4 9AB2     		uxth	r2, r3
+ 2563 12f6 164B     		ldr	r3, .L118+12
+ 2564 12f8 DB7D     		ldrb	r3, [r3, #23]	@ zero_extendqisi2
+ 2565 12fa B7F90810 		ldrsh	r1, [r7, #8]
+ 2566 12fe 01FB03F3 		mul	r3, r1, r3
+ 2567 1302 4FEA2313 		asr	r3, r3, #4
+ 2568 1306 13F1960F 		cmn	r3, #150
+ 2569 130a 0CDB     		blt	.L112
+ 2570              		.loc 1 435 0 is_stmt 0 discriminator 1
+ 2571 130c 104B     		ldr	r3, .L118+12
+ 2572 130e DB7D     		ldrb	r3, [r3, #23]	@ zero_extendqisi2
+ 2573 1310 B7F90810 		ldrsh	r1, [r7, #8]
+ 2574 1314 01FB03F3 		mul	r3, r1, r3
+ 2575 1318 4FEA2313 		asr	r3, r3, #4
+ 2576 131c 962B     		cmp	r3, #150
+ 2577 131e A8BF     		it	ge
+ 2578 1320 9623     		movge	r3, #150
+ 2579 1322 9BB2     		uxth	r3, r3
+ 2580 1324 01E0     		b	.L113
+ 2581              	.L112:
+ 2582              		.loc 1 435 0 discriminator 2
+ 2583 1326 4FF66A73 		movw	r3, #65386
+ 2584              	.L113:
+ 2585              		.loc 1 435 0 discriminator 3
+ 2586 132a D31A     		subs	r3, r2, r3
+ 2587 132c 9BB2     		uxth	r3, r3
+ 2588 132e 9AB2     		uxth	r2, r3
+ 2589 1330 064B     		ldr	r3, .L118+8
+ 2590 1332 1A80     		strh	r2, [r3, #0]	@ movhi
+ 436:../src/imu.c  **** 
+ 437:../src/imu.c  ****     return 1;
+ 2591              		.loc 1 437 0 is_stmt 1 discriminator 3
+ 2592 1334 4FF00103 		mov	r3, #1
+ 2593              	.L89:
+ 438:../src/imu.c  **** }
+ 2594              		.loc 1 438 0
+ 2595 1338 1846     		mov	r0, r3
+ 2596 133a 07F11007 		add	r7, r7, #16
+ 2597 133e BD46     		mov	sp, r7
+ 2598 1340 B0BD     		pop	{r4, r5, r7, pc}
+ 2599              	.L119:
+ 2600 1342 00BF     		.align	2
+ 2601              	.L118:
+ 2602 1344 40000000 		.word	vel.9169
+ 2603 1348 00000000 		.word	vario
+ 2604 134c 00000000 		.word	BaroPID
+ 2605 1350 00000000 		.word	cfg
+ 2606 1354 F6287C3F 		.word	1065101558
+ 2607 1358 8FC2753C 		.word	1014350479
+ 2608              		.cfi_endproc
+ 2609              	.LFE38:
+ 2611              		.bss
+ 2612              		.align	1
+ 2613              	previousT.9161:
+ 2614 0034 0000     		.space	2
+ 2615 0036 0000     		.align	2
+ 2616              	baroGroundPressure.9160:
+ 2617 0038 00000000 		.space	4
+ 2618              		.align	1
+ 2619              	accZoffset.9168:
+ 2620 003c 0000     		.space	2
+ 2621 003e 0000     		.align	2
+ 2622              	vel.9169:
+ 2623 0040 00000000 		.space	4
+ 2624              		.align	2
+ 2625              	lastBaroAlt.9170:
+ 2626 0044 00000000 		.space	4
+ 2627              		.align	2
+ 2628              	previousT.9114:
+ 2629 0048 00000000 		.space	4
+ 2630              		.align	2
+ 2631              	accLPF.9113:
+ 2632 004c 00000000 		.space	12
+ 2632      00000000 
+ 2632      00000000 
+ 2633              		.align	2
+ 2634              	EstM.9112:
+ 2635 0058 00000000 		.space	12
+ 2635      00000000 
+ 2635      00000000 
+ 2636              		.align	2
+ 2637              	timeInterleave.9060:
+ 2638 0064 00000000 		.space	4
+ 2639              		.align	2
+ 2640              	gyroADCprevious.9057:
+ 2641 0068 00000000 		.space	6
+ 2641      0000
+ 2642 006e 0000     		.align	2
+ 2643              	Smoothing.9071:
+ 2644 0070 000000   		.space	3
+ 2645 0073 00       		.align	2
+ 2646              	gyroSmooth.9072:
+ 2647 0074 00000000 		.space	6
+ 2647      0000
+ 2648              		.align	1
+ 2649              	gyroYawSmooth.9061:
+ 2650 007a 0000     		.space	2
+ 2651              		.text
+ 2652              	.Letext0:
+ 2653              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 2654              		.file 3 "../src/board.h"
+ 2655              		.file 4 "../src/mw.h"
+ 2656              		.file 5 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 imu.c
+                            *COM*:00000006 gyroADC
+                            *COM*:00000006 accADC
+                            *COM*:00000006 accSmooth
+                            *COM*:00000006 magADC
+                            *COM*:0000000c accLPFVel
+     /tmp/cczRYZFI.s:28     .bss:00000000 acc_25deg
+     /tmp/cczRYZFI.s:25     .bss:00000000 $d
+     /tmp/cczRYZFI.s:34     .bss:00000004 baroPressure
+     /tmp/cczRYZFI.s:40     .bss:00000008 baroTemperature
+     /tmp/cczRYZFI.s:46     .bss:0000000c baroPressureSum
+     /tmp/cczRYZFI.s:52     .bss:00000010 BaroAlt
+                            *COM*:00000002 sonarAlt
+                            *COM*:00000004 EstAlt
+     /tmp/cczRYZFI.s:60     .bss:00000014 BaroPID
+                            *COM*:00000004 AltHold
+     /tmp/cczRYZFI.s:67     .bss:00000016 errorAltitudeI
+     /tmp/cczRYZFI.s:73     .bss:00000018 vario
+     /tmp/cczRYZFI.s:79     .bss:0000001c magneticDeclination
+                            *COM*:00000004 accVelScale
+     /tmp/cczRYZFI.s:86     .bss:00000020 gyroData
+     /tmp/cczRYZFI.s:92     .bss:00000028 gyroZero
+     /tmp/cczRYZFI.s:98     .bss:00000030 angle
+     /tmp/cczRYZFI.s:105    .text:00000000 $t
+     /tmp/cczRYZFI.s:110    .text:00000000 imuInit
+     /tmp/cczRYZFI.s:172    .text:00000064 $d
+     /tmp/cczRYZFI.s:181    .text:0000007c $t
+     /tmp/cczRYZFI.s:186    .text:0000007c computeIMU
+     /tmp/cczRYZFI.s:847    .text:00000578 getEstimatedAttitude
+     /tmp/cczRYZFI.s:492    .text:000002e0 $d
+     /tmp/cczRYZFI.s:2637   .bss:00000064 timeInterleave.9060
+     /tmp/cczRYZFI.s:2640   .bss:00000068 gyroADCprevious.9057
+     /tmp/cczRYZFI.s:2643   .bss:00000070 Smoothing.9071
+     /tmp/cczRYZFI.s:2646   .bss:00000074 gyroSmooth.9072
+     /tmp/cczRYZFI.s:2649   .bss:0000007a gyroYawSmooth.9061
+                            *COM*:0000000c EstG
+     /tmp/cczRYZFI.s:509    .text:0000030c $t
+     /tmp/cczRYZFI.s:514    .text:0000030c rotateV
+     /tmp/cczRYZFI.s:785    .text:00000524 _atan2f
+     /tmp/cczRYZFI.s:834    .text:00000570 $d
+     /tmp/cczRYZFI.s:843    .text:00000578 $t
+     /tmp/cczRYZFI.s:1153   .text:000007f8 $d
+     /tmp/cczRYZFI.s:2628   .bss:00000048 previousT.9114
+     /tmp/cczRYZFI.s:2631   .bss:0000004c accLPF.9113
+     /tmp/cczRYZFI.s:2634   .bss:00000058 EstM.9112
+     /tmp/cczRYZFI.s:1169   .text:00000830 $t
+     /tmp/cczRYZFI.s:1238   .text:000008cc $d
+     /tmp/cczRYZFI.s:1244   .text:000008dc $t
+     /tmp/cczRYZFI.s:1513   .text:00000b38 $d
+     /tmp/cczRYZFI.s:1527   .text:00000b6c $t
+     /tmp/cczRYZFI.s:1601   .text:00000c00 $d
+     /tmp/cczRYZFI.s:1606   .text:00000c08 $t
+     /tmp/cczRYZFI.s:1611   .text:00000c08 applyDeadband16
+     /tmp/cczRYZFI.s:1686   .text:00000c68 applyDeadbandFloat
+     /tmp/cczRYZFI.s:1789   .text:00000d08 $d
+     /tmp/cczRYZFI.s:1793   .text:00000d0c $t
+     /tmp/cczRYZFI.s:1798   .text:00000d0c InvSqrt
+     /tmp/cczRYZFI.s:1860   .text:00000d6c $d
+     /tmp/cczRYZFI.s:1866   .text:00000d78 $t
+     /tmp/cczRYZFI.s:1871   .text:00000d78 isq
+     /tmp/cczRYZFI.s:1908   .text:00000d94 getEstimatedAltitude
+     /tmp/cczRYZFI.s:2159   .text:00000f80 $d
+     /tmp/cczRYZFI.s:2613   .bss:00000034 previousT.9161
+     /tmp/cczRYZFI.s:2616   .bss:00000038 baroGroundPressure.9160
+     /tmp/cczRYZFI.s:2175   .text:00000fb8 $t
+     /tmp/cczRYZFI.s:2457   .text:00001210 $d
+     /tmp/cczRYZFI.s:2619   .bss:0000003c accZoffset.9168
+     /tmp/cczRYZFI.s:2622   .bss:00000040 vel.9169
+     /tmp/cczRYZFI.s:2625   .bss:00000044 lastBaroAlt.9170
+     /tmp/cczRYZFI.s:2471   .text:00001240 $t
+     /tmp/cczRYZFI.s:2602   .text:00001344 $d
+                     .debug_frame:00000010 $d
+     /tmp/cczRYZFI.s:2657   .text:0000135c $t
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+                           .group:00000000 wm4.mw.h.4.b0e233e0e6ae9c4c07b142ad41413d4c
+
+UNDEFINED SYMBOLS
+__aeabi_i2f
+__aeabi_fmul
+__aeabi_f2iz
+__aeabi_fdiv
+sensors
+Mag_init
+acc_1G
+ACC_getADC
+Gyro_getADC
+micros
+annexCode
+feature
+annex650_overrun_count
+mcfg
+__aeabi_fsub
+__aeabi_fadd
+cosf
+sinf
+__aeabi_f2d
+__aeabi_dmul
+__aeabi_d2iz
+atan2f
+__aeabi_ui2f
+__aeabi_d2f
+__aeabi_ddiv
+__aeabi_dadd
+gyro
+cfg
+f
+sqrtf
+asinf
+heading
+__aeabi_fcmpgt
+__aeabi_fcmplt
+__aeabi_i2d
+log
+calibratingB

@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/146/trunk/baseflight/src/baseflight_startups
+END
+startup_stm32f10x_md_fy90q.s
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/146/trunk/baseflight/src/baseflight_startups/startup_stm32f10x_md_fy90q.s
+END
+startup_stm32f10x_md_gcc.S
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/133/trunk/baseflight/src/baseflight_startups/startup_stm32f10x_md_gcc.S
+END
+startup_stm32f10x_md.s
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/105/trunk/baseflight/src/baseflight_startups/startup_stm32f10x_md.s
+END

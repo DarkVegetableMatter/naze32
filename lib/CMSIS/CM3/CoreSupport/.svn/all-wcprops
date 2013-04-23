@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/116/trunk/baseflight/lib/CMSIS/CM3/CoreSupport
+END
+core_cm3.h
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/86/trunk/baseflight/lib/CMSIS/CM3/CoreSupport/core_cm3.h
+END
+core_cm3.c
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/!svn/ver/116/trunk/baseflight/lib/CMSIS/CM3/CoreSupport/core_cm3.c
+END

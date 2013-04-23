@@ -1,0 +1,627 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"drv_mpu3050.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.data
+  21              	mpuLowPassFilter:
+  22 0000 03       		.byte	3
+  23              		.text
+  24              		.align	2
+  25              		.global	mpu3050Detect
+  26              		.thumb
+  27              		.thumb_func
+  29              	mpu3050Detect:
+  30              	.LFB29:
+  31              		.file 1 "../src/drv_mpu3050.c"
+   1:../src/drv_mpu3050.c **** #include "board.h"
+   2:../src/drv_mpu3050.c **** 
+   3:../src/drv_mpu3050.c **** // MPU3050, Standard address 0x68
+   4:../src/drv_mpu3050.c **** #define MPU3050_ADDRESS         0x68
+   5:../src/drv_mpu3050.c **** 
+   6:../src/drv_mpu3050.c **** // Registers
+   7:../src/drv_mpu3050.c **** #define MPU3050_SMPLRT_DIV      0x15
+   8:../src/drv_mpu3050.c **** #define MPU3050_DLPF_FS_SYNC    0x16
+   9:../src/drv_mpu3050.c **** #define MPU3050_INT_CFG         0x17
+  10:../src/drv_mpu3050.c **** #define MPU3050_TEMP_OUT        0x1B
+  11:../src/drv_mpu3050.c **** #define MPU3050_GYRO_OUT        0x1D
+  12:../src/drv_mpu3050.c **** #define MPU3050_USER_CTRL       0x3D
+  13:../src/drv_mpu3050.c **** #define MPU3050_PWR_MGM         0x3E
+  14:../src/drv_mpu3050.c **** 
+  15:../src/drv_mpu3050.c **** // Bits
+  16:../src/drv_mpu3050.c **** #define MPU3050_FS_SEL_2000DPS  0x18
+  17:../src/drv_mpu3050.c **** #define MPU3050_DLPF_10HZ       0x05
+  18:../src/drv_mpu3050.c **** #define MPU3050_DLPF_20HZ       0x04
+  19:../src/drv_mpu3050.c **** #define MPU3050_DLPF_42HZ       0x03
+  20:../src/drv_mpu3050.c **** #define MPU3050_DLPF_98HZ       0x02
+  21:../src/drv_mpu3050.c **** #define MPU3050_DLPF_188HZ      0x01
+  22:../src/drv_mpu3050.c **** #define MPU3050_DLPF_256HZ      0x00
+  23:../src/drv_mpu3050.c **** 
+  24:../src/drv_mpu3050.c **** #define MPU3050_USER_RESET      0x01
+  25:../src/drv_mpu3050.c **** #define MPU3050_CLK_SEL_PLL_GX  0x01
+  26:../src/drv_mpu3050.c **** 
+  27:../src/drv_mpu3050.c **** static uint8_t mpuLowPassFilter = MPU3050_DLPF_42HZ;
+  28:../src/drv_mpu3050.c **** 
+  29:../src/drv_mpu3050.c **** static void mpu3050Init(void);
+  30:../src/drv_mpu3050.c **** static void mpu3050Read(int16_t *gyroData);
+  31:../src/drv_mpu3050.c **** static void mpu3050Align(int16_t *gyroData);
+  32:../src/drv_mpu3050.c **** static void mpu3050ReadTemp(int16_t *tempData);
+  33:../src/drv_mpu3050.c **** 
+  34:../src/drv_mpu3050.c **** bool mpu3050Detect(sensor_t *gyro, uint16_t lpf)
+  35:../src/drv_mpu3050.c **** {
+  32              		.loc 1 35 0
+  33              		.cfi_startproc
+  34              		@ args = 0, pretend = 0, frame = 16
+  35              		@ frame_needed = 1, uses_anonymous_args = 0
+  36 0000 80B5     		push	{r7, lr}
+  37              	.LCFI0:
+  38              		.cfi_def_cfa_offset 8
+  39              		.cfi_offset 7, -8
+  40              		.cfi_offset 14, -4
+  41 0002 84B0     		sub	sp, sp, #16
+  42              	.LCFI1:
+  43              		.cfi_def_cfa_offset 24
+  44 0004 00AF     		add	r7, sp, #0
+  45              	.LCFI2:
+  46              		.cfi_def_cfa_register 7
+  47 0006 7860     		str	r0, [r7, #4]
+  48 0008 0B46     		mov	r3, r1
+  49 000a 7B80     		strh	r3, [r7, #2]	@ movhi
+  36:../src/drv_mpu3050.c ****     bool ack;
+  37:../src/drv_mpu3050.c **** 
+  38:../src/drv_mpu3050.c ****     delay(25); // datasheet page 13 says 20ms. other stuff could have been running meanwhile. but w
+  50              		.loc 1 38 0
+  51 000c 4FF01900 		mov	r0, #25
+  52 0010 FFF7FEFF 		bl	delay
+  39:../src/drv_mpu3050.c **** 
+  40:../src/drv_mpu3050.c ****     ack = i2cWrite(MPU3050_ADDRESS, MPU3050_SMPLRT_DIV, 0);
+  53              		.loc 1 40 0
+  54 0014 4FF06800 		mov	r0, #104
+  55 0018 4FF01501 		mov	r1, #21
+  56 001c 4FF00002 		mov	r2, #0
+  57 0020 FFF7FEFF 		bl	i2cWrite
+  58 0024 0346     		mov	r3, r0
+  59 0026 FB73     		strb	r3, [r7, #15]
+  41:../src/drv_mpu3050.c ****     if (!ack)
+  60              		.loc 1 41 0
+  61 0028 FB7B     		ldrb	r3, [r7, #15]
+  62 002a 83F00103 		eor	r3, r3, #1
+  63 002e DBB2     		uxtb	r3, r3
+  64 0030 002B     		cmp	r3, #0
+  65 0032 02D0     		beq	.L2
+  42:../src/drv_mpu3050.c ****         return false;
+  66              		.loc 1 42 0
+  67 0034 4FF00003 		mov	r3, #0
+  68 0038 3DE0     		b	.L3
+  69              	.L2:
+  43:../src/drv_mpu3050.c **** 
+  44:../src/drv_mpu3050.c ****     gyro->init = mpu3050Init;
+  70              		.loc 1 44 0
+  71 003a 7B68     		ldr	r3, [r7, #4]
+  72 003c 204A     		ldr	r2, .L12
+  73 003e 1A60     		str	r2, [r3, #0]
+  45:../src/drv_mpu3050.c ****     gyro->read = mpu3050Read;
+  74              		.loc 1 45 0
+  75 0040 7B68     		ldr	r3, [r7, #4]
+  76 0042 204A     		ldr	r2, .L12+4
+  77 0044 5A60     		str	r2, [r3, #4]
+  46:../src/drv_mpu3050.c ****     gyro->align = mpu3050Align;
+  78              		.loc 1 46 0
+  79 0046 7B68     		ldr	r3, [r7, #4]
+  80 0048 1F4A     		ldr	r2, .L12+8
+  81 004a 9A60     		str	r2, [r3, #8]
+  47:../src/drv_mpu3050.c ****     gyro->temperature = mpu3050ReadTemp;
+  82              		.loc 1 47 0
+  83 004c 7B68     		ldr	r3, [r7, #4]
+  84 004e 1F4A     		ldr	r2, .L12+12
+  85 0050 DA60     		str	r2, [r3, #12]
+  48:../src/drv_mpu3050.c ****     // 16.4 dps/lsb scalefactor
+  49:../src/drv_mpu3050.c ****     gyro->scale = (((32767.0f / 16.4f) * M_PI) / ((32767.0f / 4.0f) * 180.0f * 1000000.0f));
+  86              		.loc 1 49 0
+  87 0052 7B68     		ldr	r3, [r7, #4]
+  88 0054 1F4A     		ldr	r2, .L12+20	@ float
+  89 0056 1A61     		str	r2, [r3, #16]	@ float
+  50:../src/drv_mpu3050.c **** 
+  51:../src/drv_mpu3050.c ****     // default lpf is 42Hz
+  52:../src/drv_mpu3050.c ****     switch (lpf) {
+  90              		.loc 1 52 0
+  91 0058 7B88     		ldrh	r3, [r7, #2]
+  92 005a 622B     		cmp	r3, #98
+  93 005c 15D0     		beq	.L7
+  94 005e 622B     		cmp	r3, #98
+  95 0060 04DC     		bgt	.L10
+  96 0062 0A2B     		cmp	r3, #10
+  97 0064 20D0     		beq	.L5
+  98 0066 142B     		cmp	r3, #20
+  99 0068 19D0     		beq	.L6
+ 100 006a 13E0     		b	.L4
+ 101              	.L10:
+ 102 006c BC2B     		cmp	r3, #188
+ 103 006e 07D0     		beq	.L8
+ 104 0070 B3F5807F 		cmp	r3, #256
+ 105 0074 0ED1     		bne	.L4
+ 106              	.L9:
+  53:../src/drv_mpu3050.c ****         case 256:
+  54:../src/drv_mpu3050.c ****             mpuLowPassFilter = MPU3050_DLPF_256HZ;
+ 107              		.loc 1 54 0
+ 108 0076 164B     		ldr	r3, .L12+16
+ 109 0078 4FF00002 		mov	r2, #0
+ 110 007c 1A70     		strb	r2, [r3, #0]
+  55:../src/drv_mpu3050.c ****             break;
+ 111              		.loc 1 55 0
+ 112 007e 18E0     		b	.L11
+ 113              	.L8:
+  56:../src/drv_mpu3050.c ****         case 188:
+  57:../src/drv_mpu3050.c ****             mpuLowPassFilter = MPU3050_DLPF_188HZ;
+ 114              		.loc 1 57 0
+ 115 0080 134B     		ldr	r3, .L12+16
+ 116 0082 4FF00102 		mov	r2, #1
+ 117 0086 1A70     		strb	r2, [r3, #0]
+  58:../src/drv_mpu3050.c ****             break;
+ 118              		.loc 1 58 0
+ 119 0088 13E0     		b	.L11
+ 120              	.L7:
+  59:../src/drv_mpu3050.c ****         case 98:
+  60:../src/drv_mpu3050.c ****             mpuLowPassFilter = MPU3050_DLPF_98HZ;
+ 121              		.loc 1 60 0
+ 122 008a 114B     		ldr	r3, .L12+16
+ 123 008c 4FF00202 		mov	r2, #2
+ 124 0090 1A70     		strb	r2, [r3, #0]
+  61:../src/drv_mpu3050.c ****             break;
+ 125              		.loc 1 61 0
+ 126 0092 0EE0     		b	.L11
+ 127              	.L4:
+  62:../src/drv_mpu3050.c ****         default:
+  63:../src/drv_mpu3050.c ****         case 42:
+  64:../src/drv_mpu3050.c ****             mpuLowPassFilter = MPU3050_DLPF_42HZ;
+ 128              		.loc 1 64 0
+ 129 0094 0E4B     		ldr	r3, .L12+16
+ 130 0096 4FF00302 		mov	r2, #3
+ 131 009a 1A70     		strb	r2, [r3, #0]
+  65:../src/drv_mpu3050.c ****             break;
+ 132              		.loc 1 65 0
+ 133 009c 09E0     		b	.L11
+ 134              	.L6:
+  66:../src/drv_mpu3050.c ****         case 20:
+  67:../src/drv_mpu3050.c ****             mpuLowPassFilter = MPU3050_DLPF_20HZ;
+ 135              		.loc 1 67 0
+ 136 009e 0C4B     		ldr	r3, .L12+16
+ 137 00a0 4FF00402 		mov	r2, #4
+ 138 00a4 1A70     		strb	r2, [r3, #0]
+  68:../src/drv_mpu3050.c ****             break;
+ 139              		.loc 1 68 0
+ 140 00a6 04E0     		b	.L11
+ 141              	.L5:
+  69:../src/drv_mpu3050.c ****         case 10:
+  70:../src/drv_mpu3050.c ****             mpuLowPassFilter = MPU3050_DLPF_10HZ;
+ 142              		.loc 1 70 0
+ 143 00a8 094B     		ldr	r3, .L12+16
+ 144 00aa 4FF00502 		mov	r2, #5
+ 145 00ae 1A70     		strb	r2, [r3, #0]
+  71:../src/drv_mpu3050.c ****             break;
+ 146              		.loc 1 71 0
+ 147 00b0 00BF     		nop
+ 148              	.L11:
+  72:../src/drv_mpu3050.c ****     }
+  73:../src/drv_mpu3050.c **** 
+  74:../src/drv_mpu3050.c ****     return true;
+ 149              		.loc 1 74 0
+ 150 00b2 4FF00103 		mov	r3, #1
+ 151              	.L3:
+  75:../src/drv_mpu3050.c **** }
+ 152              		.loc 1 75 0
+ 153 00b6 1846     		mov	r0, r3
+ 154 00b8 07F11007 		add	r7, r7, #16
+ 155 00bc BD46     		mov	sp, r7
+ 156 00be 80BD     		pop	{r7, pc}
+ 157              	.L13:
+ 158              		.align	2
+ 159              	.L12:
+ 160 00c0 00000000 		.word	mpu3050Init
+ 161 00c4 00000000 		.word	mpu3050Read
+ 162 00c8 00000000 		.word	mpu3050Align
+ 163 00cc 00000000 		.word	mpu3050ReadTemp
+ 164 00d0 00000000 		.word	mpuLowPassFilter
+ 165 00d4 18449231 		.word	831669272
+ 166              		.cfi_endproc
+ 167              	.LFE29:
+ 169              		.align	2
+ 170              		.thumb
+ 171              		.thumb_func
+ 173              	mpu3050Init:
+ 174              	.LFB30:
+  76:../src/drv_mpu3050.c **** 
+  77:../src/drv_mpu3050.c **** static void mpu3050Init(void)
+  78:../src/drv_mpu3050.c **** {
+ 175              		.loc 1 78 0
+ 176              		.cfi_startproc
+ 177              		@ args = 0, pretend = 0, frame = 8
+ 178              		@ frame_needed = 1, uses_anonymous_args = 0
+ 179 00d8 80B5     		push	{r7, lr}
+ 180              	.LCFI3:
+ 181              		.cfi_def_cfa_offset 8
+ 182              		.cfi_offset 7, -8
+ 183              		.cfi_offset 14, -4
+ 184 00da 82B0     		sub	sp, sp, #8
+ 185              	.LCFI4:
+ 186              		.cfi_def_cfa_offset 16
+ 187 00dc 00AF     		add	r7, sp, #0
+ 188              	.LCFI5:
+ 189              		.cfi_def_cfa_register 7
+  79:../src/drv_mpu3050.c ****     bool ack;
+  80:../src/drv_mpu3050.c **** 
+  81:../src/drv_mpu3050.c ****     delay(25); // datasheet page 13 says 20ms. other stuff could have been running meanwhile. but w
+ 190              		.loc 1 81 0
+ 191 00de 4FF01900 		mov	r0, #25
+ 192 00e2 FFF7FEFF 		bl	delay
+  82:../src/drv_mpu3050.c **** 
+  83:../src/drv_mpu3050.c ****     ack = i2cWrite(MPU3050_ADDRESS, MPU3050_SMPLRT_DIV, 0);
+ 193              		.loc 1 83 0
+ 194 00e6 4FF06800 		mov	r0, #104
+ 195 00ea 4FF01501 		mov	r1, #21
+ 196 00ee 4FF00002 		mov	r2, #0
+ 197 00f2 FFF7FEFF 		bl	i2cWrite
+ 198 00f6 0346     		mov	r3, r0
+ 199 00f8 FB71     		strb	r3, [r7, #7]
+  84:../src/drv_mpu3050.c ****     if (!ack)
+ 200              		.loc 1 84 0
+ 201 00fa FB79     		ldrb	r3, [r7, #7]
+ 202 00fc 83F00103 		eor	r3, r3, #1
+ 203 0100 DBB2     		uxtb	r3, r3
+ 204 0102 002B     		cmp	r3, #0
+ 205 0104 03D0     		beq	.L15
+  85:../src/drv_mpu3050.c ****         failureMode(3);
+ 206              		.loc 1 85 0
+ 207 0106 4FF00300 		mov	r0, #3
+ 208 010a FFF7FEFF 		bl	failureMode
+ 209              	.L15:
+  86:../src/drv_mpu3050.c **** 
+  87:../src/drv_mpu3050.c ****     i2cWrite(MPU3050_ADDRESS, MPU3050_DLPF_FS_SYNC, MPU3050_FS_SEL_2000DPS | mpuLowPassFilter);
+ 210              		.loc 1 87 0
+ 211 010e 144B     		ldr	r3, .L16
+ 212 0110 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 213 0112 43F01803 		orr	r3, r3, #24
+ 214 0116 DBB2     		uxtb	r3, r3
+ 215 0118 4FF06800 		mov	r0, #104
+ 216 011c 4FF01601 		mov	r1, #22
+ 217 0120 1A46     		mov	r2, r3
+ 218 0122 FFF7FEFF 		bl	i2cWrite
+  88:../src/drv_mpu3050.c ****     i2cWrite(MPU3050_ADDRESS, MPU3050_INT_CFG, 0);
+ 219              		.loc 1 88 0
+ 220 0126 4FF06800 		mov	r0, #104
+ 221 012a 4FF01701 		mov	r1, #23
+ 222 012e 4FF00002 		mov	r2, #0
+ 223 0132 FFF7FEFF 		bl	i2cWrite
+  89:../src/drv_mpu3050.c ****     i2cWrite(MPU3050_ADDRESS, MPU3050_USER_CTRL, MPU3050_USER_RESET);
+ 224              		.loc 1 89 0
+ 225 0136 4FF06800 		mov	r0, #104
+ 226 013a 4FF03D01 		mov	r1, #61
+ 227 013e 4FF00102 		mov	r2, #1
+ 228 0142 FFF7FEFF 		bl	i2cWrite
+  90:../src/drv_mpu3050.c ****     i2cWrite(MPU3050_ADDRESS, MPU3050_PWR_MGM, MPU3050_CLK_SEL_PLL_GX);
+ 229              		.loc 1 90 0
+ 230 0146 4FF06800 		mov	r0, #104
+ 231 014a 4FF03E01 		mov	r1, #62
+ 232 014e 4FF00102 		mov	r2, #1
+ 233 0152 FFF7FEFF 		bl	i2cWrite
+  91:../src/drv_mpu3050.c **** }
+ 234              		.loc 1 91 0
+ 235 0156 07F10807 		add	r7, r7, #8
+ 236 015a BD46     		mov	sp, r7
+ 237 015c 80BD     		pop	{r7, pc}
+ 238              	.L17:
+ 239 015e 00BF     		.align	2
+ 240              	.L16:
+ 241 0160 00000000 		.word	mpuLowPassFilter
+ 242              		.cfi_endproc
+ 243              	.LFE30:
+ 245              		.align	2
+ 246              		.thumb
+ 247              		.thumb_func
+ 249              	mpu3050Align:
+ 250              	.LFB31:
+  92:../src/drv_mpu3050.c **** 
+  93:../src/drv_mpu3050.c **** static void mpu3050Align(int16_t *gyroData)
+  94:../src/drv_mpu3050.c **** {
+ 251              		.loc 1 94 0
+ 252              		.cfi_startproc
+ 253              		@ args = 0, pretend = 0, frame = 8
+ 254              		@ frame_needed = 1, uses_anonymous_args = 0
+ 255              		@ link register save eliminated.
+ 256 0164 80B4     		push	{r7}
+ 257              	.LCFI6:
+ 258              		.cfi_def_cfa_offset 4
+ 259              		.cfi_offset 7, -4
+ 260 0166 83B0     		sub	sp, sp, #12
+ 261              	.LCFI7:
+ 262              		.cfi_def_cfa_offset 16
+ 263 0168 00AF     		add	r7, sp, #0
+ 264              	.LCFI8:
+ 265              		.cfi_def_cfa_register 7
+ 266 016a 7860     		str	r0, [r7, #4]
+  95:../src/drv_mpu3050.c ****     // official direction is RPY
+  96:../src/drv_mpu3050.c ****     gyroData[0] = gyroData[0];
+ 267              		.loc 1 96 0
+ 268 016c 7B68     		ldr	r3, [r7, #4]
+ 269 016e 1A88     		ldrh	r2, [r3, #0]
+ 270 0170 7B68     		ldr	r3, [r7, #4]
+ 271 0172 1A80     		strh	r2, [r3, #0]	@ movhi
+  97:../src/drv_mpu3050.c ****     gyroData[1] = gyroData[1];
+ 272              		.loc 1 97 0
+ 273 0174 7B68     		ldr	r3, [r7, #4]
+ 274 0176 03F10203 		add	r3, r3, #2
+ 275 017a 7A68     		ldr	r2, [r7, #4]
+ 276 017c 5288     		ldrh	r2, [r2, #2]
+ 277 017e 1A80     		strh	r2, [r3, #0]	@ movhi
+  98:../src/drv_mpu3050.c ****     gyroData[2] = -gyroData[2];
+ 278              		.loc 1 98 0
+ 279 0180 7B68     		ldr	r3, [r7, #4]
+ 280 0182 03F10403 		add	r3, r3, #4
+ 281 0186 7A68     		ldr	r2, [r7, #4]
+ 282 0188 02F10402 		add	r2, r2, #4
+ 283 018c 1288     		ldrh	r2, [r2, #0]
+ 284 018e 92B2     		uxth	r2, r2
+ 285 0190 C2F10002 		rsb	r2, r2, #0
+ 286 0194 92B2     		uxth	r2, r2
+ 287 0196 92B2     		uxth	r2, r2
+ 288 0198 1A80     		strh	r2, [r3, #0]	@ movhi
+  99:../src/drv_mpu3050.c **** }
+ 289              		.loc 1 99 0
+ 290 019a 07F10C07 		add	r7, r7, #12
+ 291 019e BD46     		mov	sp, r7
+ 292 01a0 80BC     		pop	{r7}
+ 293 01a2 7047     		bx	lr
+ 294              		.cfi_endproc
+ 295              	.LFE31:
+ 297              		.align	2
+ 298              		.thumb
+ 299              		.thumb_func
+ 301              	mpu3050Read:
+ 302              	.LFB32:
+ 100:../src/drv_mpu3050.c **** 
+ 101:../src/drv_mpu3050.c **** // Read 3 gyro values into user-provided buffer. No overrun checking is done.
+ 102:../src/drv_mpu3050.c **** static void mpu3050Read(int16_t *gyroData)
+ 103:../src/drv_mpu3050.c **** {
+ 303              		.loc 1 103 0
+ 304              		.cfi_startproc
+ 305              		@ args = 0, pretend = 0, frame = 16
+ 306              		@ frame_needed = 1, uses_anonymous_args = 0
+ 307 01a4 80B5     		push	{r7, lr}
+ 308              	.LCFI9:
+ 309              		.cfi_def_cfa_offset 8
+ 310              		.cfi_offset 7, -8
+ 311              		.cfi_offset 14, -4
+ 312 01a6 84B0     		sub	sp, sp, #16
+ 313              	.LCFI10:
+ 314              		.cfi_def_cfa_offset 24
+ 315 01a8 00AF     		add	r7, sp, #0
+ 316              	.LCFI11:
+ 317              		.cfi_def_cfa_register 7
+ 318 01aa 7860     		str	r0, [r7, #4]
+ 104:../src/drv_mpu3050.c ****     uint8_t buf[6];
+ 105:../src/drv_mpu3050.c ****     i2cRead(MPU3050_ADDRESS, MPU3050_GYRO_OUT, 6, buf);
+ 319              		.loc 1 105 0
+ 320 01ac 07F10803 		add	r3, r7, #8
+ 321 01b0 4FF06800 		mov	r0, #104
+ 322 01b4 4FF01D01 		mov	r1, #29
+ 323 01b8 4FF00602 		mov	r2, #6
+ 324 01bc FFF7FEFF 		bl	i2cRead
+ 106:../src/drv_mpu3050.c ****     gyroData[0] = (int16_t)((buf[0] << 8) | buf[1]) / 4;
+ 325              		.loc 1 106 0
+ 326 01c0 3B7A     		ldrb	r3, [r7, #8]	@ zero_extendqisi2
+ 327 01c2 4FEA0323 		lsl	r3, r3, #8
+ 328 01c6 9AB2     		uxth	r2, r3
+ 329 01c8 7B7A     		ldrb	r3, [r7, #9]	@ zero_extendqisi2
+ 330 01ca 1343     		orrs	r3, r3, r2
+ 331 01cc 9BB2     		uxth	r3, r3
+ 332 01ce 1BB2     		sxth	r3, r3
+ 333 01d0 002B     		cmp	r3, #0
+ 334 01d2 01DA     		bge	.L20
+ 335 01d4 03F10303 		add	r3, r3, #3
+ 336              	.L20:
+ 337 01d8 4FEAA303 		asr	r3, r3, #2
+ 338 01dc 9AB2     		uxth	r2, r3
+ 339 01de 7B68     		ldr	r3, [r7, #4]
+ 340 01e0 1A80     		strh	r2, [r3, #0]	@ movhi
+ 107:../src/drv_mpu3050.c ****     gyroData[1] = (int16_t)((buf[2] << 8) | buf[3]) / 4;
+ 341              		.loc 1 107 0
+ 342 01e2 7B68     		ldr	r3, [r7, #4]
+ 343 01e4 03F10202 		add	r2, r3, #2
+ 344 01e8 BB7A     		ldrb	r3, [r7, #10]	@ zero_extendqisi2
+ 345 01ea 4FEA0323 		lsl	r3, r3, #8
+ 346 01ee 99B2     		uxth	r1, r3
+ 347 01f0 FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 348 01f2 0B43     		orrs	r3, r3, r1
+ 349 01f4 9BB2     		uxth	r3, r3
+ 350 01f6 1BB2     		sxth	r3, r3
+ 351 01f8 002B     		cmp	r3, #0
+ 352 01fa 01DA     		bge	.L21
+ 353 01fc 03F10303 		add	r3, r3, #3
+ 354              	.L21:
+ 355 0200 4FEAA303 		asr	r3, r3, #2
+ 356 0204 9BB2     		uxth	r3, r3
+ 357 0206 1380     		strh	r3, [r2, #0]	@ movhi
+ 108:../src/drv_mpu3050.c ****     gyroData[2] = (int16_t)((buf[4] << 8) | buf[5]) / 4;
+ 358              		.loc 1 108 0
+ 359 0208 7B68     		ldr	r3, [r7, #4]
+ 360 020a 03F10402 		add	r2, r3, #4
+ 361 020e 3B7B     		ldrb	r3, [r7, #12]	@ zero_extendqisi2
+ 362 0210 4FEA0323 		lsl	r3, r3, #8
+ 363 0214 99B2     		uxth	r1, r3
+ 364 0216 7B7B     		ldrb	r3, [r7, #13]	@ zero_extendqisi2
+ 365 0218 0B43     		orrs	r3, r3, r1
+ 366 021a 9BB2     		uxth	r3, r3
+ 367 021c 1BB2     		sxth	r3, r3
+ 368 021e 002B     		cmp	r3, #0
+ 369 0220 01DA     		bge	.L22
+ 370 0222 03F10303 		add	r3, r3, #3
+ 371              	.L22:
+ 372 0226 4FEAA303 		asr	r3, r3, #2
+ 373 022a 9BB2     		uxth	r3, r3
+ 374 022c 1380     		strh	r3, [r2, #0]	@ movhi
+ 109:../src/drv_mpu3050.c **** }
+ 375              		.loc 1 109 0
+ 376 022e 07F11007 		add	r7, r7, #16
+ 377 0232 BD46     		mov	sp, r7
+ 378 0234 80BD     		pop	{r7, pc}
+ 379              		.cfi_endproc
+ 380              	.LFE32:
+ 382 0236 00BF     		.align	2
+ 383              		.thumb
+ 384              		.thumb_func
+ 386              	mpu3050ReadTemp:
+ 387              	.LFB33:
+ 110:../src/drv_mpu3050.c **** 
+ 111:../src/drv_mpu3050.c **** static void mpu3050ReadTemp(int16_t *tempData)
+ 112:../src/drv_mpu3050.c **** {
+ 388              		.loc 1 112 0
+ 389              		.cfi_startproc
+ 390              		@ args = 0, pretend = 0, frame = 16
+ 391              		@ frame_needed = 1, uses_anonymous_args = 0
+ 392 0238 80B5     		push	{r7, lr}
+ 393              	.LCFI12:
+ 394              		.cfi_def_cfa_offset 8
+ 395              		.cfi_offset 7, -8
+ 396              		.cfi_offset 14, -4
+ 397 023a 84B0     		sub	sp, sp, #16
+ 398              	.LCFI13:
+ 399              		.cfi_def_cfa_offset 24
+ 400 023c 00AF     		add	r7, sp, #0
+ 401              	.LCFI14:
+ 402              		.cfi_def_cfa_register 7
+ 403 023e 7860     		str	r0, [r7, #4]
+ 113:../src/drv_mpu3050.c ****     uint8_t buf[2];
+ 114:../src/drv_mpu3050.c ****     i2cRead(MPU3050_ADDRESS, MPU3050_TEMP_OUT, 2, buf);
+ 404              		.loc 1 114 0
+ 405 0240 07F10C03 		add	r3, r7, #12
+ 406 0244 4FF06800 		mov	r0, #104
+ 407 0248 4FF01B01 		mov	r1, #27
+ 408 024c 4FF00202 		mov	r2, #2
+ 409 0250 FFF7FEFF 		bl	i2cRead
+ 115:../src/drv_mpu3050.c **** 
+ 116:../src/drv_mpu3050.c ****     *tempData = 35 + ((int32_t)(buf[0] << 8 | buf[1]) + 13200) / 280;
+ 410              		.loc 1 116 0
+ 411 0254 3B7B     		ldrb	r3, [r7, #12]	@ zero_extendqisi2
+ 412 0256 4FEA0322 		lsl	r2, r3, #8
+ 413 025a 7B7B     		ldrb	r3, [r7, #13]	@ zero_extendqisi2
+ 414 025c 1343     		orrs	r3, r3, r2
+ 415 025e 03F54E53 		add	r3, r3, #13184
+ 416 0262 03F11003 		add	r3, r3, #16
+ 417 0266 0A4A     		ldr	r2, .L24
+ 418 0268 82FB0312 		smull	r1, r2, r2, r3
+ 419 026c D218     		adds	r2, r2, r3
+ 420 026e 4FEA2222 		asr	r2, r2, #8
+ 421 0272 4FEAE373 		asr	r3, r3, #31
+ 422 0276 D31A     		subs	r3, r2, r3
+ 423 0278 9BB2     		uxth	r3, r3
+ 424 027a 03F12303 		add	r3, r3, #35
+ 425 027e 9BB2     		uxth	r3, r3
+ 426 0280 9AB2     		uxth	r2, r3
+ 427 0282 7B68     		ldr	r3, [r7, #4]
+ 428 0284 1A80     		strh	r2, [r3, #0]	@ movhi
+ 117:../src/drv_mpu3050.c **** }
+ 429              		.loc 1 117 0
+ 430 0286 07F11007 		add	r7, r7, #16
+ 431 028a BD46     		mov	sp, r7
+ 432 028c 80BD     		pop	{r7, pc}
+ 433              	.L25:
+ 434 028e 00BF     		.align	2
+ 435              	.L24:
+ 436 0290 EBA00EEA 		.word	-368140053
+ 437              		.cfi_endproc
+ 438              	.LFE33:
+ 440              	.Letext0:
+ 441              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 442              		.file 3 "../src/board.h"
+ 443              		.file 4 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 drv_mpu3050.c
+     /tmp/ccPthpN4.s:21     .data:00000000 mpuLowPassFilter
+     /tmp/ccPthpN4.s:24     .text:00000000 $t
+     /tmp/ccPthpN4.s:29     .text:00000000 mpu3050Detect
+     /tmp/ccPthpN4.s:160    .text:000000c0 $d
+     /tmp/ccPthpN4.s:173    .text:000000d8 mpu3050Init
+     /tmp/ccPthpN4.s:301    .text:000001a4 mpu3050Read
+     /tmp/ccPthpN4.s:249    .text:00000164 mpu3050Align
+     /tmp/ccPthpN4.s:386    .text:00000238 mpu3050ReadTemp
+     /tmp/ccPthpN4.s:169    .text:000000d8 $t
+     /tmp/ccPthpN4.s:241    .text:00000160 $d
+     /tmp/ccPthpN4.s:245    .text:00000164 $t
+     /tmp/ccPthpN4.s:436    .text:00000290 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+
+UNDEFINED SYMBOLS
+delay
+i2cWrite
+failureMode
+i2cRead

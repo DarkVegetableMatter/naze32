@@ -1,0 +1,409 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"drv_adc.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.bss
+  19              		.align	2
+  20              	adcValues:
+  21 0000 00000000 		.space	4
+  22              		.text
+  23              		.align	2
+  24              		.global	adcInit
+  25              		.thumb
+  26              		.thumb_func
+  28              	adcInit:
+  29              	.LFB29:
+  30              		.file 1 "../src/drv_adc.c"
+   1:../src/drv_adc.c **** #include "board.h"
+   2:../src/drv_adc.c **** 
+   3:../src/drv_adc.c **** #define ADC_BATTERY     0
+   4:../src/drv_adc.c **** #define ADC_CURRENT     1
+   5:../src/drv_adc.c **** 
+   6:../src/drv_adc.c **** // static volatile uint16_t adc1Ch4Value = 0;
+   7:../src/drv_adc.c **** static volatile uint16_t adcValues[2];
+   8:../src/drv_adc.c **** 
+   9:../src/drv_adc.c **** void adcInit(drv_adc_config_t *init)
+  10:../src/drv_adc.c **** {
+  31              		.loc 1 10 0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 80
+  34              		@ frame_needed = 1, uses_anonymous_args = 0
+  35 0000 80B5     		push	{r7, lr}
+  36              	.LCFI0:
+  37              		.cfi_def_cfa_offset 8
+  38              		.cfi_offset 7, -8
+  39              		.cfi_offset 14, -4
+  40 0002 94B0     		sub	sp, sp, #80
+  41              	.LCFI1:
+  42              		.cfi_def_cfa_offset 88
+  43 0004 00AF     		add	r7, sp, #0
+  44              	.LCFI2:
+  45              		.cfi_def_cfa_register 7
+  46 0006 7860     		str	r0, [r7, #4]
+  11:../src/drv_adc.c ****     ADC_InitTypeDef ADC_InitStructure;
+  12:../src/drv_adc.c ****     DMA_InitTypeDef DMA_InitStructure;
+  13:../src/drv_adc.c ****     bool multiChannel = init->powerAdcChannel > 0;
+  47              		.loc 1 13 0
+  48 0008 7B68     		ldr	r3, [r7, #4]
+  49 000a 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+  50 000c 002B     		cmp	r3, #0
+  51 000e 0CBF     		ite	eq
+  52 0010 0023     		moveq	r3, #0
+  53 0012 0123     		movne	r3, #1
+  54 0014 87F84F30 		strb	r3, [r7, #79]
+  14:../src/drv_adc.c **** 
+  15:../src/drv_adc.c ****     // ADC assumes all the GPIO was already placed in 'AIN' mode
+  16:../src/drv_adc.c ****     DMA_DeInit(DMA1_Channel1);
+  55              		.loc 1 16 0
+  56 0018 4D48     		ldr	r0, .L11
+  57 001a FFF7FEFF 		bl	DMA_DeInit
+  17:../src/drv_adc.c ****     DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&ADC1->DR;
+  58              		.loc 1 17 0
+  59 001e 4D4B     		ldr	r3, .L11+4
+  60 0020 FB60     		str	r3, [r7, #12]
+  18:../src/drv_adc.c ****     DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)adcValues;
+  61              		.loc 1 18 0
+  62 0022 4D4B     		ldr	r3, .L11+8
+  63 0024 3B61     		str	r3, [r7, #16]
+  19:../src/drv_adc.c ****     DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
+  64              		.loc 1 19 0
+  65 0026 4FF00003 		mov	r3, #0
+  66 002a 7B61     		str	r3, [r7, #20]
+  20:../src/drv_adc.c ****     DMA_InitStructure.DMA_BufferSize = multiChannel ? 2 : 1;
+  67              		.loc 1 20 0
+  68 002c 97F84F30 		ldrb	r3, [r7, #79]	@ zero_extendqisi2
+  69 0030 002B     		cmp	r3, #0
+  70 0032 02D0     		beq	.L2
+  71              		.loc 1 20 0 is_stmt 0 discriminator 1
+  72 0034 4FF00203 		mov	r3, #2
+  73 0038 01E0     		b	.L3
+  74              	.L2:
+  75              		.loc 1 20 0 discriminator 2
+  76 003a 4FF00103 		mov	r3, #1
+  77              	.L3:
+  78              		.loc 1 20 0 discriminator 3
+  79 003e BB61     		str	r3, [r7, #24]
+  21:../src/drv_adc.c ****     DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+  80              		.loc 1 21 0 is_stmt 1 discriminator 3
+  81 0040 4FF00003 		mov	r3, #0
+  82 0044 FB61     		str	r3, [r7, #28]
+  22:../src/drv_adc.c ****     DMA_InitStructure.DMA_MemoryInc = multiChannel ? DMA_MemoryInc_Enable : DMA_MemoryInc_Disable;
+  83              		.loc 1 22 0 discriminator 3
+  84 0046 97F84F30 		ldrb	r3, [r7, #79]	@ zero_extendqisi2
+  85 004a 002B     		cmp	r3, #0
+  86 004c 02D0     		beq	.L4
+  87              		.loc 1 22 0 is_stmt 0 discriminator 1
+  88 004e 4FF08003 		mov	r3, #128
+  89 0052 01E0     		b	.L5
+  90              	.L4:
+  91              		.loc 1 22 0 discriminator 2
+  92 0054 4FF00003 		mov	r3, #0
+  93              	.L5:
+  94              		.loc 1 22 0 discriminator 3
+  95 0058 3B62     		str	r3, [r7, #32]
+  23:../src/drv_adc.c ****     DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
+  96              		.loc 1 23 0 is_stmt 1 discriminator 3
+  97 005a 4FF48073 		mov	r3, #256
+  98 005e 7B62     		str	r3, [r7, #36]
+  24:../src/drv_adc.c ****     DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+  99              		.loc 1 24 0 discriminator 3
+ 100 0060 4FF48063 		mov	r3, #1024
+ 101 0064 BB62     		str	r3, [r7, #40]
+  25:../src/drv_adc.c ****     DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
+ 102              		.loc 1 25 0 discriminator 3
+ 103 0066 4FF02003 		mov	r3, #32
+ 104 006a FB62     		str	r3, [r7, #44]
+  26:../src/drv_adc.c ****     DMA_InitStructure.DMA_Priority = DMA_Priority_High;
+ 105              		.loc 1 26 0 discriminator 3
+ 106 006c 4FF40053 		mov	r3, #8192
+ 107 0070 3B63     		str	r3, [r7, #48]
+  27:../src/drv_adc.c ****     DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
+ 108              		.loc 1 27 0 discriminator 3
+ 109 0072 4FF00003 		mov	r3, #0
+ 110 0076 7B63     		str	r3, [r7, #52]
+  28:../src/drv_adc.c ****     DMA_Init(DMA1_Channel1, &DMA_InitStructure);
+ 111              		.loc 1 28 0 discriminator 3
+ 112 0078 07F10C03 		add	r3, r7, #12
+ 113 007c 3448     		ldr	r0, .L11
+ 114 007e 1946     		mov	r1, r3
+ 115 0080 FFF7FEFF 		bl	DMA_Init
+  29:../src/drv_adc.c ****     /* Enable DMA1 channel1 */
+  30:../src/drv_adc.c ****     DMA_Cmd(DMA1_Channel1, ENABLE);
+ 116              		.loc 1 30 0 discriminator 3
+ 117 0084 3248     		ldr	r0, .L11
+ 118 0086 4FF00101 		mov	r1, #1
+ 119 008a FFF7FEFF 		bl	DMA_Cmd
+  31:../src/drv_adc.c **** 
+  32:../src/drv_adc.c ****     ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;
+ 120              		.loc 1 32 0 discriminator 3
+ 121 008e 4FF00003 		mov	r3, #0
+ 122 0092 BB63     		str	r3, [r7, #56]
+  33:../src/drv_adc.c ****     ADC_InitStructure.ADC_ScanConvMode = multiChannel ? ENABLE : DISABLE;
+ 123              		.loc 1 33 0 discriminator 3
+ 124 0094 97F84F30 		ldrb	r3, [r7, #79]	@ zero_extendqisi2
+ 125 0098 87F83C30 		strb	r3, [r7, #60]
+  34:../src/drv_adc.c ****     ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;
+ 126              		.loc 1 34 0 discriminator 3
+ 127 009c 4FF00103 		mov	r3, #1
+ 128 00a0 87F83D30 		strb	r3, [r7, #61]
+  35:../src/drv_adc.c ****     ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;
+ 129              		.loc 1 35 0 discriminator 3
+ 130 00a4 4FF46023 		mov	r3, #917504
+ 131 00a8 3B64     		str	r3, [r7, #64]
+  36:../src/drv_adc.c ****     ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
+ 132              		.loc 1 36 0 discriminator 3
+ 133 00aa 4FF00003 		mov	r3, #0
+ 134 00ae 7B64     		str	r3, [r7, #68]
+  37:../src/drv_adc.c ****     ADC_InitStructure.ADC_NbrOfChannel = multiChannel ? 2 : 1;
+ 135              		.loc 1 37 0 discriminator 3
+ 136 00b0 97F84F30 		ldrb	r3, [r7, #79]	@ zero_extendqisi2
+ 137 00b4 002B     		cmp	r3, #0
+ 138 00b6 02D0     		beq	.L6
+ 139              		.loc 1 37 0 is_stmt 0 discriminator 1
+ 140 00b8 4FF00203 		mov	r3, #2
+ 141 00bc 01E0     		b	.L7
+ 142              	.L6:
+ 143              		.loc 1 37 0 discriminator 2
+ 144 00be 4FF00103 		mov	r3, #1
+ 145              	.L7:
+ 146              		.loc 1 37 0 discriminator 3
+ 147 00c2 87F84830 		strb	r3, [r7, #72]
+  38:../src/drv_adc.c ****     ADC_Init(ADC1, &ADC_InitStructure);
+ 148              		.loc 1 38 0 is_stmt 1 discriminator 3
+ 149 00c6 07F13803 		add	r3, r7, #56
+ 150 00ca 2448     		ldr	r0, .L11+12
+ 151 00cc 1946     		mov	r1, r3
+ 152 00ce FFF7FEFF 		bl	ADC_Init
+  39:../src/drv_adc.c **** 
+  40:../src/drv_adc.c ****     ADC_RegularChannelConfig(ADC1, ADC_Channel_4, 1, ADC_SampleTime_28Cycles5);
+ 153              		.loc 1 40 0 discriminator 3
+ 154 00d2 2248     		ldr	r0, .L11+12
+ 155 00d4 4FF00401 		mov	r1, #4
+ 156 00d8 4FF00102 		mov	r2, #1
+ 157 00dc 4FF00303 		mov	r3, #3
+ 158 00e0 FFF7FEFF 		bl	ADC_RegularChannelConfig
+  41:../src/drv_adc.c ****     if (multiChannel)
+ 159              		.loc 1 41 0 discriminator 3
+ 160 00e4 97F84F30 		ldrb	r3, [r7, #79]	@ zero_extendqisi2
+ 161 00e8 002B     		cmp	r3, #0
+ 162 00ea 09D0     		beq	.L8
+  42:../src/drv_adc.c ****         ADC_RegularChannelConfig(ADC1, init->powerAdcChannel, 2, ADC_SampleTime_28Cycles5);
+ 163              		.loc 1 42 0
+ 164 00ec 7B68     		ldr	r3, [r7, #4]
+ 165 00ee 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 166 00f0 1A48     		ldr	r0, .L11+12
+ 167 00f2 1946     		mov	r1, r3
+ 168 00f4 4FF00202 		mov	r2, #2
+ 169 00f8 4FF00303 		mov	r3, #3
+ 170 00fc FFF7FEFF 		bl	ADC_RegularChannelConfig
+ 171              	.L8:
+  43:../src/drv_adc.c ****     ADC_DMACmd(ADC1, ENABLE);
+ 172              		.loc 1 43 0
+ 173 0100 1648     		ldr	r0, .L11+12
+ 174 0102 4FF00101 		mov	r1, #1
+ 175 0106 FFF7FEFF 		bl	ADC_DMACmd
+  44:../src/drv_adc.c **** 
+  45:../src/drv_adc.c ****     ADC_Cmd(ADC1, ENABLE);
+ 176              		.loc 1 45 0
+ 177 010a 1448     		ldr	r0, .L11+12
+ 178 010c 4FF00101 		mov	r1, #1
+ 179 0110 FFF7FEFF 		bl	ADC_Cmd
+  46:../src/drv_adc.c **** 
+  47:../src/drv_adc.c ****     // Calibrate ADC
+  48:../src/drv_adc.c ****     ADC_ResetCalibration(ADC1);
+ 180              		.loc 1 48 0
+ 181 0114 1148     		ldr	r0, .L11+12
+ 182 0116 FFF7FEFF 		bl	ADC_ResetCalibration
+  49:../src/drv_adc.c ****     while(ADC_GetResetCalibrationStatus(ADC1));
+ 183              		.loc 1 49 0
+ 184 011a 00BF     		nop
+ 185              	.L9:
+ 186              		.loc 1 49 0 is_stmt 0 discriminator 1
+ 187 011c 0F48     		ldr	r0, .L11+12
+ 188 011e FFF7FEFF 		bl	ADC_GetResetCalibrationStatus
+ 189 0122 0346     		mov	r3, r0
+ 190 0124 002B     		cmp	r3, #0
+ 191 0126 F9D1     		bne	.L9
+  50:../src/drv_adc.c ****     ADC_StartCalibration(ADC1);
+ 192              		.loc 1 50 0 is_stmt 1
+ 193 0128 0C48     		ldr	r0, .L11+12
+ 194 012a FFF7FEFF 		bl	ADC_StartCalibration
+  51:../src/drv_adc.c ****     while(ADC_GetCalibrationStatus(ADC1));
+ 195              		.loc 1 51 0
+ 196 012e 00BF     		nop
+ 197              	.L10:
+ 198              		.loc 1 51 0 is_stmt 0 discriminator 1
+ 199 0130 0A48     		ldr	r0, .L11+12
+ 200 0132 FFF7FEFF 		bl	ADC_GetCalibrationStatus
+ 201 0136 0346     		mov	r3, r0
+ 202 0138 002B     		cmp	r3, #0
+ 203 013a F9D1     		bne	.L10
+  52:../src/drv_adc.c **** 
+  53:../src/drv_adc.c ****     // Fire off ADC
+  54:../src/drv_adc.c ****     ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+ 204              		.loc 1 54 0 is_stmt 1
+ 205 013c 0748     		ldr	r0, .L11+12
+ 206 013e 4FF00101 		mov	r1, #1
+ 207 0142 FFF7FEFF 		bl	ADC_SoftwareStartConvCmd
+  55:../src/drv_adc.c **** }
+ 208              		.loc 1 55 0
+ 209 0146 07F15007 		add	r7, r7, #80
+ 210 014a BD46     		mov	sp, r7
+ 211 014c 80BD     		pop	{r7, pc}
+ 212              	.L12:
+ 213 014e 00BF     		.align	2
+ 214              	.L11:
+ 215 0150 08000240 		.word	1073872904
+ 216 0154 4C240140 		.word	1073816652
+ 217 0158 00000000 		.word	adcValues
+ 218 015c 00240140 		.word	1073816576
+ 219              		.cfi_endproc
+ 220              	.LFE29:
+ 222              		.align	2
+ 223              		.global	adcGetChannel
+ 224              		.thumb
+ 225              		.thumb_func
+ 227              	adcGetChannel:
+ 228              	.LFB30:
+  56:../src/drv_adc.c **** 
+  57:../src/drv_adc.c **** uint16_t adcGetChannel(uint8_t channel)
+  58:../src/drv_adc.c **** {
+ 229              		.loc 1 58 0
+ 230              		.cfi_startproc
+ 231              		@ args = 0, pretend = 0, frame = 8
+ 232              		@ frame_needed = 1, uses_anonymous_args = 0
+ 233              		@ link register save eliminated.
+ 234 0160 80B4     		push	{r7}
+ 235              	.LCFI3:
+ 236              		.cfi_def_cfa_offset 4
+ 237              		.cfi_offset 7, -4
+ 238 0162 83B0     		sub	sp, sp, #12
+ 239              	.LCFI4:
+ 240              		.cfi_def_cfa_offset 16
+ 241 0164 00AF     		add	r7, sp, #0
+ 242              	.LCFI5:
+ 243              		.cfi_def_cfa_register 7
+ 244 0166 0346     		mov	r3, r0
+ 245 0168 FB71     		strb	r3, [r7, #7]
+  59:../src/drv_adc.c ****     return adcValues[channel];
+ 246              		.loc 1 59 0
+ 247 016a FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 248 016c 044B     		ldr	r3, .L15
+ 249 016e 33F81230 		ldrh	r3, [r3, r2, lsl #1]	@ movhi
+ 250 0172 9BB2     		uxth	r3, r3
+  60:../src/drv_adc.c **** }
+ 251              		.loc 1 60 0
+ 252 0174 1846     		mov	r0, r3
+ 253 0176 07F10C07 		add	r7, r7, #12
+ 254 017a BD46     		mov	sp, r7
+ 255 017c 80BC     		pop	{r7}
+ 256 017e 7047     		bx	lr
+ 257              	.L16:
+ 258              		.align	2
+ 259              	.L15:
+ 260 0180 00000000 		.word	adcValues
+ 261              		.cfi_endproc
+ 262              	.LFE30:
+ 264              	.Letext0:
+ 265              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 266              		.file 3 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/stm32f10x.h"
+ 267              		.file 4 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/stm32f10x_adc.h"
+ 268              		.file 5 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/stm32f10x_dma.h"
+ 269              		.file 6 "../src/drv_adc.h"
+ 270              		.file 7 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 drv_adc.c
+     /tmp/ccG0sq8b.s:19     .bss:00000000 $d
+     /tmp/ccG0sq8b.s:20     .bss:00000000 adcValues
+     /tmp/ccG0sq8b.s:23     .text:00000000 $t
+     /tmp/ccG0sq8b.s:28     .text:00000000 adcInit
+     /tmp/ccG0sq8b.s:215    .text:00000150 $d
+     /tmp/ccG0sq8b.s:222    .text:00000160 $t
+     /tmp/ccG0sq8b.s:227    .text:00000160 adcGetChannel
+     /tmp/ccG0sq8b.s:260    .text:00000180 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+
+UNDEFINED SYMBOLS
+DMA_DeInit
+DMA_Init
+DMA_Cmd
+ADC_Init
+ADC_RegularChannelConfig
+ADC_DMACmd
+ADC_Cmd
+ADC_ResetCalibration
+ADC_GetResetCalibrationStatus
+ADC_StartCalibration
+ADC_GetCalibrationStatus
+ADC_SoftwareStartConvCmd

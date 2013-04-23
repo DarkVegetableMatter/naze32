@@ -1,0 +1,598 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"misc.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.align	2
+  19              		.global	NVIC_PriorityGroupConfig
+  20              		.thumb
+  21              		.thumb_func
+  23              	NVIC_PriorityGroupConfig:
+  24              	.LFB29:
+  25              		.file 1 "../lib/STM32F10x_StdPeriph_Driver/src/misc.c"
+   1:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /**
+   2:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   ******************************************************************************
+   3:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @file    misc.c
+   4:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @author  MCD Application Team
+   5:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @version V3.5.0
+   6:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @date    11-March-2011
+   7:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @brief   This file provides all the miscellaneous firmware functions (add-on
+   8:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *          to CMSIS functions).
+   9:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   ******************************************************************************
+  10:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @attention
+  11:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *
+  12:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
+  13:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
+  14:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
+  15:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
+  16:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
+  17:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
+  18:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *
+  19:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
+  20:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   ******************************************************************************
+  21:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  22:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  23:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /* Includes ------------------------------------------------------------------*/
+  24:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** #include "misc.h"
+  25:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  26:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /** @addtogroup STM32F10x_StdPeriph_Driver
+  27:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @{
+  28:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  29:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  30:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /** @defgroup MISC 
+  31:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @brief MISC driver modules
+  32:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @{
+  33:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  34:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  35:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /** @defgroup MISC_Private_TypesDefinitions
+  36:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @{
+  37:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  38:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  39:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /**
+  40:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @}
+  41:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */ 
+  42:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  43:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /** @defgroup MISC_Private_Defines
+  44:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @{
+  45:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  46:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  47:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** #define AIRCR_VECTKEY_MASK    ((uint32_t)0x05FA0000)
+  48:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /**
+  49:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @}
+  50:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  51:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  52:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /** @defgroup MISC_Private_Macros
+  53:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @{
+  54:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  55:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  56:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /**
+  57:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @}
+  58:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  59:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  60:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /** @defgroup MISC_Private_Variables
+  61:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @{
+  62:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  63:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  64:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /**
+  65:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @}
+  66:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  67:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  68:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /** @defgroup MISC_Private_FunctionPrototypes
+  69:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @{
+  70:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  71:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  72:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /**
+  73:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @}
+  74:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  75:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  76:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /** @defgroup MISC_Private_Functions
+  77:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @{
+  78:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  79:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+  80:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /**
+  81:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @brief  Configures the priority grouping: pre-emption priority and subpriority.
+  82:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @param  NVIC_PriorityGroup: specifies the priority grouping bits length. 
+  83:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *   This parameter can be one of the following values:
+  84:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *     @arg NVIC_PriorityGroup_0: 0 bits for pre-emption priority
+  85:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *                                4 bits for subpriority
+  86:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *     @arg NVIC_PriorityGroup_1: 1 bits for pre-emption priority
+  87:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *                                3 bits for subpriority
+  88:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *     @arg NVIC_PriorityGroup_2: 2 bits for pre-emption priority
+  89:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *                                2 bits for subpriority
+  90:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *     @arg NVIC_PriorityGroup_3: 3 bits for pre-emption priority
+  91:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *                                1 bits for subpriority
+  92:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *     @arg NVIC_PriorityGroup_4: 4 bits for pre-emption priority
+  93:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *                                0 bits for subpriority
+  94:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @retval None
+  95:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+  96:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** void NVIC_PriorityGroupConfig(uint32_t NVIC_PriorityGroup)
+  97:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** {
+  26              		.loc 1 97 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 8
+  29              		@ frame_needed = 1, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  31 0000 80B4     		push	{r7}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 4
+  34              		.cfi_offset 7, -4
+  35 0002 83B0     		sub	sp, sp, #12
+  36              	.LCFI1:
+  37              		.cfi_def_cfa_offset 16
+  38 0004 00AF     		add	r7, sp, #0
+  39              	.LCFI2:
+  40              		.cfi_def_cfa_register 7
+  41 0006 7860     		str	r0, [r7, #4]
+  98:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   /* Check the parameters */
+  99:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   assert_param(IS_NVIC_PRIORITY_GROUP(NVIC_PriorityGroup));
+ 100:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   
+ 101:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   /* Set the PRIGROUP[10:8] bits according to NVIC_PriorityGroup value */
+ 102:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   SCB->AIRCR = AIRCR_VECTKEY_MASK | NVIC_PriorityGroup;
+  42              		.loc 1 102 0
+  43 0008 054A     		ldr	r2, .L2
+  44 000a 7B68     		ldr	r3, [r7, #4]
+  45 000c 43F0BF63 		orr	r3, r3, #100139008
+  46 0010 43F40033 		orr	r3, r3, #131072
+  47 0014 D360     		str	r3, [r2, #12]
+ 103:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** }
+  48              		.loc 1 103 0
+  49 0016 07F10C07 		add	r7, r7, #12
+  50 001a BD46     		mov	sp, r7
+  51 001c 80BC     		pop	{r7}
+  52 001e 7047     		bx	lr
+  53              	.L3:
+  54              		.align	2
+  55              	.L2:
+  56 0020 00ED00E0 		.word	-536810240
+  57              		.cfi_endproc
+  58              	.LFE29:
+  60              		.align	2
+  61              		.global	NVIC_Init
+  62              		.thumb
+  63              		.thumb_func
+  65              	NVIC_Init:
+  66              	.LFB30:
+ 104:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+ 105:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /**
+ 106:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @brief  Initializes the NVIC peripheral according to the specified
+ 107:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *         parameters in the NVIC_InitStruct.
+ 108:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @param  NVIC_InitStruct: pointer to a NVIC_InitTypeDef structure that contains
+ 109:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *         the configuration information for the specified NVIC peripheral.
+ 110:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @retval None
+ 111:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+ 112:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** void NVIC_Init(NVIC_InitTypeDef* NVIC_InitStruct)
+ 113:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** {
+  67              		.loc 1 113 0
+  68              		.cfi_startproc
+  69              		@ args = 0, pretend = 0, frame = 24
+  70              		@ frame_needed = 1, uses_anonymous_args = 0
+  71              		@ link register save eliminated.
+  72 0024 80B4     		push	{r7}
+  73              	.LCFI3:
+  74              		.cfi_def_cfa_offset 4
+  75              		.cfi_offset 7, -4
+  76 0026 87B0     		sub	sp, sp, #28
+  77              	.LCFI4:
+  78              		.cfi_def_cfa_offset 32
+  79 0028 00AF     		add	r7, sp, #0
+  80              	.LCFI5:
+  81              		.cfi_def_cfa_register 7
+  82 002a 7860     		str	r0, [r7, #4]
+ 114:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   uint32_t tmppriority = 0x00, tmppre = 0x00, tmpsub = 0x0F;
+  83              		.loc 1 114 0
+  84 002c 4FF00003 		mov	r3, #0
+  85 0030 7B61     		str	r3, [r7, #20]
+  86 0032 4FF00003 		mov	r3, #0
+  87 0036 3B61     		str	r3, [r7, #16]
+  88 0038 4FF00F03 		mov	r3, #15
+  89 003c FB60     		str	r3, [r7, #12]
+ 115:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   
+ 116:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   /* Check the parameters */
+ 117:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   assert_param(IS_FUNCTIONAL_STATE(NVIC_InitStruct->NVIC_IRQChannelCmd));
+ 118:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   assert_param(IS_NVIC_PREEMPTION_PRIORITY(NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority));  
+ 119:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   assert_param(IS_NVIC_SUB_PRIORITY(NVIC_InitStruct->NVIC_IRQChannelSubPriority));
+ 120:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     
+ 121:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   if (NVIC_InitStruct->NVIC_IRQChannelCmd != DISABLE)
+  90              		.loc 1 121 0
+  91 003e 7B68     		ldr	r3, [r7, #4]
+  92 0040 DB78     		ldrb	r3, [r3, #3]	@ zero_extendqisi2
+  93 0042 002B     		cmp	r3, #0
+  94 0044 3DD0     		beq	.L5
+ 122:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   {
+ 123:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     /* Compute the Corresponding IRQ Priority --------------------------------*/    
+ 124:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     tmppriority = (0x700 - ((SCB->AIRCR) & (uint32_t)0x700))>> 0x08;
+  95              		.loc 1 124 0
+  96 0046 2A4B     		ldr	r3, .L7
+  97 0048 DB68     		ldr	r3, [r3, #12]
+  98 004a 6FEA0303 		mvn	r3, r3
+  99 004e 03F4E063 		and	r3, r3, #1792
+ 100 0052 4FEA1323 		lsr	r3, r3, #8
+ 101 0056 7B61     		str	r3, [r7, #20]
+ 125:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     tmppre = (0x4 - tmppriority);
+ 102              		.loc 1 125 0
+ 103 0058 7B69     		ldr	r3, [r7, #20]
+ 104 005a C3F10403 		rsb	r3, r3, #4
+ 105 005e 3B61     		str	r3, [r7, #16]
+ 126:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     tmpsub = tmpsub >> tmppriority;
+ 106              		.loc 1 126 0
+ 107 0060 7B69     		ldr	r3, [r7, #20]
+ 108 0062 FA68     		ldr	r2, [r7, #12]
+ 109 0064 22FA03F3 		lsr	r3, r2, r3
+ 110 0068 FB60     		str	r3, [r7, #12]
+ 127:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+ 128:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     tmppriority = (uint32_t)NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority << tmppre;
+ 111              		.loc 1 128 0
+ 112 006a 7B68     		ldr	r3, [r7, #4]
+ 113 006c 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 114 006e 1A46     		mov	r2, r3
+ 115 0070 3B69     		ldr	r3, [r7, #16]
+ 116 0072 02FA03F3 		lsl	r3, r2, r3
+ 117 0076 7B61     		str	r3, [r7, #20]
+ 129:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     tmppriority |=  NVIC_InitStruct->NVIC_IRQChannelSubPriority & tmpsub;
+ 118              		.loc 1 129 0
+ 119 0078 7B68     		ldr	r3, [r7, #4]
+ 120 007a 9B78     		ldrb	r3, [r3, #2]	@ zero_extendqisi2
+ 121 007c 1A46     		mov	r2, r3
+ 122 007e FB68     		ldr	r3, [r7, #12]
+ 123 0080 1340     		ands	r3, r3, r2
+ 124 0082 7A69     		ldr	r2, [r7, #20]
+ 125 0084 1343     		orrs	r3, r3, r2
+ 126 0086 7B61     		str	r3, [r7, #20]
+ 130:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     tmppriority = tmppriority << 0x04;
+ 127              		.loc 1 130 0
+ 128 0088 7B69     		ldr	r3, [r7, #20]
+ 129 008a 4FEA0313 		lsl	r3, r3, #4
+ 130 008e 7B61     		str	r3, [r7, #20]
+ 131:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****         
+ 132:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     NVIC->IP[NVIC_InitStruct->NVIC_IRQChannel] = tmppriority;
+ 131              		.loc 1 132 0
+ 132 0090 1849     		ldr	r1, .L7+4
+ 133 0092 7B68     		ldr	r3, [r7, #4]
+ 134 0094 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 135 0096 7A69     		ldr	r2, [r7, #20]
+ 136 0098 D2B2     		uxtb	r2, r2
+ 137 009a CB18     		adds	r3, r1, r3
+ 138 009c 83F80023 		strb	r2, [r3, #768]
+ 133:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     
+ 134:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     /* Enable the Selected IRQ Channels --------------------------------------*/
+ 135:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     NVIC->ISER[NVIC_InitStruct->NVIC_IRQChannel >> 0x05] =
+ 139              		.loc 1 135 0
+ 140 00a0 144B     		ldr	r3, .L7+4
+ 141 00a2 7A68     		ldr	r2, [r7, #4]
+ 142 00a4 1278     		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 143 00a6 4FEA5212 		lsr	r2, r2, #5
+ 144 00aa D2B2     		uxtb	r2, r2
+ 136:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****       (uint32_t)0x01 << (NVIC_InitStruct->NVIC_IRQChannel & (uint8_t)0x1F);
+ 145              		.loc 1 136 0
+ 146 00ac 7968     		ldr	r1, [r7, #4]
+ 147 00ae 0978     		ldrb	r1, [r1, #0]	@ zero_extendqisi2
+ 148 00b0 01F01F01 		and	r1, r1, #31
+ 149 00b4 4FF00100 		mov	r0, #1
+ 150 00b8 00FA01F1 		lsl	r1, r0, r1
+ 135:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     NVIC->ISER[NVIC_InitStruct->NVIC_IRQChannel >> 0x05] =
+ 151              		.loc 1 135 0
+ 152 00bc 43F82210 		str	r1, [r3, r2, lsl #2]
+ 153 00c0 11E0     		b	.L4
+ 154              	.L5:
+ 137:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   }
+ 138:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   else
+ 139:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   {
+ 140:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     /* Disable the Selected IRQ Channels -------------------------------------*/
+ 141:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     NVIC->ICER[NVIC_InitStruct->NVIC_IRQChannel >> 0x05] =
+ 155              		.loc 1 141 0
+ 156 00c2 0C4B     		ldr	r3, .L7+4
+ 157 00c4 7A68     		ldr	r2, [r7, #4]
+ 158 00c6 1278     		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 159 00c8 4FEA5212 		lsr	r2, r2, #5
+ 160 00cc D2B2     		uxtb	r2, r2
+ 142:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****       (uint32_t)0x01 << (NVIC_InitStruct->NVIC_IRQChannel & (uint8_t)0x1F);
+ 161              		.loc 1 142 0
+ 162 00ce 7968     		ldr	r1, [r7, #4]
+ 163 00d0 0978     		ldrb	r1, [r1, #0]	@ zero_extendqisi2
+ 164 00d2 01F01F01 		and	r1, r1, #31
+ 165 00d6 4FF00100 		mov	r0, #1
+ 166 00da 00FA01F1 		lsl	r1, r0, r1
+ 141:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     NVIC->ICER[NVIC_InitStruct->NVIC_IRQChannel >> 0x05] =
+ 167              		.loc 1 141 0
+ 168 00de 02F12002 		add	r2, r2, #32
+ 169 00e2 43F82210 		str	r1, [r3, r2, lsl #2]
+ 170              	.L4:
+ 143:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   }
+ 144:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** }
+ 171              		.loc 1 144 0
+ 172 00e6 07F11C07 		add	r7, r7, #28
+ 173 00ea BD46     		mov	sp, r7
+ 174 00ec 80BC     		pop	{r7}
+ 175 00ee 7047     		bx	lr
+ 176              	.L8:
+ 177              		.align	2
+ 178              	.L7:
+ 179 00f0 00ED00E0 		.word	-536810240
+ 180 00f4 00E100E0 		.word	-536813312
+ 181              		.cfi_endproc
+ 182              	.LFE30:
+ 184              		.align	2
+ 185              		.global	NVIC_SetVectorTable
+ 186              		.thumb
+ 187              		.thumb_func
+ 189              	NVIC_SetVectorTable:
+ 190              	.LFB31:
+ 145:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+ 146:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /**
+ 147:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @brief  Sets the vector table location and Offset.
+ 148:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @param  NVIC_VectTab: specifies if the vector table is in RAM or FLASH memory.
+ 149:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *   This parameter can be one of the following values:
+ 150:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *     @arg NVIC_VectTab_RAM
+ 151:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *     @arg NVIC_VectTab_FLASH
+ 152:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @param  Offset: Vector Table base offset field. This value must be a multiple 
+ 153:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *         of 0x200.
+ 154:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @retval None
+ 155:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+ 156:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** void NVIC_SetVectorTable(uint32_t NVIC_VectTab, uint32_t Offset)
+ 157:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** { 
+ 191              		.loc 1 157 0
+ 192              		.cfi_startproc
+ 193              		@ args = 0, pretend = 0, frame = 8
+ 194              		@ frame_needed = 1, uses_anonymous_args = 0
+ 195              		@ link register save eliminated.
+ 196 00f8 80B4     		push	{r7}
+ 197              	.LCFI6:
+ 198              		.cfi_def_cfa_offset 4
+ 199              		.cfi_offset 7, -4
+ 200 00fa 83B0     		sub	sp, sp, #12
+ 201              	.LCFI7:
+ 202              		.cfi_def_cfa_offset 16
+ 203 00fc 00AF     		add	r7, sp, #0
+ 204              	.LCFI8:
+ 205              		.cfi_def_cfa_register 7
+ 206 00fe 7860     		str	r0, [r7, #4]
+ 207 0100 3960     		str	r1, [r7, #0]
+ 158:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   /* Check the parameters */
+ 159:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   assert_param(IS_NVIC_VECTTAB(NVIC_VectTab));
+ 160:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   assert_param(IS_NVIC_OFFSET(Offset));  
+ 161:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****    
+ 162:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   SCB->VTOR = NVIC_VectTab | (Offset & (uint32_t)0x1FFFFF80);
+ 208              		.loc 1 162 0
+ 209 0102 074A     		ldr	r2, .L10
+ 210 0104 3B68     		ldr	r3, [r7, #0]
+ 211 0106 23F06043 		bic	r3, r3, #-536870912
+ 212 010a 23F07F03 		bic	r3, r3, #127
+ 213 010e 7968     		ldr	r1, [r7, #4]
+ 214 0110 0B43     		orrs	r3, r3, r1
+ 215 0112 9360     		str	r3, [r2, #8]
+ 163:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** }
+ 216              		.loc 1 163 0
+ 217 0114 07F10C07 		add	r7, r7, #12
+ 218 0118 BD46     		mov	sp, r7
+ 219 011a 80BC     		pop	{r7}
+ 220 011c 7047     		bx	lr
+ 221              	.L11:
+ 222 011e 00BF     		.align	2
+ 223              	.L10:
+ 224 0120 00ED00E0 		.word	-536810240
+ 225              		.cfi_endproc
+ 226              	.LFE31:
+ 228              		.align	2
+ 229              		.global	NVIC_SystemLPConfig
+ 230              		.thumb
+ 231              		.thumb_func
+ 233              	NVIC_SystemLPConfig:
+ 234              	.LFB32:
+ 164:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+ 165:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /**
+ 166:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @brief  Selects the condition for the system to enter low power mode.
+ 167:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @param  LowPowerMode: Specifies the new mode for the system to enter low power mode.
+ 168:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *   This parameter can be one of the following values:
+ 169:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *     @arg NVIC_LP_SEVONPEND
+ 170:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *     @arg NVIC_LP_SLEEPDEEP
+ 171:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *     @arg NVIC_LP_SLEEPONEXIT
+ 172:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @param  NewState: new state of LP condition. This parameter can be: ENABLE or DISABLE.
+ 173:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @retval None
+ 174:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+ 175:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** void NVIC_SystemLPConfig(uint8_t LowPowerMode, FunctionalState NewState)
+ 176:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** {
+ 235              		.loc 1 176 0
+ 236              		.cfi_startproc
+ 237              		@ args = 0, pretend = 0, frame = 8
+ 238              		@ frame_needed = 1, uses_anonymous_args = 0
+ 239              		@ link register save eliminated.
+ 240 0124 80B4     		push	{r7}
+ 241              	.LCFI9:
+ 242              		.cfi_def_cfa_offset 4
+ 243              		.cfi_offset 7, -4
+ 244 0126 83B0     		sub	sp, sp, #12
+ 245              	.LCFI10:
+ 246              		.cfi_def_cfa_offset 16
+ 247 0128 00AF     		add	r7, sp, #0
+ 248              	.LCFI11:
+ 249              		.cfi_def_cfa_register 7
+ 250 012a 0246     		mov	r2, r0
+ 251 012c 0B46     		mov	r3, r1
+ 252 012e FA71     		strb	r2, [r7, #7]
+ 253 0130 BB71     		strb	r3, [r7, #6]
+ 177:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   /* Check the parameters */
+ 178:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   assert_param(IS_NVIC_LP(LowPowerMode));
+ 179:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   assert_param(IS_FUNCTIONAL_STATE(NewState));  
+ 180:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   
+ 181:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   if (NewState != DISABLE)
+ 254              		.loc 1 181 0
+ 255 0132 BB79     		ldrb	r3, [r7, #6]	@ zero_extendqisi2
+ 256 0134 002B     		cmp	r3, #0
+ 257 0136 06D0     		beq	.L13
+ 182:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   {
+ 183:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     SCB->SCR |= LowPowerMode;
+ 258              		.loc 1 183 0
+ 259 0138 094B     		ldr	r3, .L15
+ 260 013a 094A     		ldr	r2, .L15
+ 261 013c 1169     		ldr	r1, [r2, #16]
+ 262 013e FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 263 0140 0A43     		orrs	r2, r2, r1
+ 264 0142 1A61     		str	r2, [r3, #16]
+ 265 0144 07E0     		b	.L12
+ 266              	.L13:
+ 184:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   }
+ 185:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   else
+ 186:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   {
+ 187:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     SCB->SCR &= (uint32_t)(~(uint32_t)LowPowerMode);
+ 267              		.loc 1 187 0
+ 268 0146 064B     		ldr	r3, .L15
+ 269 0148 054A     		ldr	r2, .L15
+ 270 014a 1169     		ldr	r1, [r2, #16]
+ 271 014c FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 272 014e 6FEA0202 		mvn	r2, r2
+ 273 0152 0A40     		ands	r2, r2, r1
+ 274 0154 1A61     		str	r2, [r3, #16]
+ 275              	.L12:
+ 188:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   }
+ 189:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** }
+ 276              		.loc 1 189 0
+ 277 0156 07F10C07 		add	r7, r7, #12
+ 278 015a BD46     		mov	sp, r7
+ 279 015c 80BC     		pop	{r7}
+ 280 015e 7047     		bx	lr
+ 281              	.L16:
+ 282              		.align	2
+ 283              	.L15:
+ 284 0160 00ED00E0 		.word	-536810240
+ 285              		.cfi_endproc
+ 286              	.LFE32:
+ 288              		.align	2
+ 289              		.global	SysTick_CLKSourceConfig
+ 290              		.thumb
+ 291              		.thumb_func
+ 293              	SysTick_CLKSourceConfig:
+ 294              	.LFB33:
+ 190:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** 
+ 191:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** /**
+ 192:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @brief  Configures the SysTick clock source.
+ 193:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @param  SysTick_CLKSource: specifies the SysTick clock source.
+ 194:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *   This parameter can be one of the following values:
+ 195:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *     @arg SysTick_CLKSource_HCLK_Div8: AHB clock divided by 8 selected as SysTick clock source.
+ 196:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   *     @arg SysTick_CLKSource_HCLK: AHB clock selected as SysTick clock source.
+ 197:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   * @retval None
+ 198:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   */
+ 199:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** void SysTick_CLKSourceConfig(uint32_t SysTick_CLKSource)
+ 200:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** {
+ 295              		.loc 1 200 0
+ 296              		.cfi_startproc
+ 297              		@ args = 0, pretend = 0, frame = 8
+ 298              		@ frame_needed = 1, uses_anonymous_args = 0
+ 299              		@ link register save eliminated.
+ 300 0164 80B4     		push	{r7}
+ 301              	.LCFI12:
+ 302              		.cfi_def_cfa_offset 4
+ 303              		.cfi_offset 7, -4
+ 304 0166 83B0     		sub	sp, sp, #12
+ 305              	.LCFI13:
+ 306              		.cfi_def_cfa_offset 16
+ 307 0168 00AF     		add	r7, sp, #0
+ 308              	.LCFI14:
+ 309              		.cfi_def_cfa_register 7
+ 310 016a 7860     		str	r0, [r7, #4]
+ 201:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   /* Check the parameters */
+ 202:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   assert_param(IS_SYSTICK_CLK_SOURCE(SysTick_CLKSource));
+ 203:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   if (SysTick_CLKSource == SysTick_CLKSource_HCLK)
+ 311              		.loc 1 203 0
+ 312 016c 7B68     		ldr	r3, [r7, #4]
+ 313 016e 042B     		cmp	r3, #4
+ 314 0170 06D1     		bne	.L18
+ 204:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   {
+ 205:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     SysTick->CTRL |= SysTick_CLKSource_HCLK;
+ 315              		.loc 1 205 0
+ 316 0172 094B     		ldr	r3, .L20
+ 317 0174 084A     		ldr	r2, .L20
+ 318 0176 1268     		ldr	r2, [r2, #0]
+ 319 0178 42F00402 		orr	r2, r2, #4
+ 320 017c 1A60     		str	r2, [r3, #0]
+ 321 017e 05E0     		b	.L17
+ 322              	.L18:
+ 206:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   }
+ 207:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   else
+ 208:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   {
+ 209:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****     SysTick->CTRL &= SysTick_CLKSource_HCLK_Div8;
+ 323              		.loc 1 209 0
+ 324 0180 054B     		ldr	r3, .L20
+ 325 0182 054A     		ldr	r2, .L20
+ 326 0184 1268     		ldr	r2, [r2, #0]
+ 327 0186 22F00402 		bic	r2, r2, #4
+ 328 018a 1A60     		str	r2, [r3, #0]
+ 329              	.L17:
+ 210:../lib/STM32F10x_StdPeriph_Driver/src/misc.c ****   }
+ 211:../lib/STM32F10x_StdPeriph_Driver/src/misc.c **** }
+ 330              		.loc 1 211 0
+ 331 018c 07F10C07 		add	r7, r7, #12
+ 332 0190 BD46     		mov	sp, r7
+ 333 0192 80BC     		pop	{r7}
+ 334 0194 7047     		bx	lr
+ 335              	.L21:
+ 336 0196 00BF     		.align	2
+ 337              	.L20:
+ 338 0198 10E000E0 		.word	-536813552
+ 339              		.cfi_endproc
+ 340              	.LFE33:
+ 342              	.Letext0:
+ 343              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 344              		.file 3 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+ 345              		.file 4 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/stm32f10x.h"
+ 346              		.file 5 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/misc.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 misc.c
+     /tmp/ccIKNPID.s:18     .text:00000000 $t
+     /tmp/ccIKNPID.s:23     .text:00000000 NVIC_PriorityGroupConfig
+     /tmp/ccIKNPID.s:56     .text:00000020 $d
+     /tmp/ccIKNPID.s:60     .text:00000024 $t
+     /tmp/ccIKNPID.s:65     .text:00000024 NVIC_Init
+     /tmp/ccIKNPID.s:179    .text:000000f0 $d
+     /tmp/ccIKNPID.s:184    .text:000000f8 $t
+     /tmp/ccIKNPID.s:189    .text:000000f8 NVIC_SetVectorTable
+     /tmp/ccIKNPID.s:224    .text:00000120 $d
+     /tmp/ccIKNPID.s:228    .text:00000124 $t
+     /tmp/ccIKNPID.s:233    .text:00000124 NVIC_SystemLPConfig
+     /tmp/ccIKNPID.s:284    .text:00000160 $d
+     /tmp/ccIKNPID.s:288    .text:00000164 $t
+     /tmp/ccIKNPID.s:293    .text:00000164 SysTick_CLKSourceConfig
+     /tmp/ccIKNPID.s:338    .text:00000198 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.d35e9a9b04ec4aaebae9bf79fff061f9
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.core_cm3.h.113.b286929a54d33b4c8909a7132437b244
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.misc.h.115.eee4bbee250a7a433045d30c57e593d8
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/267/trunk/baseflight/support/stmloader
+END
+stmbootloader.c
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/266/trunk/baseflight/support/stmloader/stmbootloader.c
+END
+loader.c
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/267/trunk/baseflight/support/stmloader/loader.c
+END
+serial.c
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/221/trunk/baseflight/support/stmloader/serial.c
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/266/trunk/baseflight/support/stmloader/Makefile
+END
+stmbootloader.h
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/266/trunk/baseflight/support/stmloader/stmbootloader.h
+END
+serial.h
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/135/trunk/baseflight/support/stmloader/serial.h
+END

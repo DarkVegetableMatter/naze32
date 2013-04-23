@@ -1,0 +1,1644 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"drv_mpu6050.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.data
+  21              	mpuLowPassFilter:
+  22 0000 03       		.byte	3
+  23              		.bss
+  24              	mpuAccelHalf:
+  25 0000 00       		.space	1
+  26              		.text
+  27              		.align	2
+  28              		.global	mpu6050Detect
+  29              		.thumb
+  30              		.thumb_func
+  32              	mpu6050Detect:
+  33              	.LFB29:
+  34              		.file 1 "../src/drv_mpu6050.c"
+   1:../src/drv_mpu6050.c **** #include "board.h"
+   2:../src/drv_mpu6050.c **** 
+   3:../src/drv_mpu6050.c **** // MPU6050, Standard address 0x68
+   4:../src/drv_mpu6050.c **** // MPU_INT on PB13 on rev4 hardware
+   5:../src/drv_mpu6050.c **** #define MPU6050_ADDRESS         0x68
+   6:../src/drv_mpu6050.c **** 
+   7:../src/drv_mpu6050.c **** // Experimental DMP support
+   8:../src/drv_mpu6050.c **** // #define MPU6050_DMP
+   9:../src/drv_mpu6050.c **** 
+  10:../src/drv_mpu6050.c **** #define DMP_MEM_START_ADDR 0x6E
+  11:../src/drv_mpu6050.c **** #define DMP_MEM_R_W 0x6F
+  12:../src/drv_mpu6050.c **** 
+  13:../src/drv_mpu6050.c **** #define INV_MAX_NUM_ACCEL_SAMPLES      (8)
+  14:../src/drv_mpu6050.c **** #define DMP_REF_QUATERNION             (0)
+  15:../src/drv_mpu6050.c **** #define DMP_REF_GYROS                  (DMP_REF_QUATERNION + 4) // 4
+  16:../src/drv_mpu6050.c **** #define DMP_REF_CONTROL                (DMP_REF_GYROS + 3)      // 7
+  17:../src/drv_mpu6050.c **** #define DMP_REF_RAW                    (DMP_REF_CONTROL + 4)    // 11
+  18:../src/drv_mpu6050.c **** #define DMP_REF_RAW_EXTERNAL           (DMP_REF_RAW + 8)        // 19
+  19:../src/drv_mpu6050.c **** #define DMP_REF_ACCEL                  (DMP_REF_RAW_EXTERNAL + 6)       // 25
+  20:../src/drv_mpu6050.c **** #define DMP_REF_QUANT_ACCEL            (DMP_REF_ACCEL + 3)      // 28
+  21:../src/drv_mpu6050.c **** #define DMP_REF_QUATERNION_6AXIS       (DMP_REF_QUANT_ACCEL + INV_MAX_NUM_ACCEL_SAMPLES)        // 
+  22:../src/drv_mpu6050.c **** #define DMP_REF_EIS                    (DMP_REF_QUATERNION_6AXIS + 4)   // 40
+  23:../src/drv_mpu6050.c **** #define DMP_REF_DMP_PACKET             (DMP_REF_EIS + 3)        // 43
+  24:../src/drv_mpu6050.c **** #define DMP_REF_GARBAGE                (DMP_REF_DMP_PACKET + 1) // 44
+  25:../src/drv_mpu6050.c **** #define DMP_REF_LAST                   (DMP_REF_GARBAGE + 1)    // 45
+  26:../src/drv_mpu6050.c **** 
+  27:../src/drv_mpu6050.c **** #define MPU_RA_XG_OFFS_TC       0x00    //[7] PWR_MODE, [6:1] XG_OFFS_TC, [0] OTP_BNK_VLD
+  28:../src/drv_mpu6050.c **** #define MPU_RA_YG_OFFS_TC       0x01    //[7] PWR_MODE, [6:1] YG_OFFS_TC, [0] OTP_BNK_VLD
+  29:../src/drv_mpu6050.c **** #define MPU_RA_ZG_OFFS_TC       0x02    //[7] PWR_MODE, [6:1] ZG_OFFS_TC, [0] OTP_BNK_VLD
+  30:../src/drv_mpu6050.c **** #define MPU_RA_X_FINE_GAIN      0x03    //[7:0] X_FINE_GAIN
+  31:../src/drv_mpu6050.c **** #define MPU_RA_Y_FINE_GAIN      0x04    //[7:0] Y_FINE_GAIN
+  32:../src/drv_mpu6050.c **** #define MPU_RA_Z_FINE_GAIN      0x05    //[7:0] Z_FINE_GAIN
+  33:../src/drv_mpu6050.c **** #define MPU_RA_XA_OFFS_H        0x06    //[15:0] XA_OFFS
+  34:../src/drv_mpu6050.c **** #define MPU_RA_XA_OFFS_L_TC     0x07
+  35:../src/drv_mpu6050.c **** #define MPU_RA_YA_OFFS_H        0x08    //[15:0] YA_OFFS
+  36:../src/drv_mpu6050.c **** #define MPU_RA_YA_OFFS_L_TC     0x09
+  37:../src/drv_mpu6050.c **** #define MPU_RA_ZA_OFFS_H        0x0A    //[15:0] ZA_OFFS
+  38:../src/drv_mpu6050.c **** #define MPU_RA_ZA_OFFS_L_TC     0x0B
+  39:../src/drv_mpu6050.c **** #define MPU_RA_PRODUCT_ID       0x0C    // Product ID Register
+  40:../src/drv_mpu6050.c **** #define MPU_RA_XG_OFFS_USRH     0x13    //[15:0] XG_OFFS_USR
+  41:../src/drv_mpu6050.c **** #define MPU_RA_XG_OFFS_USRL     0x14
+  42:../src/drv_mpu6050.c **** #define MPU_RA_YG_OFFS_USRH     0x15    //[15:0] YG_OFFS_USR
+  43:../src/drv_mpu6050.c **** #define MPU_RA_YG_OFFS_USRL     0x16
+  44:../src/drv_mpu6050.c **** #define MPU_RA_ZG_OFFS_USRH     0x17    //[15:0] ZG_OFFS_USR
+  45:../src/drv_mpu6050.c **** #define MPU_RA_ZG_OFFS_USRL     0x18
+  46:../src/drv_mpu6050.c **** #define MPU_RA_SMPLRT_DIV       0x19
+  47:../src/drv_mpu6050.c **** #define MPU_RA_CONFIG           0x1A
+  48:../src/drv_mpu6050.c **** #define MPU_RA_GYRO_CONFIG      0x1B
+  49:../src/drv_mpu6050.c **** #define MPU_RA_ACCEL_CONFIG     0x1C
+  50:../src/drv_mpu6050.c **** #define MPU_RA_FF_THR           0x1D
+  51:../src/drv_mpu6050.c **** #define MPU_RA_FF_DUR           0x1E
+  52:../src/drv_mpu6050.c **** #define MPU_RA_MOT_THR          0x1F
+  53:../src/drv_mpu6050.c **** #define MPU_RA_MOT_DUR          0x20
+  54:../src/drv_mpu6050.c **** #define MPU_RA_ZRMOT_THR        0x21
+  55:../src/drv_mpu6050.c **** #define MPU_RA_ZRMOT_DUR        0x22
+  56:../src/drv_mpu6050.c **** #define MPU_RA_FIFO_EN          0x23
+  57:../src/drv_mpu6050.c **** #define MPU_RA_I2C_MST_CTRL     0x24
+  58:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV0_ADDR    0x25
+  59:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV0_REG     0x26
+  60:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV0_CTRL    0x27
+  61:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV1_ADDR    0x28
+  62:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV1_REG     0x29
+  63:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV1_CTRL    0x2A
+  64:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV2_ADDR    0x2B
+  65:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV2_REG     0x2C
+  66:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV2_CTRL    0x2D
+  67:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV3_ADDR    0x2E
+  68:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV3_REG     0x2F
+  69:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV3_CTRL    0x30
+  70:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV4_ADDR    0x31
+  71:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV4_REG     0x32
+  72:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV4_DO      0x33
+  73:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV4_CTRL    0x34
+  74:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV4_DI      0x35
+  75:../src/drv_mpu6050.c **** #define MPU_RA_I2C_MST_STATUS   0x36
+  76:../src/drv_mpu6050.c **** #define MPU_RA_INT_PIN_CFG      0x37
+  77:../src/drv_mpu6050.c **** #define MPU_RA_INT_ENABLE       0x38
+  78:../src/drv_mpu6050.c **** #define MPU_RA_DMP_INT_STATUS   0x39
+  79:../src/drv_mpu6050.c **** #define MPU_RA_INT_STATUS       0x3A
+  80:../src/drv_mpu6050.c **** #define MPU_RA_ACCEL_XOUT_H     0x3B
+  81:../src/drv_mpu6050.c **** #define MPU_RA_ACCEL_XOUT_L     0x3C
+  82:../src/drv_mpu6050.c **** #define MPU_RA_ACCEL_YOUT_H     0x3D
+  83:../src/drv_mpu6050.c **** #define MPU_RA_ACCEL_YOUT_L     0x3E
+  84:../src/drv_mpu6050.c **** #define MPU_RA_ACCEL_ZOUT_H     0x3F
+  85:../src/drv_mpu6050.c **** #define MPU_RA_ACCEL_ZOUT_L     0x40
+  86:../src/drv_mpu6050.c **** #define MPU_RA_TEMP_OUT_H       0x41
+  87:../src/drv_mpu6050.c **** #define MPU_RA_TEMP_OUT_L       0x42
+  88:../src/drv_mpu6050.c **** #define MPU_RA_GYRO_XOUT_H      0x43
+  89:../src/drv_mpu6050.c **** #define MPU_RA_GYRO_XOUT_L      0x44
+  90:../src/drv_mpu6050.c **** #define MPU_RA_GYRO_YOUT_H      0x45
+  91:../src/drv_mpu6050.c **** #define MPU_RA_GYRO_YOUT_L      0x46
+  92:../src/drv_mpu6050.c **** #define MPU_RA_GYRO_ZOUT_H      0x47
+  93:../src/drv_mpu6050.c **** #define MPU_RA_GYRO_ZOUT_L      0x48
+  94:../src/drv_mpu6050.c **** #define MPU_RA_EXT_SENS_DATA_00 0x49
+  95:../src/drv_mpu6050.c **** #define MPU_RA_MOT_DETECT_STATUS    0x61
+  96:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV0_DO      0x63
+  97:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV1_DO      0x64
+  98:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV2_DO      0x65
+  99:../src/drv_mpu6050.c **** #define MPU_RA_I2C_SLV3_DO      0x66
+ 100:../src/drv_mpu6050.c **** #define MPU_RA_I2C_MST_DELAY_CTRL   0x67
+ 101:../src/drv_mpu6050.c **** #define MPU_RA_SIGNAL_PATH_RESET    0x68
+ 102:../src/drv_mpu6050.c **** #define MPU_RA_MOT_DETECT_CTRL      0x69
+ 103:../src/drv_mpu6050.c **** #define MPU_RA_USER_CTRL        0x6A
+ 104:../src/drv_mpu6050.c **** #define MPU_RA_PWR_MGMT_1       0x6B
+ 105:../src/drv_mpu6050.c **** #define MPU_RA_PWR_MGMT_2       0x6C
+ 106:../src/drv_mpu6050.c **** #define MPU_RA_BANK_SEL         0x6D
+ 107:../src/drv_mpu6050.c **** #define MPU_RA_MEM_START_ADDR   0x6E
+ 108:../src/drv_mpu6050.c **** #define MPU_RA_MEM_R_W          0x6F
+ 109:../src/drv_mpu6050.c **** #define MPU_RA_DMP_CFG_1        0x70
+ 110:../src/drv_mpu6050.c **** #define MPU_RA_DMP_CFG_2        0x71
+ 111:../src/drv_mpu6050.c **** #define MPU_RA_FIFO_COUNTH      0x72
+ 112:../src/drv_mpu6050.c **** #define MPU_RA_FIFO_COUNTL      0x73
+ 113:../src/drv_mpu6050.c **** #define MPU_RA_FIFO_R_W         0x74
+ 114:../src/drv_mpu6050.c **** #define MPU_RA_WHO_AM_I         0x75
+ 115:../src/drv_mpu6050.c **** 
+ 116:../src/drv_mpu6050.c **** #define MPU6050_SMPLRT_DIV      0       //8000Hz
+ 117:../src/drv_mpu6050.c **** 
+ 118:../src/drv_mpu6050.c **** #define MPU6050_LPF_256HZ       0
+ 119:../src/drv_mpu6050.c **** #define MPU6050_LPF_188HZ       1
+ 120:../src/drv_mpu6050.c **** #define MPU6050_LPF_98HZ        2
+ 121:../src/drv_mpu6050.c **** #define MPU6050_LPF_42HZ        3
+ 122:../src/drv_mpu6050.c **** #define MPU6050_LPF_20HZ        4
+ 123:../src/drv_mpu6050.c **** #define MPU6050_LPF_10HZ        5
+ 124:../src/drv_mpu6050.c **** #define MPU6050_LPF_5HZ         6
+ 125:../src/drv_mpu6050.c **** 
+ 126:../src/drv_mpu6050.c **** static uint8_t mpuLowPassFilter = MPU6050_LPF_42HZ;
+ 127:../src/drv_mpu6050.c **** 
+ 128:../src/drv_mpu6050.c **** static void mpu6050AccInit(void);
+ 129:../src/drv_mpu6050.c **** static void mpu6050AccRead(int16_t *accData);
+ 130:../src/drv_mpu6050.c **** static void mpu6050AccAlign(int16_t *accData);
+ 131:../src/drv_mpu6050.c **** static void mpu6050GyroInit(void);
+ 132:../src/drv_mpu6050.c **** static void mpu6050GyroRead(int16_t *gyroData);
+ 133:../src/drv_mpu6050.c **** static void mpu6050GyroAlign(int16_t *gyroData);
+ 134:../src/drv_mpu6050.c **** 
+ 135:../src/drv_mpu6050.c **** #ifdef MPU6050_DMP
+ 136:../src/drv_mpu6050.c **** static void mpu6050DmpInit(void);
+ 137:../src/drv_mpu6050.c **** float dmpdata[2];
+ 138:../src/drv_mpu6050.c **** int16_t dmpGyroData[3];
+ 139:../src/drv_mpu6050.c **** #endif
+ 140:../src/drv_mpu6050.c **** 
+ 141:../src/drv_mpu6050.c **** extern uint16_t acc_1G;
+ 142:../src/drv_mpu6050.c **** static uint8_t mpuAccelHalf = 0;
+ 143:../src/drv_mpu6050.c **** 
+ 144:../src/drv_mpu6050.c **** bool mpu6050Detect(sensor_t *acc, sensor_t *gyro, uint16_t lpf, uint8_t *scale)
+ 145:../src/drv_mpu6050.c **** {
+  35              		.loc 1 145 0
+  36              		.cfi_startproc
+  37              		@ args = 0, pretend = 0, frame = 32
+  38              		@ frame_needed = 1, uses_anonymous_args = 0
+  39 0000 80B5     		push	{r7, lr}
+  40              	.LCFI0:
+  41              		.cfi_def_cfa_offset 8
+  42              		.cfi_offset 7, -8
+  43              		.cfi_offset 14, -4
+  44 0002 88B0     		sub	sp, sp, #32
+  45              	.LCFI1:
+  46              		.cfi_def_cfa_offset 40
+  47 0004 00AF     		add	r7, sp, #0
+  48              	.LCFI2:
+  49              		.cfi_def_cfa_register 7
+  50 0006 F860     		str	r0, [r7, #12]
+  51 0008 B960     		str	r1, [r7, #8]
+  52 000a 3B60     		str	r3, [r7, #0]
+  53 000c 1346     		mov	r3, r2	@ movhi
+  54 000e FB80     		strh	r3, [r7, #6]	@ movhi
+ 146:../src/drv_mpu6050.c ****     bool ack;
+ 147:../src/drv_mpu6050.c ****     uint8_t sig, rev;
+ 148:../src/drv_mpu6050.c ****     uint8_t tmp[6];
+ 149:../src/drv_mpu6050.c **** 
+ 150:../src/drv_mpu6050.c ****     delay(35);                  // datasheet page 13 says 30ms. other stuff could have been running
+  55              		.loc 1 150 0
+  56 0010 4FF02300 		mov	r0, #35
+  57 0014 FFF7FEFF 		bl	delay
+ 151:../src/drv_mpu6050.c **** 
+ 152:../src/drv_mpu6050.c ****     ack = i2cRead(MPU6050_ADDRESS, MPU_RA_WHO_AM_I, 1, &sig);
+  58              		.loc 1 152 0
+  59 0018 07F11D03 		add	r3, r7, #29
+  60 001c 4FF06800 		mov	r0, #104
+  61 0020 4FF07501 		mov	r1, #117
+  62 0024 4FF00102 		mov	r2, #1
+  63 0028 FFF7FEFF 		bl	i2cRead
+  64 002c 0346     		mov	r3, r0
+  65 002e FB77     		strb	r3, [r7, #31]
+ 153:../src/drv_mpu6050.c ****     if (!ack)
+  66              		.loc 1 153 0
+  67 0030 FB7F     		ldrb	r3, [r7, #31]
+  68 0032 83F00103 		eor	r3, r3, #1
+  69 0036 DBB2     		uxtb	r3, r3
+  70 0038 002B     		cmp	r3, #0
+  71 003a 02D0     		beq	.L2
+ 154:../src/drv_mpu6050.c ****         return false;
+  72              		.loc 1 154 0
+  73 003c 4FF00003 		mov	r3, #0
+  74 0040 B2E0     		b	.L21
+  75              	.L2:
+ 155:../src/drv_mpu6050.c **** 
+ 156:../src/drv_mpu6050.c ****     // So like, MPU6xxx has a "WHO_AM_I" register, that is used to verify the identity of the devic
+ 157:../src/drv_mpu6050.c ****     // The contents of WHO_AM_I are the upper 6 bits of the MPU-60X0’s 7-bit I2C address.
+ 158:../src/drv_mpu6050.c ****     // The least significant bit of the MPU-60X0’s I2C address is determined by the value of the AD
+ 159:../src/drv_mpu6050.c ****     // But here's the best part: The value of the AD0 pin is not reflected in this register.
+ 160:../src/drv_mpu6050.c ****     if (sig != (MPU6050_ADDRESS & 0x7e))
+  76              		.loc 1 160 0
+  77 0042 7B7F     		ldrb	r3, [r7, #29]	@ zero_extendqisi2
+  78 0044 682B     		cmp	r3, #104
+  79 0046 02D0     		beq	.L4
+ 161:../src/drv_mpu6050.c ****         return false;
+  80              		.loc 1 161 0
+  81 0048 4FF00003 		mov	r3, #0
+  82 004c ACE0     		b	.L21
+  83              	.L4:
+ 162:../src/drv_mpu6050.c **** 
+ 163:../src/drv_mpu6050.c ****     // determine product ID and accel revision
+ 164:../src/drv_mpu6050.c ****     i2cRead(MPU6050_ADDRESS, MPU_RA_XA_OFFS_H, 6, tmp);
+  84              		.loc 1 164 0
+  85 004e 07F11403 		add	r3, r7, #20
+  86 0052 4FF06800 		mov	r0, #104
+  87 0056 4FF00601 		mov	r1, #6
+  88 005a 4FF00602 		mov	r2, #6
+  89 005e FFF7FEFF 		bl	i2cRead
+ 165:../src/drv_mpu6050.c ****     rev = ((tmp[5] & 0x01) << 2) | ((tmp[3] & 0x01) << 1) | (tmp[1] & 0x01);
+  90              		.loc 1 165 0
+  91 0062 7B7E     		ldrb	r3, [r7, #25]	@ zero_extendqisi2
+  92 0064 03F00103 		and	r3, r3, #1
+  93 0068 4FEA8303 		lsl	r3, r3, #2
+  94 006c DAB2     		uxtb	r2, r3
+  95 006e FB7D     		ldrb	r3, [r7, #23]	@ zero_extendqisi2
+  96 0070 03F00103 		and	r3, r3, #1
+  97 0074 4FEA4303 		lsl	r3, r3, #1
+  98 0078 DBB2     		uxtb	r3, r3
+  99 007a 1343     		orrs	r3, r3, r2
+ 100 007c DAB2     		uxtb	r2, r3
+ 101 007e 7B7D     		ldrb	r3, [r7, #21]	@ zero_extendqisi2
+ 102 0080 DBB2     		uxtb	r3, r3
+ 103 0082 03F00103 		and	r3, r3, #1
+ 104 0086 DBB2     		uxtb	r3, r3
+ 105 0088 1343     		orrs	r3, r3, r2
+ 106 008a DBB2     		uxtb	r3, r3
+ 107 008c BB77     		strb	r3, [r7, #30]
+ 166:../src/drv_mpu6050.c ****     if (rev) {
+ 108              		.loc 1 166 0
+ 109 008e BB7F     		ldrb	r3, [r7, #30]	@ zero_extendqisi2
+ 110 0090 002B     		cmp	r3, #0
+ 111 0092 14D0     		beq	.L5
+ 167:../src/drv_mpu6050.c ****         /* Congrats, these parts are better. */
+ 168:../src/drv_mpu6050.c ****         if (rev == 1) {
+ 112              		.loc 1 168 0
+ 113 0094 BB7F     		ldrb	r3, [r7, #30]	@ zero_extendqisi2
+ 114 0096 012B     		cmp	r3, #1
+ 115 0098 04D1     		bne	.L6
+ 169:../src/drv_mpu6050.c ****             mpuAccelHalf = 1;
+ 116              		.loc 1 169 0
+ 117 009a 464B     		ldr	r3, .L22
+ 118 009c 4FF00102 		mov	r2, #1
+ 119 00a0 1A70     		strb	r2, [r3, #0]
+ 120 00a2 2EE0     		b	.L7
+ 121              	.L6:
+ 170:../src/drv_mpu6050.c ****         } else if (rev == 2) {
+ 122              		.loc 1 170 0
+ 123 00a4 BB7F     		ldrb	r3, [r7, #30]	@ zero_extendqisi2
+ 124 00a6 022B     		cmp	r3, #2
+ 125 00a8 04D1     		bne	.L8
+ 171:../src/drv_mpu6050.c ****             mpuAccelHalf = 0;
+ 126              		.loc 1 171 0
+ 127 00aa 424B     		ldr	r3, .L22
+ 128 00ac 4FF00002 		mov	r2, #0
+ 129 00b0 1A70     		strb	r2, [r3, #0]
+ 130 00b2 26E0     		b	.L7
+ 131              	.L8:
+ 172:../src/drv_mpu6050.c ****         } else {
+ 173:../src/drv_mpu6050.c ****             failureMode(5);
+ 132              		.loc 1 173 0
+ 133 00b4 4FF00500 		mov	r0, #5
+ 134 00b8 FFF7FEFF 		bl	failureMode
+ 135 00bc 21E0     		b	.L7
+ 136              	.L5:
+ 174:../src/drv_mpu6050.c ****         }
+ 175:../src/drv_mpu6050.c ****     } else {
+ 176:../src/drv_mpu6050.c ****         i2cRead(MPU6050_ADDRESS, MPU_RA_PRODUCT_ID, 1, &sig);
+ 137              		.loc 1 176 0
+ 138 00be 07F11D03 		add	r3, r7, #29
+ 139 00c2 4FF06800 		mov	r0, #104
+ 140 00c6 4FF00C01 		mov	r1, #12
+ 141 00ca 4FF00102 		mov	r2, #1
+ 142 00ce FFF7FEFF 		bl	i2cRead
+ 177:../src/drv_mpu6050.c ****         rev = sig & 0x0F;
+ 143              		.loc 1 177 0
+ 144 00d2 7B7F     		ldrb	r3, [r7, #29]	@ zero_extendqisi2
+ 145 00d4 03F00F03 		and	r3, r3, #15
+ 146 00d8 BB77     		strb	r3, [r7, #30]
+ 178:../src/drv_mpu6050.c ****         if (!rev) {
+ 147              		.loc 1 178 0
+ 148 00da BB7F     		ldrb	r3, [r7, #30]	@ zero_extendqisi2
+ 149 00dc 002B     		cmp	r3, #0
+ 150 00de 04D1     		bne	.L9
+ 179:../src/drv_mpu6050.c ****             failureMode(5);
+ 151              		.loc 1 179 0
+ 152 00e0 4FF00500 		mov	r0, #5
+ 153 00e4 FFF7FEFF 		bl	failureMode
+ 154 00e8 0BE0     		b	.L7
+ 155              	.L9:
+ 180:../src/drv_mpu6050.c ****         } else if (rev == 4) {
+ 156              		.loc 1 180 0
+ 157 00ea BB7F     		ldrb	r3, [r7, #30]	@ zero_extendqisi2
+ 158 00ec 042B     		cmp	r3, #4
+ 159 00ee 04D1     		bne	.L10
+ 181:../src/drv_mpu6050.c ****             mpuAccelHalf = 1;
+ 160              		.loc 1 181 0
+ 161 00f0 304B     		ldr	r3, .L22
+ 162 00f2 4FF00102 		mov	r2, #1
+ 163 00f6 1A70     		strb	r2, [r3, #0]
+ 164 00f8 03E0     		b	.L7
+ 165              	.L10:
+ 182:../src/drv_mpu6050.c ****         } else {
+ 183:../src/drv_mpu6050.c ****             mpuAccelHalf = 0;
+ 166              		.loc 1 183 0
+ 167 00fa 2E4B     		ldr	r3, .L22
+ 168 00fc 4FF00002 		mov	r2, #0
+ 169 0100 1A70     		strb	r2, [r3, #0]
+ 170              	.L7:
+ 184:../src/drv_mpu6050.c ****         }
+ 185:../src/drv_mpu6050.c ****     }
+ 186:../src/drv_mpu6050.c **** 
+ 187:../src/drv_mpu6050.c ****     acc->init = mpu6050AccInit;
+ 171              		.loc 1 187 0
+ 172 0102 FB68     		ldr	r3, [r7, #12]
+ 173 0104 2C4A     		ldr	r2, .L22+4
+ 174 0106 1A60     		str	r2, [r3, #0]
+ 188:../src/drv_mpu6050.c ****     acc->read = mpu6050AccRead;
+ 175              		.loc 1 188 0
+ 176 0108 FB68     		ldr	r3, [r7, #12]
+ 177 010a 2C4A     		ldr	r2, .L22+8
+ 178 010c 5A60     		str	r2, [r3, #4]
+ 189:../src/drv_mpu6050.c ****     acc->align = mpu6050AccAlign;
+ 179              		.loc 1 189 0
+ 180 010e FB68     		ldr	r3, [r7, #12]
+ 181 0110 2B4A     		ldr	r2, .L22+12
+ 182 0112 9A60     		str	r2, [r3, #8]
+ 190:../src/drv_mpu6050.c ****     gyro->init = mpu6050GyroInit;
+ 183              		.loc 1 190 0
+ 184 0114 BB68     		ldr	r3, [r7, #8]
+ 185 0116 2B4A     		ldr	r2, .L22+16
+ 186 0118 1A60     		str	r2, [r3, #0]
+ 191:../src/drv_mpu6050.c ****     gyro->read = mpu6050GyroRead;
+ 187              		.loc 1 191 0
+ 188 011a BB68     		ldr	r3, [r7, #8]
+ 189 011c 2A4A     		ldr	r2, .L22+20
+ 190 011e 5A60     		str	r2, [r3, #4]
+ 192:../src/drv_mpu6050.c ****     gyro->align = mpu6050GyroAlign;
+ 191              		.loc 1 192 0
+ 192 0120 BB68     		ldr	r3, [r7, #8]
+ 193 0122 2A4A     		ldr	r2, .L22+24
+ 194 0124 9A60     		str	r2, [r3, #8]
+ 193:../src/drv_mpu6050.c ****     // 16.4 dps/lsb scalefactor
+ 194:../src/drv_mpu6050.c ****     gyro->scale = (((32767.0f / 16.4f) * M_PI) / ((32767.0f / 4.0f) * 180.0f * 1000000.0f));
+ 195              		.loc 1 194 0
+ 196 0126 BB68     		ldr	r3, [r7, #8]
+ 197 0128 2A4A     		ldr	r2, .L22+32	@ float
+ 198 012a 1A61     		str	r2, [r3, #16]	@ float
+ 195:../src/drv_mpu6050.c **** 
+ 196:../src/drv_mpu6050.c ****     // give halfacc (old revision) back to system
+ 197:../src/drv_mpu6050.c ****     if (scale)
+ 199              		.loc 1 197 0
+ 200 012c 3B68     		ldr	r3, [r7, #0]
+ 201 012e 002B     		cmp	r3, #0
+ 202 0130 03D0     		beq	.L11
+ 198:../src/drv_mpu6050.c ****         *scale = mpuAccelHalf;
+ 203              		.loc 1 198 0
+ 204 0132 204B     		ldr	r3, .L22
+ 205 0134 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 206 0136 3B68     		ldr	r3, [r7, #0]
+ 207 0138 1A70     		strb	r2, [r3, #0]
+ 208              	.L11:
+ 199:../src/drv_mpu6050.c **** 
+ 200:../src/drv_mpu6050.c ****     // default lpf is 42Hz
+ 201:../src/drv_mpu6050.c ****     switch (lpf) {
+ 209              		.loc 1 201 0
+ 210 013a FB88     		ldrh	r3, [r7, #6]
+ 211 013c 142B     		cmp	r3, #20
+ 212 013e 22D0     		beq	.L15
+ 213 0140 142B     		cmp	r3, #20
+ 214 0142 04DC     		bgt	.L19
+ 215 0144 052B     		cmp	r3, #5
+ 216 0146 28D0     		beq	.L13
+ 217 0148 0A2B     		cmp	r3, #10
+ 218 014a 21D0     		beq	.L14
+ 219 014c 16E0     		b	.L12
+ 220              	.L19:
+ 221 014e BC2B     		cmp	r3, #188
+ 222 0150 0AD0     		beq	.L17
+ 223 0152 B3F5807F 		cmp	r3, #256
+ 224 0156 02D0     		beq	.L18
+ 225 0158 622B     		cmp	r3, #98
+ 226 015a 0AD0     		beq	.L16
+ 227 015c 0EE0     		b	.L12
+ 228              	.L18:
+ 202:../src/drv_mpu6050.c ****         case 256:
+ 203:../src/drv_mpu6050.c ****             mpuLowPassFilter = MPU6050_LPF_256HZ;
+ 229              		.loc 1 203 0
+ 230 015e 1C4B     		ldr	r3, .L22+28
+ 231 0160 4FF00002 		mov	r2, #0
+ 232 0164 1A70     		strb	r2, [r3, #0]
+ 204:../src/drv_mpu6050.c ****             break;
+ 233              		.loc 1 204 0
+ 234 0166 1DE0     		b	.L20
+ 235              	.L17:
+ 205:../src/drv_mpu6050.c ****         case 188:
+ 206:../src/drv_mpu6050.c ****             mpuLowPassFilter = MPU6050_LPF_188HZ;
+ 236              		.loc 1 206 0
+ 237 0168 194B     		ldr	r3, .L22+28
+ 238 016a 4FF00102 		mov	r2, #1
+ 239 016e 1A70     		strb	r2, [r3, #0]
+ 207:../src/drv_mpu6050.c ****             break;
+ 240              		.loc 1 207 0
+ 241 0170 18E0     		b	.L20
+ 242              	.L16:
+ 208:../src/drv_mpu6050.c ****         case 98:
+ 209:../src/drv_mpu6050.c ****             mpuLowPassFilter = MPU6050_LPF_98HZ;
+ 243              		.loc 1 209 0
+ 244 0172 174B     		ldr	r3, .L22+28
+ 245 0174 4FF00202 		mov	r2, #2
+ 246 0178 1A70     		strb	r2, [r3, #0]
+ 210:../src/drv_mpu6050.c ****             break;
+ 247              		.loc 1 210 0
+ 248 017a 13E0     		b	.L20
+ 249              	.L12:
+ 211:../src/drv_mpu6050.c ****         default:
+ 212:../src/drv_mpu6050.c ****         case 42:
+ 213:../src/drv_mpu6050.c ****             mpuLowPassFilter = MPU6050_LPF_42HZ;
+ 250              		.loc 1 213 0
+ 251 017c 144B     		ldr	r3, .L22+28
+ 252 017e 4FF00302 		mov	r2, #3
+ 253 0182 1A70     		strb	r2, [r3, #0]
+ 214:../src/drv_mpu6050.c ****             break;
+ 254              		.loc 1 214 0
+ 255 0184 0EE0     		b	.L20
+ 256              	.L15:
+ 215:../src/drv_mpu6050.c ****         case 20:
+ 216:../src/drv_mpu6050.c ****             mpuLowPassFilter = MPU6050_LPF_20HZ;
+ 257              		.loc 1 216 0
+ 258 0186 124B     		ldr	r3, .L22+28
+ 259 0188 4FF00402 		mov	r2, #4
+ 260 018c 1A70     		strb	r2, [r3, #0]
+ 217:../src/drv_mpu6050.c ****             break;
+ 261              		.loc 1 217 0
+ 262 018e 09E0     		b	.L20
+ 263              	.L14:
+ 218:../src/drv_mpu6050.c ****         case 10:
+ 219:../src/drv_mpu6050.c ****             mpuLowPassFilter = MPU6050_LPF_10HZ;
+ 264              		.loc 1 219 0
+ 265 0190 0F4B     		ldr	r3, .L22+28
+ 266 0192 4FF00502 		mov	r2, #5
+ 267 0196 1A70     		strb	r2, [r3, #0]
+ 220:../src/drv_mpu6050.c ****             break;
+ 268              		.loc 1 220 0
+ 269 0198 04E0     		b	.L20
+ 270              	.L13:
+ 221:../src/drv_mpu6050.c ****         case 5:
+ 222:../src/drv_mpu6050.c ****             mpuLowPassFilter = MPU6050_LPF_5HZ;
+ 271              		.loc 1 222 0
+ 272 019a 0D4B     		ldr	r3, .L22+28
+ 273 019c 4FF00602 		mov	r2, #6
+ 274 01a0 1A70     		strb	r2, [r3, #0]
+ 223:../src/drv_mpu6050.c ****             break;
+ 275              		.loc 1 223 0
+ 276 01a2 00BF     		nop
+ 277              	.L20:
+ 224:../src/drv_mpu6050.c ****     }
+ 225:../src/drv_mpu6050.c **** 
+ 226:../src/drv_mpu6050.c **** #ifdef MPU6050_DMP
+ 227:../src/drv_mpu6050.c ****     mpu6050DmpInit();
+ 228:../src/drv_mpu6050.c **** #endif
+ 229:../src/drv_mpu6050.c **** 
+ 230:../src/drv_mpu6050.c ****     return true;
+ 278              		.loc 1 230 0
+ 279 01a4 4FF00103 		mov	r3, #1
+ 280              	.L21:
+ 231:../src/drv_mpu6050.c **** }
+ 281              		.loc 1 231 0
+ 282 01a8 1846     		mov	r0, r3
+ 283 01aa 07F12007 		add	r7, r7, #32
+ 284 01ae BD46     		mov	sp, r7
+ 285 01b0 80BD     		pop	{r7, pc}
+ 286              	.L23:
+ 287 01b2 00BF     		.align	2
+ 288              	.L22:
+ 289 01b4 00000000 		.word	mpuAccelHalf
+ 290 01b8 00000000 		.word	mpu6050AccInit
+ 291 01bc 00000000 		.word	mpu6050AccRead
+ 292 01c0 00000000 		.word	mpu6050AccAlign
+ 293 01c4 00000000 		.word	mpu6050GyroInit
+ 294 01c8 00000000 		.word	mpu6050GyroRead
+ 295 01cc 00000000 		.word	mpu6050GyroAlign
+ 296 01d0 00000000 		.word	mpuLowPassFilter
+ 297 01d4 18449231 		.word	831669272
+ 298              		.cfi_endproc
+ 299              	.LFE29:
+ 301              		.align	2
+ 302              		.thumb
+ 303              		.thumb_func
+ 305              	mpu6050AccInit:
+ 306              	.LFB30:
+ 232:../src/drv_mpu6050.c **** 
+ 233:../src/drv_mpu6050.c **** static void mpu6050AccInit(void)
+ 234:../src/drv_mpu6050.c **** {
+ 307              		.loc 1 234 0
+ 308              		.cfi_startproc
+ 309              		@ args = 0, pretend = 0, frame = 0
+ 310              		@ frame_needed = 1, uses_anonymous_args = 0
+ 311              		@ link register save eliminated.
+ 312 01d8 80B4     		push	{r7}
+ 313              	.LCFI3:
+ 314              		.cfi_def_cfa_offset 4
+ 315              		.cfi_offset 7, -4
+ 316 01da 00AF     		add	r7, sp, #0
+ 317              	.LCFI4:
+ 318              		.cfi_def_cfa_register 7
+ 235:../src/drv_mpu6050.c ****     if (mpuAccelHalf)
+ 319              		.loc 1 235 0
+ 320 01dc 074B     		ldr	r3, .L27
+ 321 01de 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 322 01e0 002B     		cmp	r3, #0
+ 323 01e2 04D0     		beq	.L25
+ 236:../src/drv_mpu6050.c ****         acc_1G = 255;
+ 324              		.loc 1 236 0
+ 325 01e4 064B     		ldr	r3, .L27+4
+ 326 01e6 4FF0FF02 		mov	r2, #255
+ 327 01ea 1A80     		strh	r2, [r3, #0]	@ movhi
+ 328 01ec 03E0     		b	.L24
+ 329              	.L25:
+ 237:../src/drv_mpu6050.c ****     else
+ 238:../src/drv_mpu6050.c ****         acc_1G = 512;
+ 330              		.loc 1 238 0
+ 331 01ee 044B     		ldr	r3, .L27+4
+ 332 01f0 4FF40072 		mov	r2, #512
+ 333 01f4 1A80     		strh	r2, [r3, #0]	@ movhi
+ 334              	.L24:
+ 239:../src/drv_mpu6050.c **** }
+ 335              		.loc 1 239 0
+ 336 01f6 BD46     		mov	sp, r7
+ 337 01f8 80BC     		pop	{r7}
+ 338 01fa 7047     		bx	lr
+ 339              	.L28:
+ 340              		.align	2
+ 341              	.L27:
+ 342 01fc 00000000 		.word	mpuAccelHalf
+ 343 0200 00000000 		.word	acc_1G
+ 344              		.cfi_endproc
+ 345              	.LFE30:
+ 347              		.align	2
+ 348              		.thumb
+ 349              		.thumb_func
+ 351              	mpu6050AccRead:
+ 352              	.LFB31:
+ 240:../src/drv_mpu6050.c **** 
+ 241:../src/drv_mpu6050.c **** static void mpu6050AccRead(int16_t *accData)
+ 242:../src/drv_mpu6050.c **** {
+ 353              		.loc 1 242 0
+ 354              		.cfi_startproc
+ 355              		@ args = 0, pretend = 0, frame = 16
+ 356              		@ frame_needed = 1, uses_anonymous_args = 0
+ 357 0204 80B5     		push	{r7, lr}
+ 358              	.LCFI5:
+ 359              		.cfi_def_cfa_offset 8
+ 360              		.cfi_offset 7, -8
+ 361              		.cfi_offset 14, -4
+ 362 0206 84B0     		sub	sp, sp, #16
+ 363              	.LCFI6:
+ 364              		.cfi_def_cfa_offset 24
+ 365 0208 00AF     		add	r7, sp, #0
+ 366              	.LCFI7:
+ 367              		.cfi_def_cfa_register 7
+ 368 020a 7860     		str	r0, [r7, #4]
+ 243:../src/drv_mpu6050.c ****     uint8_t buf[6];
+ 244:../src/drv_mpu6050.c **** 
+ 245:../src/drv_mpu6050.c **** #ifndef MPU6050_DMP
+ 246:../src/drv_mpu6050.c ****     i2cRead(MPU6050_ADDRESS, MPU_RA_ACCEL_XOUT_H, 6, buf);
+ 369              		.loc 1 246 0
+ 370 020c 07F10803 		add	r3, r7, #8
+ 371 0210 4FF06800 		mov	r0, #104
+ 372 0214 4FF03B01 		mov	r1, #59
+ 373 0218 4FF00602 		mov	r2, #6
+ 374 021c FFF7FEFF 		bl	i2cRead
+ 247:../src/drv_mpu6050.c ****     accData[0] = (int16_t)((buf[0] << 8) | buf[1]) / 8;
+ 375              		.loc 1 247 0
+ 376 0220 3B7A     		ldrb	r3, [r7, #8]	@ zero_extendqisi2
+ 377 0222 4FEA0323 		lsl	r3, r3, #8
+ 378 0226 9AB2     		uxth	r2, r3
+ 379 0228 7B7A     		ldrb	r3, [r7, #9]	@ zero_extendqisi2
+ 380 022a 1343     		orrs	r3, r3, r2
+ 381 022c 9BB2     		uxth	r3, r3
+ 382 022e 1BB2     		sxth	r3, r3
+ 383 0230 002B     		cmp	r3, #0
+ 384 0232 01DA     		bge	.L30
+ 385 0234 03F10703 		add	r3, r3, #7
+ 386              	.L30:
+ 387 0238 4FEAE303 		asr	r3, r3, #3
+ 388 023c 9AB2     		uxth	r2, r3
+ 389 023e 7B68     		ldr	r3, [r7, #4]
+ 390 0240 1A80     		strh	r2, [r3, #0]	@ movhi
+ 248:../src/drv_mpu6050.c ****     accData[1] = (int16_t)((buf[2] << 8) | buf[3]) / 8;
+ 391              		.loc 1 248 0
+ 392 0242 7B68     		ldr	r3, [r7, #4]
+ 393 0244 03F10202 		add	r2, r3, #2
+ 394 0248 BB7A     		ldrb	r3, [r7, #10]	@ zero_extendqisi2
+ 395 024a 4FEA0323 		lsl	r3, r3, #8
+ 396 024e 99B2     		uxth	r1, r3
+ 397 0250 FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 398 0252 0B43     		orrs	r3, r3, r1
+ 399 0254 9BB2     		uxth	r3, r3
+ 400 0256 1BB2     		sxth	r3, r3
+ 401 0258 002B     		cmp	r3, #0
+ 402 025a 01DA     		bge	.L31
+ 403 025c 03F10703 		add	r3, r3, #7
+ 404              	.L31:
+ 405 0260 4FEAE303 		asr	r3, r3, #3
+ 406 0264 9BB2     		uxth	r3, r3
+ 407 0266 1380     		strh	r3, [r2, #0]	@ movhi
+ 249:../src/drv_mpu6050.c ****     accData[2] = (int16_t)((buf[4] << 8) | buf[5]) / 8;
+ 408              		.loc 1 249 0
+ 409 0268 7B68     		ldr	r3, [r7, #4]
+ 410 026a 03F10402 		add	r2, r3, #4
+ 411 026e 3B7B     		ldrb	r3, [r7, #12]	@ zero_extendqisi2
+ 412 0270 4FEA0323 		lsl	r3, r3, #8
+ 413 0274 99B2     		uxth	r1, r3
+ 414 0276 7B7B     		ldrb	r3, [r7, #13]	@ zero_extendqisi2
+ 415 0278 0B43     		orrs	r3, r3, r1
+ 416 027a 9BB2     		uxth	r3, r3
+ 417 027c 1BB2     		sxth	r3, r3
+ 418 027e 002B     		cmp	r3, #0
+ 419 0280 01DA     		bge	.L32
+ 420 0282 03F10703 		add	r3, r3, #7
+ 421              	.L32:
+ 422 0286 4FEAE303 		asr	r3, r3, #3
+ 423 028a 9BB2     		uxth	r3, r3
+ 424 028c 1380     		strh	r3, [r2, #0]	@ movhi
+ 250:../src/drv_mpu6050.c **** #else
+ 251:../src/drv_mpu6050.c ****     accData[0] = accData[1] = accData[2] = 0;
+ 252:../src/drv_mpu6050.c **** #endif
+ 253:../src/drv_mpu6050.c **** }
+ 425              		.loc 1 253 0
+ 426 028e 07F11007 		add	r7, r7, #16
+ 427 0292 BD46     		mov	sp, r7
+ 428 0294 80BD     		pop	{r7, pc}
+ 429              		.cfi_endproc
+ 430              	.LFE31:
+ 432 0296 00BF     		.align	2
+ 433              		.thumb
+ 434              		.thumb_func
+ 436              	mpu6050AccAlign:
+ 437              	.LFB32:
+ 254:../src/drv_mpu6050.c **** 
+ 255:../src/drv_mpu6050.c **** static void mpu6050AccAlign(int16_t *accData)
+ 256:../src/drv_mpu6050.c **** {
+ 438              		.loc 1 256 0
+ 439              		.cfi_startproc
+ 440              		@ args = 0, pretend = 0, frame = 16
+ 441              		@ frame_needed = 1, uses_anonymous_args = 0
+ 442              		@ link register save eliminated.
+ 443 0298 80B4     		push	{r7}
+ 444              	.LCFI8:
+ 445              		.cfi_def_cfa_offset 4
+ 446              		.cfi_offset 7, -4
+ 447 029a 85B0     		sub	sp, sp, #20
+ 448              	.LCFI9:
+ 449              		.cfi_def_cfa_offset 24
+ 450 029c 00AF     		add	r7, sp, #0
+ 451              	.LCFI10:
+ 452              		.cfi_def_cfa_register 7
+ 453 029e 7860     		str	r0, [r7, #4]
+ 257:../src/drv_mpu6050.c ****     int16_t temp[2];
+ 258:../src/drv_mpu6050.c ****     temp[0] = accData[0];
+ 454              		.loc 1 258 0
+ 455 02a0 7B68     		ldr	r3, [r7, #4]
+ 456 02a2 1B88     		ldrh	r3, [r3, #0]
+ 457 02a4 BB81     		strh	r3, [r7, #12]	@ movhi
+ 259:../src/drv_mpu6050.c ****     temp[1] = accData[1];
+ 458              		.loc 1 259 0
+ 459 02a6 7B68     		ldr	r3, [r7, #4]
+ 460 02a8 5B88     		ldrh	r3, [r3, #2]
+ 461 02aa FB81     		strh	r3, [r7, #14]	@ movhi
+ 260:../src/drv_mpu6050.c **** 
+ 261:../src/drv_mpu6050.c ****     // official direction is RPY
+ 262:../src/drv_mpu6050.c ****     accData[0] = temp[1];
+ 462              		.loc 1 262 0
+ 463 02ac FA89     		ldrh	r2, [r7, #14]
+ 464 02ae 7B68     		ldr	r3, [r7, #4]
+ 465 02b0 1A80     		strh	r2, [r3, #0]	@ movhi
+ 263:../src/drv_mpu6050.c ****     accData[1] = -temp[0];
+ 466              		.loc 1 263 0
+ 467 02b2 7B68     		ldr	r3, [r7, #4]
+ 468 02b4 03F10203 		add	r3, r3, #2
+ 469 02b8 BA89     		ldrh	r2, [r7, #12]
+ 470 02ba 92B2     		uxth	r2, r2
+ 471 02bc C2F10002 		rsb	r2, r2, #0
+ 472 02c0 92B2     		uxth	r2, r2
+ 473 02c2 92B2     		uxth	r2, r2
+ 474 02c4 1A80     		strh	r2, [r3, #0]	@ movhi
+ 264:../src/drv_mpu6050.c ****     accData[2] = accData[2];
+ 475              		.loc 1 264 0
+ 476 02c6 7B68     		ldr	r3, [r7, #4]
+ 477 02c8 03F10403 		add	r3, r3, #4
+ 478 02cc 7A68     		ldr	r2, [r7, #4]
+ 479 02ce 9288     		ldrh	r2, [r2, #4]
+ 480 02d0 1A80     		strh	r2, [r3, #0]	@ movhi
+ 265:../src/drv_mpu6050.c **** }
+ 481              		.loc 1 265 0
+ 482 02d2 07F11407 		add	r7, r7, #20
+ 483 02d6 BD46     		mov	sp, r7
+ 484 02d8 80BC     		pop	{r7}
+ 485 02da 7047     		bx	lr
+ 486              		.cfi_endproc
+ 487              	.LFE32:
+ 489              		.align	2
+ 490              		.thumb
+ 491              		.thumb_func
+ 493              	mpu6050GyroInit:
+ 494              	.LFB33:
+ 266:../src/drv_mpu6050.c **** 
+ 267:../src/drv_mpu6050.c **** static void mpu6050GyroInit(void)
+ 268:../src/drv_mpu6050.c **** {
+ 495              		.loc 1 268 0
+ 496              		.cfi_startproc
+ 497              		@ args = 0, pretend = 0, frame = 8
+ 498              		@ frame_needed = 1, uses_anonymous_args = 0
+ 499 02dc 80B5     		push	{r7, lr}
+ 500              	.LCFI11:
+ 501              		.cfi_def_cfa_offset 8
+ 502              		.cfi_offset 7, -8
+ 503              		.cfi_offset 14, -4
+ 504 02de 82B0     		sub	sp, sp, #8
+ 505              	.LCFI12:
+ 506              		.cfi_def_cfa_offset 16
+ 507 02e0 00AF     		add	r7, sp, #0
+ 508              	.LCFI13:
+ 509              		.cfi_def_cfa_register 7
+ 269:../src/drv_mpu6050.c ****     GPIO_InitTypeDef GPIO_InitStructure;
+ 270:../src/drv_mpu6050.c **** 
+ 271:../src/drv_mpu6050.c ****     // PB13 - MPU_INT output on rev4 hardware
+ 272:../src/drv_mpu6050.c ****     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+ 510              		.loc 1 272 0
+ 511 02e2 4FF40053 		mov	r3, #8192
+ 512 02e6 BB80     		strh	r3, [r7, #4]	@ movhi
+ 273:../src/drv_mpu6050.c ****     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+ 513              		.loc 1 273 0
+ 514 02e8 4FF00203 		mov	r3, #2
+ 515 02ec BB71     		strb	r3, [r7, #6]
+ 274:../src/drv_mpu6050.c ****     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+ 516              		.loc 1 274 0
+ 517 02ee 4FF00403 		mov	r3, #4
+ 518 02f2 FB71     		strb	r3, [r7, #7]
+ 275:../src/drv_mpu6050.c ****     GPIO_Init(GPIOB, &GPIO_InitStructure);
+ 519              		.loc 1 275 0
+ 520 02f4 07F10403 		add	r3, r7, #4
+ 521 02f8 2248     		ldr	r0, .L35
+ 522 02fa 1946     		mov	r1, r3
+ 523 02fc FFF7FEFF 		bl	GPIO_Init
+ 276:../src/drv_mpu6050.c **** 
+ 277:../src/drv_mpu6050.c **** #ifndef MPU6050_DMP
+ 278:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_PWR_MGMT_1, 0x80);      //PWR_MGMT_1    -- DEVICE_RESET 1
+ 524              		.loc 1 278 0
+ 525 0300 4FF06800 		mov	r0, #104
+ 526 0304 4FF06B01 		mov	r1, #107
+ 527 0308 4FF08002 		mov	r2, #128
+ 528 030c FFF7FEFF 		bl	i2cWrite
+ 279:../src/drv_mpu6050.c ****     delay(5);
+ 529              		.loc 1 279 0
+ 530 0310 4FF00500 		mov	r0, #5
+ 531 0314 FFF7FEFF 		bl	delay
+ 280:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_SMPLRT_DIV, 0x00);      //SMPLRT_DIV    -- SMPLRT_DIV = 0  Sam
+ 532              		.loc 1 280 0
+ 533 0318 4FF06800 		mov	r0, #104
+ 534 031c 4FF01901 		mov	r1, #25
+ 535 0320 4FF00002 		mov	r2, #0
+ 536 0324 FFF7FEFF 		bl	i2cWrite
+ 281:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_PWR_MGMT_1, 0x03);      //PWR_MGMT_1    -- SLEEP 0; CYCLE 0; T
+ 537              		.loc 1 281 0
+ 538 0328 4FF06800 		mov	r0, #104
+ 539 032c 4FF06B01 		mov	r1, #107
+ 540 0330 4FF00302 		mov	r2, #3
+ 541 0334 FFF7FEFF 		bl	i2cWrite
+ 282:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 0 << 4 | 0 << 3 | 0 <<
+ 542              		.loc 1 282 0
+ 543 0338 4FF06800 		mov	r0, #104
+ 544 033c 4FF03701 		mov	r1, #55
+ 545 0340 4FF00202 		mov	r2, #2
+ 546 0344 FFF7FEFF 		bl	i2cWrite
+ 283:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_CONFIG, mpuLowPassFilter);  //CONFIG        -- EXT_SYNC_SET 0 
+ 547              		.loc 1 283 0
+ 548 0348 0F4B     		ldr	r3, .L35+4
+ 549 034a 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 550 034c 4FF06800 		mov	r0, #104
+ 551 0350 4FF01A01 		mov	r1, #26
+ 552 0354 1A46     		mov	r2, r3
+ 553 0356 FFF7FEFF 		bl	i2cWrite
+ 284:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_GYRO_CONFIG, 0x18);      //GYRO_CONFIG   -- FS_SEL = 3: Full s
+ 554              		.loc 1 284 0
+ 555 035a 4FF06800 		mov	r0, #104
+ 556 035e 4FF01B01 		mov	r1, #27
+ 557 0362 4FF01802 		mov	r2, #24
+ 558 0366 FFF7FEFF 		bl	i2cWrite
+ 285:../src/drv_mpu6050.c **** 
+ 286:../src/drv_mpu6050.c ****     // ACC Init stuff. Moved into gyro init because the reset above would screw up accel config. Oo
+ 287:../src/drv_mpu6050.c ****     // Accel scale 8g (4096 LSB/g)
+ 288:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_ACCEL_CONFIG, 2 << 3);
+ 559              		.loc 1 288 0
+ 560 036a 4FF06800 		mov	r0, #104
+ 561 036e 4FF01C01 		mov	r1, #28
+ 562 0372 4FF01002 		mov	r2, #16
+ 563 0376 FFF7FEFF 		bl	i2cWrite
+ 289:../src/drv_mpu6050.c **** #endif
+ 290:../src/drv_mpu6050.c **** }
+ 564              		.loc 1 290 0
+ 565 037a 07F10807 		add	r7, r7, #8
+ 566 037e BD46     		mov	sp, r7
+ 567 0380 80BD     		pop	{r7, pc}
+ 568              	.L36:
+ 569 0382 00BF     		.align	2
+ 570              	.L35:
+ 571 0384 000C0140 		.word	1073810432
+ 572 0388 00000000 		.word	mpuLowPassFilter
+ 573              		.cfi_endproc
+ 574              	.LFE33:
+ 576              		.align	2
+ 577              		.thumb
+ 578              		.thumb_func
+ 580              	mpu6050GyroRead:
+ 581              	.LFB34:
+ 291:../src/drv_mpu6050.c **** 
+ 292:../src/drv_mpu6050.c **** static void mpu6050GyroRead(int16_t * gyroData)
+ 293:../src/drv_mpu6050.c **** {
+ 582              		.loc 1 293 0
+ 583              		.cfi_startproc
+ 584              		@ args = 0, pretend = 0, frame = 16
+ 585              		@ frame_needed = 1, uses_anonymous_args = 0
+ 586 038c 80B5     		push	{r7, lr}
+ 587              	.LCFI14:
+ 588              		.cfi_def_cfa_offset 8
+ 589              		.cfi_offset 7, -8
+ 590              		.cfi_offset 14, -4
+ 591 038e 84B0     		sub	sp, sp, #16
+ 592              	.LCFI15:
+ 593              		.cfi_def_cfa_offset 24
+ 594 0390 00AF     		add	r7, sp, #0
+ 595              	.LCFI16:
+ 596              		.cfi_def_cfa_register 7
+ 597 0392 7860     		str	r0, [r7, #4]
+ 294:../src/drv_mpu6050.c ****     uint8_t buf[6];
+ 295:../src/drv_mpu6050.c **** #ifndef MPU6050_DMP
+ 296:../src/drv_mpu6050.c ****     i2cRead(MPU6050_ADDRESS, MPU_RA_GYRO_XOUT_H, 6, buf);
+ 598              		.loc 1 296 0
+ 599 0394 07F10803 		add	r3, r7, #8
+ 600 0398 4FF06800 		mov	r0, #104
+ 601 039c 4FF04301 		mov	r1, #67
+ 602 03a0 4FF00602 		mov	r2, #6
+ 603 03a4 FFF7FEFF 		bl	i2cRead
+ 297:../src/drv_mpu6050.c ****     gyroData[0] = (int16_t)((buf[0] << 8) | buf[1]) / 4;
+ 604              		.loc 1 297 0
+ 605 03a8 3B7A     		ldrb	r3, [r7, #8]	@ zero_extendqisi2
+ 606 03aa 4FEA0323 		lsl	r3, r3, #8
+ 607 03ae 9AB2     		uxth	r2, r3
+ 608 03b0 7B7A     		ldrb	r3, [r7, #9]	@ zero_extendqisi2
+ 609 03b2 1343     		orrs	r3, r3, r2
+ 610 03b4 9BB2     		uxth	r3, r3
+ 611 03b6 1BB2     		sxth	r3, r3
+ 612 03b8 002B     		cmp	r3, #0
+ 613 03ba 01DA     		bge	.L38
+ 614 03bc 03F10303 		add	r3, r3, #3
+ 615              	.L38:
+ 616 03c0 4FEAA303 		asr	r3, r3, #2
+ 617 03c4 9AB2     		uxth	r2, r3
+ 618 03c6 7B68     		ldr	r3, [r7, #4]
+ 619 03c8 1A80     		strh	r2, [r3, #0]	@ movhi
+ 298:../src/drv_mpu6050.c ****     gyroData[1] = (int16_t)((buf[2] << 8) | buf[3]) / 4;
+ 620              		.loc 1 298 0
+ 621 03ca 7B68     		ldr	r3, [r7, #4]
+ 622 03cc 03F10202 		add	r2, r3, #2
+ 623 03d0 BB7A     		ldrb	r3, [r7, #10]	@ zero_extendqisi2
+ 624 03d2 4FEA0323 		lsl	r3, r3, #8
+ 625 03d6 99B2     		uxth	r1, r3
+ 626 03d8 FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 627 03da 0B43     		orrs	r3, r3, r1
+ 628 03dc 9BB2     		uxth	r3, r3
+ 629 03de 1BB2     		sxth	r3, r3
+ 630 03e0 002B     		cmp	r3, #0
+ 631 03e2 01DA     		bge	.L39
+ 632 03e4 03F10303 		add	r3, r3, #3
+ 633              	.L39:
+ 634 03e8 4FEAA303 		asr	r3, r3, #2
+ 635 03ec 9BB2     		uxth	r3, r3
+ 636 03ee 1380     		strh	r3, [r2, #0]	@ movhi
+ 299:../src/drv_mpu6050.c ****     gyroData[2] = (int16_t)((buf[4] << 8) | buf[5]) / 4;
+ 637              		.loc 1 299 0
+ 638 03f0 7B68     		ldr	r3, [r7, #4]
+ 639 03f2 03F10402 		add	r2, r3, #4
+ 640 03f6 3B7B     		ldrb	r3, [r7, #12]	@ zero_extendqisi2
+ 641 03f8 4FEA0323 		lsl	r3, r3, #8
+ 642 03fc 99B2     		uxth	r1, r3
+ 643 03fe 7B7B     		ldrb	r3, [r7, #13]	@ zero_extendqisi2
+ 644 0400 0B43     		orrs	r3, r3, r1
+ 645 0402 9BB2     		uxth	r3, r3
+ 646 0404 1BB2     		sxth	r3, r3
+ 647 0406 002B     		cmp	r3, #0
+ 648 0408 01DA     		bge	.L40
+ 649 040a 03F10303 		add	r3, r3, #3
+ 650              	.L40:
+ 651 040e 4FEAA303 		asr	r3, r3, #2
+ 652 0412 9BB2     		uxth	r3, r3
+ 653 0414 1380     		strh	r3, [r2, #0]	@ movhi
+ 300:../src/drv_mpu6050.c **** #else
+ 301:../src/drv_mpu6050.c ****     gyroData[0] = dmpGyroData[0] / 4 ;
+ 302:../src/drv_mpu6050.c ****     gyroData[1] = dmpGyroData[1] / 4;
+ 303:../src/drv_mpu6050.c ****     gyroData[2] = dmpGyroData[2] / 4;
+ 304:../src/drv_mpu6050.c **** #endif
+ 305:../src/drv_mpu6050.c **** }
+ 654              		.loc 1 305 0
+ 655 0416 07F11007 		add	r7, r7, #16
+ 656 041a BD46     		mov	sp, r7
+ 657 041c 80BD     		pop	{r7, pc}
+ 658              		.cfi_endproc
+ 659              	.LFE34:
+ 661 041e 00BF     		.align	2
+ 662              		.thumb
+ 663              		.thumb_func
+ 665              	mpu6050GyroAlign:
+ 666              	.LFB35:
+ 306:../src/drv_mpu6050.c **** 
+ 307:../src/drv_mpu6050.c **** static void mpu6050GyroAlign(int16_t * gyroData)
+ 308:../src/drv_mpu6050.c **** {
+ 667              		.loc 1 308 0
+ 668              		.cfi_startproc
+ 669              		@ args = 0, pretend = 0, frame = 8
+ 670              		@ frame_needed = 1, uses_anonymous_args = 0
+ 671              		@ link register save eliminated.
+ 672 0420 80B4     		push	{r7}
+ 673              	.LCFI17:
+ 674              		.cfi_def_cfa_offset 4
+ 675              		.cfi_offset 7, -4
+ 676 0422 83B0     		sub	sp, sp, #12
+ 677              	.LCFI18:
+ 678              		.cfi_def_cfa_offset 16
+ 679 0424 00AF     		add	r7, sp, #0
+ 680              	.LCFI19:
+ 681              		.cfi_def_cfa_register 7
+ 682 0426 7860     		str	r0, [r7, #4]
+ 309:../src/drv_mpu6050.c ****     // official direction is RPY
+ 310:../src/drv_mpu6050.c ****     gyroData[0] = gyroData[0];
+ 683              		.loc 1 310 0
+ 684 0428 7B68     		ldr	r3, [r7, #4]
+ 685 042a 1A88     		ldrh	r2, [r3, #0]
+ 686 042c 7B68     		ldr	r3, [r7, #4]
+ 687 042e 1A80     		strh	r2, [r3, #0]	@ movhi
+ 311:../src/drv_mpu6050.c ****     gyroData[1] = gyroData[1];
+ 688              		.loc 1 311 0
+ 689 0430 7B68     		ldr	r3, [r7, #4]
+ 690 0432 03F10203 		add	r3, r3, #2
+ 691 0436 7A68     		ldr	r2, [r7, #4]
+ 692 0438 5288     		ldrh	r2, [r2, #2]
+ 693 043a 1A80     		strh	r2, [r3, #0]	@ movhi
+ 312:../src/drv_mpu6050.c ****     gyroData[2] = -gyroData[2];
+ 694              		.loc 1 312 0
+ 695 043c 7B68     		ldr	r3, [r7, #4]
+ 696 043e 03F10403 		add	r3, r3, #4
+ 697 0442 7A68     		ldr	r2, [r7, #4]
+ 698 0444 02F10402 		add	r2, r2, #4
+ 699 0448 1288     		ldrh	r2, [r2, #0]
+ 700 044a 92B2     		uxth	r2, r2
+ 701 044c C2F10002 		rsb	r2, r2, #0
+ 702 0450 92B2     		uxth	r2, r2
+ 703 0452 92B2     		uxth	r2, r2
+ 704 0454 1A80     		strh	r2, [r3, #0]	@ movhi
+ 313:../src/drv_mpu6050.c **** }
+ 705              		.loc 1 313 0
+ 706 0456 07F10C07 		add	r7, r7, #12
+ 707 045a BD46     		mov	sp, r7
+ 708 045c 80BC     		pop	{r7}
+ 709 045e 7047     		bx	lr
+ 710              		.cfi_endproc
+ 711              	.LFE35:
+ 713              		.align	2
+ 714              		.global	mpu6050DmpLoop
+ 715              		.thumb
+ 716              		.thumb_func
+ 718              	mpu6050DmpLoop:
+ 719              	.LFB36:
+ 314:../src/drv_mpu6050.c **** 
+ 315:../src/drv_mpu6050.c **** #ifdef MPU6050_DMP
+ 316:../src/drv_mpu6050.c **** 
+ 317:../src/drv_mpu6050.c **** //This 3D array contains the default DMP memory bank binary that gets loaded during initialization.
+ 318:../src/drv_mpu6050.c **** //In the Invensense UC3-A3 firmware this is uploaded in 128 byte tranmissions, but the Arduino Wire
+ 319:../src/drv_mpu6050.c **** //library only supports 32 byte transmissions, including the register address to which you're writi
+ 320:../src/drv_mpu6050.c **** //so I broke it up into 16 byte transmission payloads which are sent in the dmp_init() function bel
+ 321:../src/drv_mpu6050.c **** //
+ 322:../src/drv_mpu6050.c **** //This was reconstructed from observed I2C traffic generated by the UC3-A3 demo code, and not extra
+ 323:../src/drv_mpu6050.c **** //directly from that code. That is true of all transmissions in this sketch, and any documentation 
+ 324:../src/drv_mpu6050.c **** //been added after the fact by referencing the Invensense code.
+ 325:../src/drv_mpu6050.c **** 
+ 326:../src/drv_mpu6050.c **** const unsigned char dmpMem[8][16][16] = {
+ 327:../src/drv_mpu6050.c ****     {
+ 328:../src/drv_mpu6050.c ****      {0xFB, 0x00, 0x00, 0x3E, 0x00, 0x0B, 0x00, 0x36, 0x00, 0x01, 0x00, 0x02, 0x00, 0x03, 0x00, 0x0
+ 329:../src/drv_mpu6050.c ****      {0x00, 0x65, 0x00, 0x54, 0xFF, 0xEF, 0x00, 0x00, 0xFA, 0x80, 0x00, 0x0B, 0x12, 0x82, 0x00, 0x0
+ 330:../src/drv_mpu6050.c ****      {0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 331:../src/drv_mpu6050.c ****      {0x00, 0x28, 0x00, 0x00, 0xFF, 0xFF, 0x45, 0x81, 0xFF, 0xFF, 0xFA, 0x72, 0x00, 0x00, 0x00, 0x0
+ 332:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x03, 0xE8, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x7F, 0xFF, 0xFF, 0xFE, 0x80, 0x0
+ 333:../src/drv_mpu6050.c ****      {0x00, 0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 334:../src/drv_mpu6050.c ****      {0x00, 0x3E, 0x03, 0x30, 0x40, 0x00, 0x00, 0x00, 0x02, 0xCA, 0xE3, 0x09, 0x3E, 0x80, 0x00, 0x0
+ 335:../src/drv_mpu6050.c ****      {0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x60, 0x00, 0x00, 0x0
+ 336:../src/drv_mpu6050.c ****      {0x41, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x0B, 0x2A, 0x00, 0x00, 0x16, 0x55, 0x00, 0x00, 0x21, 0x8
+ 337:../src/drv_mpu6050.c ****      {0xFD, 0x87, 0x26, 0x50, 0xFD, 0x80, 0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00, 0x05, 0x80, 0x0
+ 338:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x0
+ 339:../src/drv_mpu6050.c ****      {0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x6F, 0x00, 0x02, 0x65, 0x32, 0x00, 0x00, 0x5E, 0xC
+ 340:../src/drv_mpu6050.c ****      {0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 341:../src/drv_mpu6050.c ****      {0xFB, 0x8C, 0x6F, 0x5D, 0xFD, 0x5D, 0x08, 0xD9, 0x00, 0x7C, 0x73, 0x3B, 0x00, 0x6C, 0x12, 0xC
+ 342:../src/drv_mpu6050.c ****      {0x32, 0x00, 0x13, 0x9D, 0x32, 0x00, 0xD0, 0xD6, 0x32, 0x00, 0x08, 0x00, 0x40, 0x00, 0x01, 0xF
+ 343:../src/drv_mpu6050.c ****      {0xFF, 0xE6, 0x80, 0x79, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0xD0, 0xD6, 0x00, 0x00, 0x27, 0x1
+ 344:../src/drv_mpu6050.c ****      },
+ 345:../src/drv_mpu6050.c ****     {
+ 346:../src/drv_mpu6050.c ****      {0xFB, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 347:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x0
+ 348:../src/drv_mpu6050.c ****      {0x00, 0x00, 0xFA, 0x36, 0xFF, 0xBC, 0x30, 0x8E, 0x00, 0x05, 0xFB, 0xF0, 0xFF, 0xD9, 0x5B, 0xC
+ 349:../src/drv_mpu6050.c ****      {0xFF, 0xD0, 0x9A, 0xBE, 0x00, 0x00, 0x10, 0xA9, 0xFF, 0xF4, 0x1E, 0xB2, 0x00, 0xCE, 0xBB, 0xF
+ 350:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x04, 0x00, 0x02, 0x00, 0x02, 0x02, 0x00, 0x00, 0x0
+ 351:../src/drv_mpu6050.c ****      {0xFF, 0xC2, 0x80, 0x00, 0x00, 0x01, 0x80, 0x00, 0x00, 0xCF, 0x80, 0x00, 0x40, 0x00, 0x00, 0x0
+ 352:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x1
+ 353:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 354:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 355:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 356:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x03, 0x3F, 0x68, 0xB6, 0x79, 0x35, 0x28, 0xBC, 0xC6, 0x7E, 0xD1, 0x6
+ 357:../src/drv_mpu6050.c ****      {0x80, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0xB2, 0x6A, 0x00, 0x00, 0x00, 0x0
+ 358:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xF0, 0x00, 0x00, 0x00, 0x3
+ 359:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 360:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 361:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x25, 0x4D, 0x00, 0x2F, 0x70, 0x6D, 0x00, 0x00, 0x05, 0xAE, 0x00, 0x0C, 0x02, 0xD
+ 362:../src/drv_mpu6050.c ****      },
+ 363:../src/drv_mpu6050.c ****     {
+ 364:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x65, 0x00, 0x54, 0xFF, 0xEF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 365:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x01, 0x00, 0x00, 0x44, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x01, 0x0
+ 366:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x65, 0x00, 0x00, 0x00, 0x54, 0x00, 0x00, 0xFF, 0xEF, 0x00, 0x0
+ 367:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 368:../src/drv_mpu6050.c ****      {0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 369:../src/drv_mpu6050.c ****      {0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 370:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 371:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 372:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 373:../src/drv_mpu6050.c ****      {0x00, 0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 374:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 375:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x0
+ 376:../src/drv_mpu6050.c ****      {0x00, 0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 377:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 378:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 379:../src/drv_mpu6050.c ****      {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
+ 380:../src/drv_mpu6050.c ****      },
+ 381:../src/drv_mpu6050.c ****     {
+ 382:../src/drv_mpu6050.c ****      {0xD8, 0xDC, 0xBA, 0xA2, 0xF1, 0xDE, 0xB2, 0xB8, 0xB4, 0xA8, 0x81, 0x91, 0xF7, 0x4A, 0x90, 0x7
+ 383:../src/drv_mpu6050.c ****      {0x91, 0x6A, 0xF3, 0xF9, 0xDB, 0xA8, 0xF9, 0xB0, 0xBA, 0xA0, 0x80, 0xF2, 0xCE, 0x81, 0xF3, 0xC
+ 384:../src/drv_mpu6050.c ****      {0xF1, 0xC1, 0xF2, 0xC3, 0xF3, 0xCC, 0xA2, 0xB2, 0x80, 0xF1, 0xC6, 0xD8, 0x80, 0xBA, 0xA7, 0xD
+ 385:../src/drv_mpu6050.c ****      {0xDF, 0xDF, 0xF2, 0xA7, 0xC3, 0xCB, 0xC5, 0xB6, 0xF0, 0x87, 0xA2, 0x94, 0x24, 0x48, 0x70, 0x3
+ 386:../src/drv_mpu6050.c ****      {0x95, 0x40, 0x68, 0x34, 0x58, 0x9B, 0x78, 0xA2, 0xF1, 0x83, 0x92, 0x2D, 0x55, 0x7D, 0xD8, 0xB
+ 387:../src/drv_mpu6050.c ****      {0xB4, 0xB8, 0xA1, 0xD0, 0x91, 0x80, 0xF2, 0x70, 0xF3, 0x70, 0xF2, 0x7C, 0x80, 0xA8, 0xF1, 0x0
+ 388:../src/drv_mpu6050.c ****      {0xB0, 0x98, 0x87, 0xD9, 0x43, 0xD8, 0x86, 0xC9, 0x88, 0xBA, 0xA1, 0xF2, 0x0E, 0xB8, 0x97, 0x8
+ 389:../src/drv_mpu6050.c ****      {0xF1, 0xA9, 0xDF, 0xDF, 0xDF, 0xAA, 0xDF, 0xDF, 0xDF, 0xF2, 0xAA, 0xC5, 0xCD, 0xC7, 0xA9, 0x0
+ 390:../src/drv_mpu6050.c ****      {0xC9, 0x2C, 0x97, 0x97, 0x97, 0x97, 0xF1, 0xA9, 0x89, 0x26, 0x46, 0x66, 0xB0, 0xB4, 0xBA, 0x8
+ 391:../src/drv_mpu6050.c ****      {0xAC, 0xDE, 0xF2, 0xCA, 0xF1, 0xB2, 0x8C, 0x02, 0xA9, 0xB6, 0x98, 0x00, 0x89, 0x0E, 0x16, 0x1
+ 392:../src/drv_mpu6050.c ****      {0xB8, 0xA9, 0xB4, 0x99, 0x2C, 0x54, 0x7C, 0xB0, 0x8A, 0xA8, 0x96, 0x36, 0x56, 0x76, 0xF1, 0xB
+ 393:../src/drv_mpu6050.c ****      {0xAF, 0xB4, 0xB0, 0x83, 0xC0, 0xB8, 0xA8, 0x97, 0x11, 0xB1, 0x8F, 0x98, 0xB9, 0xAF, 0xF0, 0x2
+ 394:../src/drv_mpu6050.c ****      {0x08, 0x44, 0x10, 0x64, 0x18, 0xF1, 0xA3, 0x29, 0x55, 0x7D, 0xAF, 0x83, 0xB5, 0x93, 0xAF, 0xF
+ 395:../src/drv_mpu6050.c ****      {0x00, 0x28, 0x50, 0xF1, 0xA3, 0x86, 0x9F, 0x61, 0xA6, 0xDA, 0xDE, 0xDF, 0xD9, 0xFA, 0xA3, 0x8
+ 396:../src/drv_mpu6050.c ****      {0x96, 0xDB, 0x31, 0xA6, 0xD9, 0xF8, 0xDF, 0xBA, 0xA6, 0x8F, 0xC2, 0xC5, 0xC7, 0xB2, 0x8C, 0xC
+ 397:../src/drv_mpu6050.c ****      {0xB8, 0xA2, 0xDF, 0xDF, 0xDF, 0xA3, 0xDF, 0xDF, 0xDF, 0xD8, 0xD8, 0xF1, 0xB8, 0xA8, 0xB2, 0x8
+ 398:../src/drv_mpu6050.c ****      },
+ 399:../src/drv_mpu6050.c ****     {
+ 400:../src/drv_mpu6050.c ****      {0xB4, 0x98, 0x0D, 0x35, 0x5D, 0xB8, 0xAA, 0x98, 0xB0, 0x87, 0x2D, 0x35, 0x3D, 0xB2, 0xB6, 0xB
+ 401:../src/drv_mpu6050.c ****      {0xAF, 0x8C, 0x96, 0x19, 0x8F, 0x9F, 0xA7, 0x0E, 0x16, 0x1E, 0xB4, 0x9A, 0xB8, 0xAA, 0x87, 0x2
+ 402:../src/drv_mpu6050.c ****      {0x54, 0x7C, 0xB9, 0xA3, 0xDE, 0xDF, 0xDF, 0xA3, 0xB1, 0x80, 0xF2, 0xC4, 0xCD, 0xC9, 0xF1, 0xB
+ 403:../src/drv_mpu6050.c ****      {0xA9, 0xB4, 0x99, 0x83, 0x0D, 0x35, 0x5D, 0x89, 0xB9, 0xA3, 0x2D, 0x55, 0x7D, 0xB5, 0x93, 0xA
+ 404:../src/drv_mpu6050.c ****      {0x0E, 0x16, 0x1E, 0xA9, 0x2C, 0x54, 0x7C, 0xB8, 0xB4, 0xB0, 0xF1, 0x97, 0x83, 0xA8, 0x11, 0x8
+ 405:../src/drv_mpu6050.c ****      {0xA5, 0x09, 0x98, 0xA3, 0x83, 0xF0, 0xDA, 0x24, 0x08, 0x44, 0x10, 0x64, 0x18, 0xD8, 0xF1, 0xA
+ 406:../src/drv_mpu6050.c ****      {0x29, 0x55, 0x7D, 0xA5, 0x85, 0x95, 0x02, 0x1A, 0x2E, 0x3A, 0x56, 0x5A, 0x40, 0x48, 0xF9, 0xF
+ 407:../src/drv_mpu6050.c ****      {0xA3, 0xD9, 0xF8, 0xF0, 0x98, 0x83, 0x24, 0x08, 0x44, 0x10, 0x64, 0x18, 0x97, 0x82, 0xA8, 0xF
+ 408:../src/drv_mpu6050.c ****      {0x11, 0xF0, 0x98, 0xA2, 0x24, 0x08, 0x44, 0x10, 0x64, 0x18, 0xDA, 0xF3, 0xDE, 0xD8, 0x83, 0xA
+ 409:../src/drv_mpu6050.c ****      {0x94, 0x01, 0xD9, 0xA3, 0x02, 0xF1, 0xA2, 0xC3, 0xC5, 0xC7, 0xD8, 0xF1, 0x84, 0x92, 0xA2, 0x4
+ 410:../src/drv_mpu6050.c ****      {0xDA, 0x2A, 0xD8, 0x48, 0x69, 0xD9, 0x2A, 0xD8, 0x68, 0x55, 0xDA, 0x32, 0xD8, 0x50, 0x71, 0xD
+ 411:../src/drv_mpu6050.c ****      {0x32, 0xD8, 0x70, 0x5D, 0xDA, 0x3A, 0xD8, 0x58, 0x79, 0xD9, 0x3A, 0xD8, 0x78, 0x93, 0xA3, 0x4
+ 412:../src/drv_mpu6050.c ****      {0xDA, 0x2A, 0xD8, 0x48, 0x69, 0xD9, 0x2A, 0xD8, 0x68, 0x55, 0xDA, 0x32, 0xD8, 0x50, 0x71, 0xD
+ 413:../src/drv_mpu6050.c ****      {0x32, 0xD8, 0x70, 0x5D, 0xDA, 0x3A, 0xD8, 0x58, 0x79, 0xD9, 0x3A, 0xD8, 0x78, 0xA8, 0x8A, 0x9
+ 414:../src/drv_mpu6050.c ****      {0xF0, 0x28, 0x50, 0x78, 0x9E, 0xF3, 0x88, 0x18, 0xF1, 0x9F, 0x1D, 0x98, 0xA8, 0xD9, 0x08, 0xD
+ 415:../src/drv_mpu6050.c ****      {0xC8, 0x9F, 0x12, 0x9E, 0xF3, 0x15, 0xA8, 0xDA, 0x12, 0x10, 0xD8, 0xF1, 0xAF, 0xC8, 0x97, 0x8
+ 416:../src/drv_mpu6050.c ****      },
+ 417:../src/drv_mpu6050.c ****     {
+ 418:../src/drv_mpu6050.c ****      {0x34, 0xB5, 0xB9, 0x94, 0xA4, 0x21, 0xF3, 0xD9, 0x22, 0xD8, 0xF2, 0x2D, 0xF3, 0xD9, 0x2A, 0xD
+ 419:../src/drv_mpu6050.c ****      {0xF2, 0x35, 0xF3, 0xD9, 0x32, 0xD8, 0x81, 0xA4, 0x60, 0x60, 0x61, 0xD9, 0x61, 0xD8, 0x6C, 0x6
+ 420:../src/drv_mpu6050.c ****      {0x69, 0xD9, 0x69, 0xD8, 0x74, 0x70, 0x71, 0xD9, 0x71, 0xD8, 0xB1, 0xA3, 0x84, 0x19, 0x3D, 0x5
+ 421:../src/drv_mpu6050.c ****      {0xA3, 0x83, 0x1A, 0x3E, 0x5E, 0x93, 0x10, 0x30, 0x81, 0x10, 0x11, 0xB8, 0xB0, 0xAF, 0x8F, 0x9
+ 422:../src/drv_mpu6050.c ****      {0xF2, 0xDA, 0x3E, 0xD8, 0xB4, 0x9A, 0xA8, 0x87, 0x29, 0xDA, 0xF8, 0xD8, 0x87, 0x9A, 0x35, 0xD
+ 423:../src/drv_mpu6050.c ****      {0xF8, 0xD8, 0x87, 0x9A, 0x3D, 0xDA, 0xF8, 0xD8, 0xB1, 0xB9, 0xA4, 0x98, 0x85, 0x02, 0x2E, 0x5
+ 424:../src/drv_mpu6050.c ****      {0xA5, 0x81, 0x00, 0x0C, 0x14, 0xA3, 0x97, 0xB0, 0x8A, 0xF1, 0x2D, 0xD9, 0x28, 0xD8, 0x4D, 0xD
+ 425:../src/drv_mpu6050.c ****      {0x48, 0xD8, 0x6D, 0xD9, 0x68, 0xD8, 0xB1, 0x84, 0x0D, 0xDA, 0x0E, 0xD8, 0xA3, 0x29, 0x83, 0xD
+ 426:../src/drv_mpu6050.c ****      {0x2C, 0x0E, 0xD8, 0xA3, 0x84, 0x49, 0x83, 0xDA, 0x2C, 0x4C, 0x0E, 0xD8, 0xB8, 0xB0, 0xA8, 0x8
+ 427:../src/drv_mpu6050.c ****      {0x9A, 0xF5, 0x20, 0xAA, 0xDA, 0xDF, 0xD8, 0xA8, 0x40, 0xAA, 0xD0, 0xDA, 0xDE, 0xD8, 0xA8, 0x6
+ 428:../src/drv_mpu6050.c ****      {0xAA, 0xDA, 0xD0, 0xDF, 0xD8, 0xF1, 0x97, 0x86, 0xA8, 0x31, 0x9B, 0x06, 0x99, 0x07, 0xAB, 0x9
+ 429:../src/drv_mpu6050.c ****      {0x28, 0x88, 0x9B, 0xF0, 0x0C, 0x20, 0x14, 0x40, 0xB8, 0xB0, 0xB4, 0xA8, 0x8C, 0x9C, 0xF0, 0x0
+ 430:../src/drv_mpu6050.c ****      {0x28, 0x51, 0x79, 0x1D, 0x30, 0x14, 0x38, 0xB2, 0x82, 0xAB, 0xD0, 0x98, 0x2C, 0x50, 0x50, 0x7
+ 431:../src/drv_mpu6050.c ****      {0x78, 0x9B, 0xF1, 0x1A, 0xB0, 0xF0, 0x8A, 0x9C, 0xA8, 0x29, 0x51, 0x79, 0x8B, 0x29, 0x51, 0x7
+ 432:../src/drv_mpu6050.c ****      {0x8A, 0x24, 0x70, 0x59, 0x8B, 0x20, 0x58, 0x71, 0x8A, 0x44, 0x69, 0x38, 0x8B, 0x39, 0x40, 0x6
+ 433:../src/drv_mpu6050.c ****      {0x8A, 0x64, 0x48, 0x31, 0x8B, 0x30, 0x49, 0x60, 0xA5, 0x88, 0x20, 0x09, 0x71, 0x58, 0x44, 0x6
+ 434:../src/drv_mpu6050.c ****      },
+ 435:../src/drv_mpu6050.c ****     {
+ 436:../src/drv_mpu6050.c ****      {0x11, 0x39, 0x64, 0x49, 0x30, 0x19, 0xF1, 0xAC, 0x00, 0x2C, 0x54, 0x7C, 0xF0, 0x8C, 0xA8, 0x0
+ 437:../src/drv_mpu6050.c ****      {0x28, 0x50, 0x78, 0xF1, 0x88, 0x97, 0x26, 0xA8, 0x59, 0x98, 0xAC, 0x8C, 0x02, 0x26, 0x46, 0x6
+ 438:../src/drv_mpu6050.c ****      {0xF0, 0x89, 0x9C, 0xA8, 0x29, 0x51, 0x79, 0x24, 0x70, 0x59, 0x44, 0x69, 0x38, 0x64, 0x48, 0x3
+ 439:../src/drv_mpu6050.c ****      {0xA9, 0x88, 0x09, 0x20, 0x59, 0x70, 0xAB, 0x11, 0x38, 0x40, 0x69, 0xA8, 0x19, 0x31, 0x48, 0x6
+ 440:../src/drv_mpu6050.c ****      {0x8C, 0xA8, 0x3C, 0x41, 0x5C, 0x20, 0x7C, 0x00, 0xF1, 0x87, 0x98, 0x19, 0x86, 0xA8, 0x6E, 0x7
+ 441:../src/drv_mpu6050.c ****      {0x7E, 0xA9, 0x99, 0x88, 0x2D, 0x55, 0x7D, 0x9E, 0xB9, 0xA3, 0x8A, 0x22, 0x8A, 0x6E, 0x8A, 0x5
+ 442:../src/drv_mpu6050.c ****      {0x8A, 0x5E, 0x9F, 0xB1, 0x83, 0x06, 0x26, 0x46, 0x66, 0x0E, 0x2E, 0x4E, 0x6E, 0x9D, 0xB8, 0xA
+ 443:../src/drv_mpu6050.c ****      {0x00, 0x2C, 0x54, 0x7C, 0xF2, 0xB1, 0x8C, 0xB4, 0x99, 0xB9, 0xA3, 0x2D, 0x55, 0x7D, 0x81, 0x9
+ 444:../src/drv_mpu6050.c ****      {0xAC, 0x38, 0xAD, 0x3A, 0xB5, 0x83, 0x91, 0xAC, 0x2D, 0xD9, 0x28, 0xD8, 0x4D, 0xD9, 0x48, 0xD
+ 445:../src/drv_mpu6050.c ****      {0x6D, 0xD9, 0x68, 0xD8, 0x8C, 0x9D, 0xAE, 0x29, 0xD9, 0x04, 0xAE, 0xD8, 0x51, 0xD9, 0x04, 0xA
+ 446:../src/drv_mpu6050.c ****      {0xD8, 0x79, 0xD9, 0x04, 0xD8, 0x81, 0xF3, 0x9D, 0xAD, 0x00, 0x8D, 0xAE, 0x19, 0x81, 0xAD, 0xD
+ 447:../src/drv_mpu6050.c ****      {0x01, 0xD8, 0xF2, 0xAE, 0xDA, 0x26, 0xD8, 0x8E, 0x91, 0x29, 0x83, 0xA7, 0xD9, 0xAD, 0xAD, 0xA
+ 448:../src/drv_mpu6050.c ****      {0xAD, 0xF3, 0x2A, 0xD8, 0xD8, 0xF1, 0xB0, 0xAC, 0x89, 0x91, 0x3E, 0x5E, 0x76, 0xF3, 0xAC, 0x2
+ 449:../src/drv_mpu6050.c ****      {0x2E, 0xF1, 0xB1, 0x8C, 0x5A, 0x9C, 0xAC, 0x2C, 0x28, 0x28, 0x28, 0x9C, 0xAC, 0x30, 0x18, 0xA
+ 450:../src/drv_mpu6050.c ****      {0x98, 0x81, 0x28, 0x34, 0x3C, 0x97, 0x24, 0xA7, 0x28, 0x34, 0x3C, 0x9C, 0x24, 0xF2, 0xB0, 0x8
+ 451:../src/drv_mpu6050.c ****      {0xAC, 0x91, 0x2C, 0x4C, 0x6C, 0x8A, 0x9B, 0x2D, 0xD9, 0xD8, 0xD8, 0x51, 0xD9, 0xD8, 0xD8, 0x7
+ 452:../src/drv_mpu6050.c ****      },
+ 453:../src/drv_mpu6050.c ****     {
+ 454:../src/drv_mpu6050.c ****      {0xD9, 0xD8, 0xD8, 0xF1, 0x9E, 0x88, 0xA3, 0x31, 0xDA, 0xD8, 0xD8, 0x91, 0x2D, 0xD9, 0x28, 0xD
+ 455:../src/drv_mpu6050.c ****      {0x4D, 0xD9, 0x48, 0xD8, 0x6D, 0xD9, 0x68, 0xD8, 0xB1, 0x83, 0x93, 0x35, 0x3D, 0x80, 0x25, 0xD
+ 456:../src/drv_mpu6050.c ****      {0xD8, 0xD8, 0x85, 0x69, 0xDA, 0xD8, 0xD8, 0xB4, 0x93, 0x81, 0xA3, 0x28, 0x34, 0x3C, 0xF3, 0xA
+ 457:../src/drv_mpu6050.c ****      {0x8B, 0xF8, 0xA3, 0x91, 0xB6, 0x09, 0xB4, 0xD9, 0xAB, 0xDE, 0xFA, 0xB0, 0x87, 0x9C, 0xB9, 0xA
+ 458:../src/drv_mpu6050.c ****      {0xDD, 0xF1, 0xA3, 0xA3, 0xA3, 0xA3, 0x95, 0xF1, 0xA3, 0xA3, 0xA3, 0x9D, 0xF1, 0xA3, 0xA3, 0xA
+ 459:../src/drv_mpu6050.c ****      {0xA3, 0xF2, 0xA3, 0xB4, 0x90, 0x80, 0xF2, 0xA3, 0xA3, 0xA3, 0xA3, 0xA3, 0xA3, 0xA3, 0xA3, 0xA
+ 460:../src/drv_mpu6050.c ****      {0xA3, 0xB2, 0xA3, 0xA3, 0xA3, 0xA3, 0xA3, 0xA3, 0xB0, 0x87, 0xB5, 0x99, 0xF1, 0xA3, 0xA3, 0xA
+ 461:../src/drv_mpu6050.c ****      {0x98, 0xF1, 0xA3, 0xA3, 0xA3, 0xA3, 0x97, 0xA3, 0xA3, 0xA3, 0xA3, 0xF3, 0x9B, 0xA3, 0xA3, 0xD
+ 462:../src/drv_mpu6050.c ****      {0xB9, 0xA7, 0xF1, 0x26, 0x26, 0x26, 0xD8, 0xD8, 0xFF}
+ 463:../src/drv_mpu6050.c ****      }
+ 464:../src/drv_mpu6050.c **** };
+ 465:../src/drv_mpu6050.c **** 
+ 466:../src/drv_mpu6050.c **** 
+ 467:../src/drv_mpu6050.c **** //DMP update transmissions (Bank, Start Address, Update Length, Update Data...)
+ 468:../src/drv_mpu6050.c **** 
+ 469:../src/drv_mpu6050.c **** const uint8_t dmp_updates[29][9] = {
+ 470:../src/drv_mpu6050.c ****     {0x03, 0x7B, 0x03, 0x4C, 0xCD, 0x6C},       //FCFG_1 inv_set_gyro_calibration
+ 471:../src/drv_mpu6050.c ****     {0x03, 0xAB, 0x03, 0x36, 0x56, 0x76},       //FCFG_3 inv_set_gyro_calibration
+ 472:../src/drv_mpu6050.c ****     {0x00, 0x68, 0x04, 0x02, 0xCB, 0x47, 0xA2}, //D_0_104 inv_set_gyro_calibration
+ 473:../src/drv_mpu6050.c ****     {0x02, 0x18, 0x04, 0x00, 0x05, 0x8B, 0xC1}, //D_0_24 inv_set_gyro_calibration
+ 474:../src/drv_mpu6050.c ****     {0x01, 0x0C, 0x04, 0x00, 0x00, 0x00, 0x00}, //D_1_152 inv_set_accel_calibration
+ 475:../src/drv_mpu6050.c ****     {0x03, 0x7F, 0x06, 0x0C, 0xC9, 0x2C, 0x97, 0x97, 0x97},     //FCFG_2 inv_set_accel_calibration
+ 476:../src/drv_mpu6050.c ****     {0x03, 0x89, 0x03, 0x26, 0x46, 0x66},       //FCFG_7 inv_set_accel_calibration
+ 477:../src/drv_mpu6050.c ****     {0x00, 0x6C, 0x02, 0x20, 0x00},     //D_0_108 inv_set_accel_calibration
+ 478:../src/drv_mpu6050.c ****     {0x02, 0x40, 0x04, 0x00, 0x00, 0x00, 0x00}, //CPASS_MTX_00 inv_set_compass_calibration
+ 479:../src/drv_mpu6050.c ****     {0x02, 0x44, 0x04, 0x00, 0x00, 0x00, 0x00}, //CPASS_MTX_01
+ 480:../src/drv_mpu6050.c ****     {0x02, 0x48, 0x04, 0x00, 0x00, 0x00, 0x00}, //CPASS_MTX_02
+ 481:../src/drv_mpu6050.c ****     {0x02, 0x4C, 0x04, 0x00, 0x00, 0x00, 0x00}, //CPASS_MTX_10
+ 482:../src/drv_mpu6050.c ****     {0x02, 0x50, 0x04, 0x00, 0x00, 0x00, 0x00}, //CPASS_MTX_11
+ 483:../src/drv_mpu6050.c ****     {0x02, 0x54, 0x04, 0x00, 0x00, 0x00, 0x00}, //CPASS_MTX_12
+ 484:../src/drv_mpu6050.c ****     {0x02, 0x58, 0x04, 0x00, 0x00, 0x00, 0x00}, //CPASS_MTX_20
+ 485:../src/drv_mpu6050.c ****     {0x02, 0x5C, 0x04, 0x00, 0x00, 0x00, 0x00}, //CPASS_MTX_21
+ 486:../src/drv_mpu6050.c ****     {0x02, 0xBC, 0x04, 0x00, 0x00, 0x00, 0x00}, //CPASS_MTX_22
+ 487:../src/drv_mpu6050.c ****     {0x01, 0xEC, 0x04, 0x00, 0x00, 0x40, 0x00}, //D_1_236 inv_apply_endian_accel
+ 488:../src/drv_mpu6050.c ****     {0x03, 0x7F, 0x06, 0x0C, 0xC9, 0x2C, 0x97, 0x97, 0x97},     //FCFG_2 inv_set_mpu_sensors
+ 489:../src/drv_mpu6050.c ****     {0x04, 0x02, 0x03, 0x0D, 0x35, 0x5D},       //CFG_MOTION_BIAS inv_turn_on_bias_from_no_motion
+ 490:../src/drv_mpu6050.c ****     {0x04, 0x09, 0x04, 0x87, 0x2D, 0x35, 0x3D}, //FCFG_5 inv_set_bias_update 
+ 491:../src/drv_mpu6050.c ****     {0x00, 0xA3, 0x01, 0x00},   //D_0_163 inv_set_dead_zone
+ 492:../src/drv_mpu6050.c ****     //SET INT_ENABLE at i=22
+ 493:../src/drv_mpu6050.c ****     {0x07, 0x86, 0x01, 0xFE},   //CFG_6 inv_set_fifo_interupt
+ 494:../src/drv_mpu6050.c ****     {0x07, 0x41, 0x05, 0xF1, 0x20, 0x28, 0x30, 0x38},   //CFG_8 inv_send_quaternion
+ 495:../src/drv_mpu6050.c ****     {0x07, 0x7E, 0x01, 0x30},   //CFG_16 inv_set_footer
+ 496:../src/drv_mpu6050.c ****     {0x07, 0x46, 0x01, 0x9A},   //CFG_GYRO_SOURCE inv_send_gyro
+ 497:../src/drv_mpu6050.c ****     {0x07, 0x47, 0x04, 0xF1, 0x28, 0x30, 0x38}, //CFG_9 inv_send_gyro -> inv_construct3_fifo
+ 498:../src/drv_mpu6050.c ****     {0x07, 0x6C, 0x04, 0xF1, 0x28, 0x30, 0x38}, //CFG_12 inv_send_accel -> inv_construct3_fifo
+ 499:../src/drv_mpu6050.c ****     {0x02, 0x16, 0x02, 0x00, 0x00},     //D_0_22 inv_set_fifo_rate
+ 500:../src/drv_mpu6050.c **** };
+ 501:../src/drv_mpu6050.c **** 
+ 502:../src/drv_mpu6050.c **** static long dmp_lastRead = 0;
+ 503:../src/drv_mpu6050.c **** static uint8_t dmp_processed_packet[8];
+ 504:../src/drv_mpu6050.c **** static uint8_t dmp_received_packet[50];
+ 505:../src/drv_mpu6050.c **** static uint8_t dmp_temp = 0;
+ 506:../src/drv_mpu6050.c **** uint8_t dmp_fifoCountL = 0;
+ 507:../src/drv_mpu6050.c **** static uint8_t dmp_fifoCountL2 = 0;
+ 508:../src/drv_mpu6050.c **** static uint8_t dmp_packetCount = 0x00;
+ 509:../src/drv_mpu6050.c **** static bool dmp_longPacket = false;
+ 510:../src/drv_mpu6050.c **** static bool dmp_firstPacket = true;
+ 511:../src/drv_mpu6050.c **** 
+ 512:../src/drv_mpu6050.c **** static void mpu6050DmpMemInit(void);
+ 513:../src/drv_mpu6050.c **** static void mpu6050DmpBankSelect(uint8_t bank);
+ 514:../src/drv_mpu6050.c **** static bool mpu6050DmpFifoReady(void);
+ 515:../src/drv_mpu6050.c **** static void mpu6050DmpGetPacket(void);
+ 516:../src/drv_mpu6050.c **** static void mpu6050DmpProcessQuat(void);
+ 517:../src/drv_mpu6050.c **** void mpu6050DmpResetFifo(void);
+ 518:../src/drv_mpu6050.c **** 
+ 519:../src/drv_mpu6050.c **** static void mpu6050DmpInit(void)
+ 520:../src/drv_mpu6050.c **** {
+ 521:../src/drv_mpu6050.c ****     uint8_t temp = 0;
+ 522:../src/drv_mpu6050.c **** 
+ 523:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_PWR_MGMT_1, 0xC0); // device reset
+ 524:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_PWR_MGMT_2, 0x00);
+ 525:../src/drv_mpu6050.c ****     delay(10);
+ 526:../src/drv_mpu6050.c **** 
+ 527:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_PWR_MGMT_1, 0x00);
+ 528:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_BANK_SEL, 0x70);
+ 529:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_MEM_START_ADDR, 0x06);
+ 530:../src/drv_mpu6050.c ****     i2cRead(MPU6050_ADDRESS, MPU_RA_MEM_R_W, 1, &temp);
+ 531:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_BANK_SEL, 0x00);
+ 532:../src/drv_mpu6050.c **** 
+ 533:../src/drv_mpu6050.c ****     /*
+ 534:../src/drv_mpu6050.c ****        dmp_temp = i2c_readReg(MPU60X0_I2CADDR, MPU_RA_XG_OFFS_TC);
+ 535:../src/drv_mpu6050.c ****        dmp_temp = i2c_readReg(MPU60X0_I2CADDR, MPU_RA_YG_OFFS_TC);
+ 536:../src/drv_mpu6050.c ****        dmp_temp = i2c_readReg(MPU60X0_I2CADDR, MPU_RA_ZG_OFFS_TC);
+ 537:../src/drv_mpu6050.c ****        dmp_temp = i2c_readReg(MPU60X0_I2CADDR, MPU_RA_USER_CTRL);
+ 538:../src/drv_mpu6050.c ****      */
+ 539:../src/drv_mpu6050.c **** 
+ 540:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_INT_PIN_CFG, 0x32);        // I2C bypass enabled, latch int en
+ 541:../src/drv_mpu6050.c ****     i2cRead(MPU6050_ADDRESS, MPU_RA_PWR_MGMT_1, 1, &temp);
+ 542:../src/drv_mpu6050.c ****     delay(5);
+ 543:../src/drv_mpu6050.c **** 
+ 544:../src/drv_mpu6050.c ****     mpu6050DmpMemInit();
+ 545:../src/drv_mpu6050.c **** }
+ 546:../src/drv_mpu6050.c **** 
+ 547:../src/drv_mpu6050.c **** void mpu6050DmpLoop(void)
+ 548:../src/drv_mpu6050.c **** {
+ 549:../src/drv_mpu6050.c ****     uint8_t temp;
+ 550:../src/drv_mpu6050.c ****     uint8_t buf[2];
+ 551:../src/drv_mpu6050.c **** 
+ 552:../src/drv_mpu6050.c ****     if (mpu6050DmpFifoReady()) {
+ 553:../src/drv_mpu6050.c ****         LED1_ON;
+ 554:../src/drv_mpu6050.c ****         mpu6050DmpGetPacket();
+ 555:../src/drv_mpu6050.c **** 
+ 556:../src/drv_mpu6050.c ****         i2cRead(MPU6050_ADDRESS, MPU_RA_INT_STATUS, 1, &temp);
+ 557:../src/drv_mpu6050.c ****         if (dmp_firstPacket) {
+ 558:../src/drv_mpu6050.c ****             delay(1);
+ 559:../src/drv_mpu6050.c ****             mpu6050DmpBankSelect(0x00);
+ 560:../src/drv_mpu6050.c ****             
+ 561:../src/drv_mpu6050.c ****             mpu6050DmpBankSelect(0x00); // bank
+ 562:../src/drv_mpu6050.c ****             i2cWrite(MPU6050_ADDRESS, MPU_RA_MEM_START_ADDR, 0x60);
+ 563:../src/drv_mpu6050.c ****             i2cWriteBuffer(MPU6050_ADDRESS, MPU_RA_MEM_R_W, 4, "\x04\x00\x00\x00"); // data
+ 564:../src/drv_mpu6050.c **** 
+ 565:../src/drv_mpu6050.c ****             mpu6050DmpBankSelect(0x01);
+ 566:../src/drv_mpu6050.c ****             
+ 567:../src/drv_mpu6050.c ****             i2cWrite(MPU6050_ADDRESS, MPU_RA_MEM_START_ADDR, 0x62);
+ 568:../src/drv_mpu6050.c ****             i2cRead(MPU6050_ADDRESS, DMP_MEM_R_W, 2, buf);
+ 569:../src/drv_mpu6050.c ****             dmp_firstPacket = false;
+ 570:../src/drv_mpu6050.c ****             mpu6050DmpFifoReady();
+ 571:../src/drv_mpu6050.c ****         }
+ 572:../src/drv_mpu6050.c **** 
+ 573:../src/drv_mpu6050.c ****         if (dmp_fifoCountL == 42) {
+ 574:../src/drv_mpu6050.c ****             mpu6050DmpProcessQuat();
+ 575:../src/drv_mpu6050.c ****         }
+ 576:../src/drv_mpu6050.c ****         LED1_OFF;
+ 577:../src/drv_mpu6050.c ****     }
+ 578:../src/drv_mpu6050.c **** }
+ 579:../src/drv_mpu6050.c **** 
+ 580:../src/drv_mpu6050.c **** #define dmp_quatTake32(a, b) (((a)[4*(b)+0]<<8) | ((a)[4*(b)+1]<<0))
+ 581:../src/drv_mpu6050.c **** extern int16_t angle[2];
+ 582:../src/drv_mpu6050.c **** 
+ 583:../src/drv_mpu6050.c **** static void mpu6050DmpProcessQuat(void)
+ 584:../src/drv_mpu6050.c **** {
+ 585:../src/drv_mpu6050.c ****     float quat0, quat1, quat2, quat3;
+ 586:../src/drv_mpu6050.c ****     int32_t quatl0, quatl1, quatl2, quatl3;
+ 587:../src/drv_mpu6050.c **** 
+ 588:../src/drv_mpu6050.c ****     quatl0 = dmp_quatTake32(dmp_received_packet, 0);
+ 589:../src/drv_mpu6050.c ****     quatl1 = dmp_quatTake32(dmp_received_packet, 1);
+ 590:../src/drv_mpu6050.c ****     quatl2 = dmp_quatTake32(dmp_received_packet, 2);
+ 591:../src/drv_mpu6050.c ****     quatl3 = dmp_quatTake32(dmp_received_packet, 3);
+ 592:../src/drv_mpu6050.c **** 
+ 593:../src/drv_mpu6050.c ****     if (quatl0 > 32767) 
+ 594:../src/drv_mpu6050.c ****         quatl0 -= 65536;
+ 595:../src/drv_mpu6050.c ****     if (quatl1 > 32767) 
+ 596:../src/drv_mpu6050.c ****         quatl1 -= 65536;
+ 597:../src/drv_mpu6050.c ****     if (quatl2 > 32767) 
+ 598:../src/drv_mpu6050.c ****         quatl2 -= 65536;
+ 599:../src/drv_mpu6050.c ****     if (quatl3 > 32767) 
+ 600:../src/drv_mpu6050.c ****         quatl3 -= 65536;
+ 601:../src/drv_mpu6050.c **** 
+ 602:../src/drv_mpu6050.c ****     quat0 = ((float) quatl0) / 16384.0f;
+ 603:../src/drv_mpu6050.c ****     quat1 = ((float) quatl1) / 16384.0f;
+ 604:../src/drv_mpu6050.c ****     quat2 = ((float) quatl2) / 16384.0f;
+ 605:../src/drv_mpu6050.c ****     quat3 = ((float) quatl3) / 16384.0f;
+ 606:../src/drv_mpu6050.c ****     
+ 607:../src/drv_mpu6050.c ****     dmpdata[0] = atan2f(2 * ((quat0 * quat1) + (quat2 * quat3)), 1.0 - (2 * ((quat1 * quat1) + (qua
+ 608:../src/drv_mpu6050.c ****     dmpdata[1] = asinf(2 * ((quat0 * quat2) - (quat3 * quat1))) * (180.0f / M_PI);
+ 609:../src/drv_mpu6050.c ****     angle[0] = dmpdata[0] * 10;
+ 610:../src/drv_mpu6050.c ****     angle[1] = dmpdata[1] * 10;
+ 611:../src/drv_mpu6050.c **** 
+ 612:../src/drv_mpu6050.c ****     dmpGyroData[0] = ((dmp_received_packet[4 * 4 + 0] << 8) | (dmp_received_packet[4 * 4 + 1] << 0)
+ 613:../src/drv_mpu6050.c ****     dmpGyroData[1] = ((dmp_received_packet[4 * 5 + 0] << 8) | (dmp_received_packet[4 * 5 + 1] << 0)
+ 614:../src/drv_mpu6050.c ****     dmpGyroData[2] = ((dmp_received_packet[4 * 6 + 0] << 8) | (dmp_received_packet[4 * 6 + 1] << 0)
+ 615:../src/drv_mpu6050.c **** }
+ 616:../src/drv_mpu6050.c **** 
+ 617:../src/drv_mpu6050.c **** void mpu6050DmpResetFifo(void)
+ 618:../src/drv_mpu6050.c **** {
+ 619:../src/drv_mpu6050.c ****     uint8_t ctrl;
+ 620:../src/drv_mpu6050.c ****     
+ 621:../src/drv_mpu6050.c ****     i2cRead(MPU6050_ADDRESS, MPU_RA_USER_CTRL, 1, &ctrl);
+ 622:../src/drv_mpu6050.c ****     ctrl |= 0x04;
+ 623:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_USER_CTRL, ctrl);
+ 624:../src/drv_mpu6050.c **** }
+ 625:../src/drv_mpu6050.c **** 
+ 626:../src/drv_mpu6050.c **** static void mpu6050DmpGetPacket(void)
+ 627:../src/drv_mpu6050.c **** {
+ 628:../src/drv_mpu6050.c ****     if (dmp_fifoCountL > 32) {
+ 629:../src/drv_mpu6050.c ****         dmp_fifoCountL2 = dmp_fifoCountL - 32;
+ 630:../src/drv_mpu6050.c ****         dmp_longPacket = true;
+ 631:../src/drv_mpu6050.c ****     }
+ 632:../src/drv_mpu6050.c ****     
+ 633:../src/drv_mpu6050.c ****     if (dmp_longPacket) {
+ 634:../src/drv_mpu6050.c ****         i2cRead(MPU6050_ADDRESS, MPU_RA_FIFO_R_W, 32, dmp_received_packet);
+ 635:../src/drv_mpu6050.c ****         i2cRead(MPU6050_ADDRESS, MPU_RA_FIFO_R_W, dmp_fifoCountL, dmp_received_packet + 32);
+ 636:../src/drv_mpu6050.c ****         dmp_longPacket = false;
+ 637:../src/drv_mpu6050.c ****     } else {
+ 638:../src/drv_mpu6050.c ****         i2cRead(MPU6050_ADDRESS, MPU_RA_FIFO_R_W, dmp_fifoCountL, dmp_received_packet);
+ 639:../src/drv_mpu6050.c ****     }
+ 640:../src/drv_mpu6050.c **** }
+ 641:../src/drv_mpu6050.c **** 
+ 642:../src/drv_mpu6050.c **** uint16_t dmpFifoLevel = 0;
+ 643:../src/drv_mpu6050.c **** 
+ 644:../src/drv_mpu6050.c **** static bool mpu6050DmpFifoReady(void)
+ 645:../src/drv_mpu6050.c **** {
+ 646:../src/drv_mpu6050.c ****     uint8_t buf[2];
+ 647:../src/drv_mpu6050.c **** 
+ 648:../src/drv_mpu6050.c ****     i2cRead(MPU6050_ADDRESS, MPU_RA_FIFO_COUNTH, 2, buf);
+ 649:../src/drv_mpu6050.c ****     
+ 650:../src/drv_mpu6050.c ****     dmp_fifoCountL = buf[1];
+ 651:../src/drv_mpu6050.c ****     dmpFifoLevel = buf[0] << 8 | buf[1];
+ 652:../src/drv_mpu6050.c ****     
+ 653:../src/drv_mpu6050.c ****     if (dmp_fifoCountL == 42 || dmp_fifoCountL == 44)
+ 654:../src/drv_mpu6050.c ****         return true;
+ 655:../src/drv_mpu6050.c ****     else {
+ 656:../src/drv_mpu6050.c ****         // lame hack to empty out fifo, as dmpResetFifo doesn't actually seem to do it...
+ 657:../src/drv_mpu6050.c ****         if (dmpFifoLevel > 100) {
+ 658:../src/drv_mpu6050.c ****             // clear out fifo
+ 659:../src/drv_mpu6050.c ****             uint8_t crap[16];
+ 660:../src/drv_mpu6050.c ****             do {
+ 661:../src/drv_mpu6050.c ****                 i2cRead(MPU6050_ADDRESS, MPU_RA_FIFO_R_W, dmpFifoLevel > 16 ? 16 : dmpFifoLevel, cr
+ 662:../src/drv_mpu6050.c ****                 i2cRead(MPU6050_ADDRESS, MPU_RA_FIFO_COUNTH, 2, buf);
+ 663:../src/drv_mpu6050.c ****                 dmpFifoLevel = buf[0] << 8 | buf[1];
+ 664:../src/drv_mpu6050.c ****             } while (dmpFifoLevel);
+ 665:../src/drv_mpu6050.c ****         }
+ 666:../src/drv_mpu6050.c ****     }
+ 667:../src/drv_mpu6050.c **** 
+ 668:../src/drv_mpu6050.c ****     return false;
+ 669:../src/drv_mpu6050.c **** }
+ 670:../src/drv_mpu6050.c **** 
+ 671:../src/drv_mpu6050.c **** static void mpu6050DmpBankSelect(uint8_t bank)
+ 672:../src/drv_mpu6050.c **** {
+ 673:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_BANK_SEL, bank);
+ 674:../src/drv_mpu6050.c **** }
+ 675:../src/drv_mpu6050.c **** 
+ 676:../src/drv_mpu6050.c **** static void mpu6050DmpBankInit(void)
+ 677:../src/drv_mpu6050.c **** {
+ 678:../src/drv_mpu6050.c ****     uint8_t i, j;
+ 679:../src/drv_mpu6050.c ****     uint8_t incoming[9];
+ 680:../src/drv_mpu6050.c **** 
+ 681:../src/drv_mpu6050.c ****     for (i = 0; i < 7; i++) {
+ 682:../src/drv_mpu6050.c ****         mpu6050DmpBankSelect(i);
+ 683:../src/drv_mpu6050.c ****         for (j = 0; j < 16; j++) {
+ 684:../src/drv_mpu6050.c ****             uint8_t start_addy = j * 0x10;
+ 685:../src/drv_mpu6050.c **** 
+ 686:../src/drv_mpu6050.c ****             i2cWrite(MPU6050_ADDRESS, DMP_MEM_START_ADDR, start_addy);
+ 687:../src/drv_mpu6050.c ****             i2cWriteBuffer(MPU6050_ADDRESS, DMP_MEM_R_W, 16, (uint8_t *) & dmpMem[i][j][0]);
+ 688:../src/drv_mpu6050.c ****         }
+ 689:../src/drv_mpu6050.c ****     }
+ 690:../src/drv_mpu6050.c **** 
+ 691:../src/drv_mpu6050.c ****     mpu6050DmpBankSelect(7);
+ 692:../src/drv_mpu6050.c **** 
+ 693:../src/drv_mpu6050.c ****     for (j = 0; j < 8; j++) {
+ 694:../src/drv_mpu6050.c **** 
+ 695:../src/drv_mpu6050.c ****         uint8_t start_addy = j * 0x10;
+ 696:../src/drv_mpu6050.c **** 
+ 697:../src/drv_mpu6050.c ****         i2cWrite(MPU6050_ADDRESS, DMP_MEM_START_ADDR, start_addy);
+ 698:../src/drv_mpu6050.c ****         i2cWriteBuffer(MPU6050_ADDRESS, DMP_MEM_R_W, 16, (uint8_t *) & dmpMem[7][j][0]);
+ 699:../src/drv_mpu6050.c ****     }
+ 700:../src/drv_mpu6050.c **** 
+ 701:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, DMP_MEM_START_ADDR, 0x80);
+ 702:../src/drv_mpu6050.c ****     i2cWriteBuffer(MPU6050_ADDRESS, DMP_MEM_R_W, 9, (uint8_t *) & dmpMem[7][8][0]);
+ 703:../src/drv_mpu6050.c **** 
+ 704:../src/drv_mpu6050.c ****     i2cRead(MPU6050_ADDRESS, DMP_MEM_R_W, 8, incoming);
+ 705:../src/drv_mpu6050.c **** }
+ 706:../src/drv_mpu6050.c **** 
+ 707:../src/drv_mpu6050.c **** 
+ 708:../src/drv_mpu6050.c **** static void mpu6050DmpMemInit(void)
+ 709:../src/drv_mpu6050.c **** {
+ 710:../src/drv_mpu6050.c ****     uint8_t i;
+ 711:../src/drv_mpu6050.c ****     uint8_t temp;
+ 712:../src/drv_mpu6050.c **** 
+ 713:../src/drv_mpu6050.c ****     mpu6050DmpBankInit();
+ 714:../src/drv_mpu6050.c **** 
+ 715:../src/drv_mpu6050.c ****     // Bank, Start Address, Update Length, Update Data...
+ 716:../src/drv_mpu6050.c ****     for (i = 0; i < 22; i++) {
+ 717:../src/drv_mpu6050.c ****         mpu6050DmpBankSelect(dmp_updates[i][0]); // bank
+ 718:../src/drv_mpu6050.c ****         i2cWrite(MPU6050_ADDRESS, DMP_MEM_START_ADDR, dmp_updates[i][1]); // address
+ 719:../src/drv_mpu6050.c ****         i2cWriteBuffer(MPU6050_ADDRESS, DMP_MEM_R_W, dmp_updates[i][2], (uint8_t *)&dmp_updates[i][
+ 720:../src/drv_mpu6050.c ****     }
+ 721:../src/drv_mpu6050.c **** 
+ 722:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_INT_ENABLE, 0x32);
+ 723:../src/drv_mpu6050.c **** 
+ 724:../src/drv_mpu6050.c ****     for (i = 22; i < 29; i++) {
+ 725:../src/drv_mpu6050.c ****         mpu6050DmpBankSelect(dmp_updates[i][0]); // bank
+ 726:../src/drv_mpu6050.c ****         i2cWrite(MPU6050_ADDRESS, DMP_MEM_START_ADDR, dmp_updates[i][1]); // address
+ 727:../src/drv_mpu6050.c ****         i2cWriteBuffer(MPU6050_ADDRESS, DMP_MEM_R_W, dmp_updates[i][2], (uint8_t *)&dmp_updates[i][
+ 728:../src/drv_mpu6050.c ****     }
+ 729:../src/drv_mpu6050.c **** 
+ 730:../src/drv_mpu6050.c ****     /*
+ 731:../src/drv_mpu6050.c ****        dmp_temp = i2c_readReg(MPU60X0_I2CADDR, MPU_RA_PWR_MGMT_1);
+ 732:../src/drv_mpu6050.c ****        dmp_temp = i2c_readReg(MPU60X0_I2CADDR, MPU_RA_PWR_MGMT_2);
+ 733:../src/drv_mpu6050.c ****      */
+ 734:../src/drv_mpu6050.c **** 
+ 735:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_INT_ENABLE, 0x02);     // ??
+ 736:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_PWR_MGMT_1, 0x03);     // CLKSEL =  PLL w Z ref
+ 737:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_SMPLRT_DIV, 0x04);
+ 738:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_GYRO_CONFIG, 0x18);    // full scale 2000 deg/s
+ 739:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_CONFIG, 0x0B); // ext_sync_set=temp_out_L, accel DLPF 44Hz, gy
+ 740:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_DMP_CFG_1, 0x03);
+ 741:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_DMP_CFG_2, 0x00);
+ 742:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_XG_OFFS_TC, 0x00);
+ 743:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_YG_OFFS_TC, 0x00);
+ 744:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_ZG_OFFS_TC, 0x00);
+ 745:../src/drv_mpu6050.c **** 
+ 746:../src/drv_mpu6050.c ****     // clear offsets
+ 747:../src/drv_mpu6050.c ****     i2cWriteBuffer(MPU6050_ADDRESS, MPU_RA_XG_OFFS_USRH, 6, "\x00\x00\x00\x00\x00\x00"); // data
+ 748:../src/drv_mpu6050.c **** 
+ 749:../src/drv_mpu6050.c ****     mpu6050DmpBankSelect(0x01); // bank
+ 750:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_MEM_START_ADDR, 0xB2);
+ 751:../src/drv_mpu6050.c ****     i2cWriteBuffer(MPU6050_ADDRESS, MPU_RA_MEM_R_W, 2, "\xFF\xFF"); // data
+ 752:../src/drv_mpu6050.c **** 
+ 753:../src/drv_mpu6050.c ****     mpu6050DmpBankSelect(0x01); // bank
+ 754:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_MEM_START_ADDR, 0x90);
+ 755:../src/drv_mpu6050.c ****     i2cWriteBuffer(MPU6050_ADDRESS, MPU_RA_MEM_R_W, 4, "\x09\x23\xA1\x35"); // data
+ 756:../src/drv_mpu6050.c **** 
+ 757:../src/drv_mpu6050.c ****     i2cRead(MPU6050_ADDRESS, MPU_RA_USER_CTRL, 1, &temp);
+ 758:../src/drv_mpu6050.c **** 
+ 759:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_USER_CTRL, 0x04);      // fifo reset
+ 760:../src/drv_mpu6050.c **** 
+ 761:../src/drv_mpu6050.c ****     // Insert FIFO count read?
+ 762:../src/drv_mpu6050.c ****     mpu6050DmpFifoReady();
+ 763:../src/drv_mpu6050.c **** 
+ 764:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_USER_CTRL, 0x00); // ?? I think this enables a lot of stuff bu
+ 765:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_PWR_MGMT_1, 0x03); // CLKSEL =  PLL w Z ref
+ 766:../src/drv_mpu6050.c ****     delay(2);
+ 767:../src/drv_mpu6050.c **** 
+ 768:../src/drv_mpu6050.c ****     i2cRead(MPU6050_ADDRESS, MPU_RA_PWR_MGMT_2, 1, &temp);
+ 769:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_PWR_MGMT_2, 0x00); 
+ 770:../src/drv_mpu6050.c ****     i2cRead(MPU6050_ADDRESS, MPU_RA_ACCEL_CONFIG, 1, &temp);
+ 771:../src/drv_mpu6050.c **** 
+ 772:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_ACCEL_CONFIG, 0x00); // full scale range +/- 2g
+ 773:../src/drv_mpu6050.c ****     delay(2);
+ 774:../src/drv_mpu6050.c ****     i2cRead(MPU6050_ADDRESS, MPU_RA_PWR_MGMT_1, 1, &temp);
+ 775:../src/drv_mpu6050.c **** 
+ 776:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_MOT_THR, 0x02);
+ 777:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_ZRMOT_THR, 0x9C);
+ 778:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_MOT_DUR, 0x50);
+ 779:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_ZRMOT_DUR, 0x00);
+ 780:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_USER_CTRL, 0x04);      // fifo reset
+ 781:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_USER_CTRL, 0x00);
+ 782:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_USER_CTRL, 0xC8);      // fifo enable
+ 783:../src/drv_mpu6050.c **** 
+ 784:../src/drv_mpu6050.c ****     mpu6050DmpBankSelect(0x01); // bank
+ 785:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_MEM_START_ADDR, 0x6A);
+ 786:../src/drv_mpu6050.c ****     i2cWriteBuffer(MPU6050_ADDRESS, MPU_RA_MEM_R_W, 2, "\x06\x00"); // data
+ 787:../src/drv_mpu6050.c **** 
+ 788:../src/drv_mpu6050.c ****     mpu6050DmpBankSelect(0x01); // bank
+ 789:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_MEM_START_ADDR, 0x60);
+ 790:../src/drv_mpu6050.c ****     i2cWriteBuffer(MPU6050_ADDRESS, MPU_RA_MEM_R_W, 8, "\x00\x00\x00\x00\x00\x00\x00\x00"); // data
+ 791:../src/drv_mpu6050.c **** 
+ 792:../src/drv_mpu6050.c ****     mpu6050DmpBankSelect(0x00); // bank
+ 793:../src/drv_mpu6050.c ****     i2cWrite(MPU6050_ADDRESS, MPU_RA_MEM_START_ADDR, 0x60);
+ 794:../src/drv_mpu6050.c ****     i2cWriteBuffer(MPU6050_ADDRESS, MPU_RA_MEM_R_W, 4, "\x40\x00\x00\x00"); // data
+ 795:../src/drv_mpu6050.c **** }
+ 796:../src/drv_mpu6050.c **** 
+ 797:../src/drv_mpu6050.c **** #else                          /* MPU6050_DMP */
+ 798:../src/drv_mpu6050.c **** void mpu6050DmpLoop(void)
+ 799:../src/drv_mpu6050.c **** {
+ 720              		.loc 1 799 0
+ 721              		.cfi_startproc
+ 722              		@ args = 0, pretend = 0, frame = 0
+ 723              		@ frame_needed = 1, uses_anonymous_args = 0
+ 724              		@ link register save eliminated.
+ 725 0460 80B4     		push	{r7}
+ 726              	.LCFI20:
+ 727              		.cfi_def_cfa_offset 4
+ 728              		.cfi_offset 7, -4
+ 729 0462 00AF     		add	r7, sp, #0
+ 730              	.LCFI21:
+ 731              		.cfi_def_cfa_register 7
+ 800:../src/drv_mpu6050.c **** 
+ 801:../src/drv_mpu6050.c **** }
+ 732              		.loc 1 801 0
+ 733 0464 BD46     		mov	sp, r7
+ 734 0466 80BC     		pop	{r7}
+ 735 0468 7047     		bx	lr
+ 736              		.cfi_endproc
+ 737              	.LFE36:
+ 739 046a 00BF     		.align	2
+ 740              		.global	mpu6050DmpResetFifo
+ 741              		.thumb
+ 742              		.thumb_func
+ 744              	mpu6050DmpResetFifo:
+ 745              	.LFB37:
+ 802:../src/drv_mpu6050.c **** 
+ 803:../src/drv_mpu6050.c **** void mpu6050DmpResetFifo(void)
+ 804:../src/drv_mpu6050.c **** {
+ 746              		.loc 1 804 0
+ 747              		.cfi_startproc
+ 748              		@ args = 0, pretend = 0, frame = 0
+ 749              		@ frame_needed = 1, uses_anonymous_args = 0
+ 750              		@ link register save eliminated.
+ 751 046c 80B4     		push	{r7}
+ 752              	.LCFI22:
+ 753              		.cfi_def_cfa_offset 4
+ 754              		.cfi_offset 7, -4
+ 755 046e 00AF     		add	r7, sp, #0
+ 756              	.LCFI23:
+ 757              		.cfi_def_cfa_register 7
+ 805:../src/drv_mpu6050.c **** 
+ 806:../src/drv_mpu6050.c **** }
+ 758              		.loc 1 806 0
+ 759 0470 BD46     		mov	sp, r7
+ 760 0472 80BC     		pop	{r7}
+ 761 0474 7047     		bx	lr
+ 762              		.cfi_endproc
+ 763              	.LFE37:
+ 765              	.Letext0:
+ 766              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 767              		.file 3 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/stm32f10x.h"
+ 768              		.file 4 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/stm32f10x_gpio.h"
+ 769              		.file 5 "../src/board.h"
+ 770              		.file 6 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 drv_mpu6050.c
+     /tmp/cc38UPsr.s:21     .data:00000000 mpuLowPassFilter
+     /tmp/cc38UPsr.s:24     .bss:00000000 mpuAccelHalf
+     /tmp/cc38UPsr.s:25     .bss:00000000 $d
+     /tmp/cc38UPsr.s:27     .text:00000000 $t
+     /tmp/cc38UPsr.s:32     .text:00000000 mpu6050Detect
+     /tmp/cc38UPsr.s:289    .text:000001b4 $d
+     /tmp/cc38UPsr.s:305    .text:000001d8 mpu6050AccInit
+     /tmp/cc38UPsr.s:351    .text:00000204 mpu6050AccRead
+     /tmp/cc38UPsr.s:436    .text:00000298 mpu6050AccAlign
+     /tmp/cc38UPsr.s:493    .text:000002dc mpu6050GyroInit
+     /tmp/cc38UPsr.s:580    .text:0000038c mpu6050GyroRead
+     /tmp/cc38UPsr.s:665    .text:00000420 mpu6050GyroAlign
+     /tmp/cc38UPsr.s:301    .text:000001d8 $t
+     /tmp/cc38UPsr.s:342    .text:000001fc $d
+     /tmp/cc38UPsr.s:347    .text:00000204 $t
+     /tmp/cc38UPsr.s:571    .text:00000384 $d
+     /tmp/cc38UPsr.s:576    .text:0000038c $t
+     /tmp/cc38UPsr.s:718    .text:00000460 mpu6050DmpLoop
+     /tmp/cc38UPsr.s:744    .text:0000046c mpu6050DmpResetFifo
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+
+UNDEFINED SYMBOLS
+delay
+i2cRead
+failureMode
+acc_1G
+GPIO_Init
+i2cWrite

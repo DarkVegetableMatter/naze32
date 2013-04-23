@@ -1,0 +1,1173 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 6
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"drv_ms5611.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.bss
+  19              		.align	2
+  20              	ms5611_ut:
+  21 0000 00000000 		.space	4
+  22              		.align	2
+  23              	ms5611_up:
+  24 0004 00000000 		.space	4
+  25              		.align	2
+  26              	ms5611_c:
+  27 0008 00000000 		.space	16
+  27      00000000 
+  27      00000000 
+  27      00000000 
+  28              		.data
+  31              	ms5611_osr:
+  32 0000 08       		.byte	8
+  33              		.text
+  34              		.align	2
+  35              		.global	ms5611Detect
+  36              		.thumb
+  37              		.thumb_func
+  39              	ms5611Detect:
+  40              	.LFB29:
+  41              		.file 1 "../src/drv_ms5611.c"
+   1:../src/drv_ms5611.c **** #include "board.h"
+   2:../src/drv_ms5611.c **** 
+   3:../src/drv_ms5611.c **** // MS5611, Standard address 0x77
+   4:../src/drv_ms5611.c **** #define MS5611_ADDR                 0x77
+   5:../src/drv_ms5611.c **** // Autodetect: turn off BMP085 while initializing ms5611 and check PROM crc to confirm device
+   6:../src/drv_ms5611.c **** #define BMP085_OFF                  digitalLo(BARO_GPIO, BARO_PIN);
+   7:../src/drv_ms5611.c **** #define BMP085_ON                   digitalHi(BARO_GPIO, BARO_PIN);
+   8:../src/drv_ms5611.c **** 
+   9:../src/drv_ms5611.c **** #define CMD_RESET               0x1E // ADC reset command
+  10:../src/drv_ms5611.c **** #define CMD_ADC_READ            0x00 // ADC read command
+  11:../src/drv_ms5611.c **** #define CMD_ADC_CONV            0x40 // ADC conversion command
+  12:../src/drv_ms5611.c **** #define CMD_ADC_D1              0x00 // ADC D1 conversion
+  13:../src/drv_ms5611.c **** #define CMD_ADC_D2              0x10 // ADC D2 conversion
+  14:../src/drv_ms5611.c **** #define CMD_ADC_256             0x00 // ADC OSR=256
+  15:../src/drv_ms5611.c **** #define CMD_ADC_512             0x02 // ADC OSR=512
+  16:../src/drv_ms5611.c **** #define CMD_ADC_1024            0x04 // ADC OSR=1024
+  17:../src/drv_ms5611.c **** #define CMD_ADC_2048            0x06 // ADC OSR=2048
+  18:../src/drv_ms5611.c **** #define CMD_ADC_4096            0x08 // ADC OSR=4096
+  19:../src/drv_ms5611.c **** #define CMD_PROM_RD             0xA0 // Prom read command
+  20:../src/drv_ms5611.c **** #define PROM_NB                 8
+  21:../src/drv_ms5611.c **** 
+  22:../src/drv_ms5611.c **** static void ms5611_reset(void);
+  23:../src/drv_ms5611.c **** static uint16_t ms5611_prom(int8_t coef_num);
+  24:../src/drv_ms5611.c **** static int8_t ms5611_crc(uint16_t *prom);
+  25:../src/drv_ms5611.c **** static uint32_t ms5611_read_adc(void);
+  26:../src/drv_ms5611.c **** static void ms5611_start_ut(void);
+  27:../src/drv_ms5611.c **** static void ms5611_get_ut(void);
+  28:../src/drv_ms5611.c **** static void ms5611_start_up(void);
+  29:../src/drv_ms5611.c **** static void ms5611_get_up(void);
+  30:../src/drv_ms5611.c **** static void ms5611_calculate(int32_t *pressure, int32_t *temperature);
+  31:../src/drv_ms5611.c **** 
+  32:../src/drv_ms5611.c **** static uint32_t ms5611_ut;  // static result of temperature measurement
+  33:../src/drv_ms5611.c **** static uint32_t ms5611_up;  // static result of pressure measurement
+  34:../src/drv_ms5611.c **** static uint16_t ms5611_c[PROM_NB];  // on-chip ROM
+  35:../src/drv_ms5611.c **** static uint8_t ms5611_osr = CMD_ADC_4096;
+  36:../src/drv_ms5611.c **** 
+  37:../src/drv_ms5611.c **** bool ms5611Detect(baro_t *baro)
+  38:../src/drv_ms5611.c **** {
+  42              		.loc 1 38 0
+  43              		.cfi_startproc
+  44              		@ args = 0, pretend = 0, frame = 24
+  45              		@ frame_needed = 1, uses_anonymous_args = 0
+  46 0000 80B5     		push	{r7, lr}
+  47              	.LCFI0:
+  48              		.cfi_def_cfa_offset 8
+  49              		.cfi_offset 7, -8
+  50              		.cfi_offset 14, -4
+  51 0002 86B0     		sub	sp, sp, #24
+  52              	.LCFI1:
+  53              		.cfi_def_cfa_offset 32
+  54 0004 00AF     		add	r7, sp, #0
+  55              	.LCFI2:
+  56              		.cfi_def_cfa_register 7
+  57 0006 7860     		str	r0, [r7, #4]
+  39:../src/drv_ms5611.c ****     GPIO_InitTypeDef GPIO_InitStructure;
+  40:../src/drv_ms5611.c ****     bool ack = false;
+  58              		.loc 1 40 0
+  59 0008 4FF00003 		mov	r3, #0
+  60 000c FB74     		strb	r3, [r7, #19]
+  41:../src/drv_ms5611.c ****     uint8_t sig;
+  42:../src/drv_ms5611.c ****     int i;
+  43:../src/drv_ms5611.c **** 
+  44:../src/drv_ms5611.c ****     // PC13 (BMP085's XCLR reset input, which we use to disable it)
+  45:../src/drv_ms5611.c ****     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+  61              		.loc 1 45 0
+  62 000e 4FF40053 		mov	r3, #8192
+  63 0012 BB81     		strh	r3, [r7, #12]	@ movhi
+  46:../src/drv_ms5611.c ****     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  64              		.loc 1 46 0
+  65 0014 4FF00203 		mov	r3, #2
+  66 0018 BB73     		strb	r3, [r7, #14]
+  47:../src/drv_ms5611.c ****     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  67              		.loc 1 47 0
+  68 001a 4FF01003 		mov	r3, #16
+  69 001e FB73     		strb	r3, [r7, #15]
+  48:../src/drv_ms5611.c ****     GPIO_Init(GPIOC, &GPIO_InitStructure);
+  70              		.loc 1 48 0
+  71 0020 07F10C03 		add	r3, r7, #12
+  72 0024 3048     		ldr	r0, .L8
+  73 0026 1946     		mov	r1, r3
+  74 0028 FFF7FEFF 		bl	GPIO_Init
+  49:../src/drv_ms5611.c ****     BMP085_OFF;
+  75              		.loc 1 49 0
+  76 002c 2E4B     		ldr	r3, .L8
+  77 002e 4FF40052 		mov	r2, #8192
+  78 0032 5A61     		str	r2, [r3, #20]
+  50:../src/drv_ms5611.c **** 
+  51:../src/drv_ms5611.c ****     delay(10); // No idea how long the chip takes to power-up, but let's make it 10ms
+  79              		.loc 1 51 0
+  80 0034 4FF00A00 		mov	r0, #10
+  81 0038 FFF7FEFF 		bl	delay
+  52:../src/drv_ms5611.c **** 
+  53:../src/drv_ms5611.c ****     // BMP085 is disabled. If we have a MS5611, it will reply. if no reply, means either
+  54:../src/drv_ms5611.c ****     // we have BMP085 or no baro at all.
+  55:../src/drv_ms5611.c ****     ack = i2cRead(MS5611_ADDR, CMD_PROM_RD, 1, &sig);
+  82              		.loc 1 55 0
+  83 003c 07F10B03 		add	r3, r7, #11
+  84 0040 4FF07700 		mov	r0, #119
+  85 0044 4FF0A001 		mov	r1, #160
+  86 0048 4FF00102 		mov	r2, #1
+  87 004c FFF7FEFF 		bl	i2cRead
+  88 0050 0346     		mov	r3, r0
+  89 0052 FB74     		strb	r3, [r7, #19]
+  56:../src/drv_ms5611.c ****     if (!ack)
+  90              		.loc 1 56 0
+  91 0054 FB7C     		ldrb	r3, [r7, #19]
+  92 0056 83F00103 		eor	r3, r3, #1
+  93 005a DBB2     		uxtb	r3, r3
+  94 005c 002B     		cmp	r3, #0
+  95 005e 02D0     		beq	.L2
+  57:../src/drv_ms5611.c ****         return false;
+  96              		.loc 1 57 0
+  97 0060 4FF00003 		mov	r3, #0
+  98 0064 3AE0     		b	.L7
+  99              	.L2:
+  58:../src/drv_ms5611.c **** 
+  59:../src/drv_ms5611.c ****     ms5611_reset();
+ 100              		.loc 1 59 0
+ 101 0066 00F04DF8 		bl	ms5611_reset
+  60:../src/drv_ms5611.c ****     // read all coefficients
+  61:../src/drv_ms5611.c ****     for (i = 0; i < PROM_NB; i++)
+ 102              		.loc 1 61 0
+ 103 006a 4FF00003 		mov	r3, #0
+ 104 006e 7B61     		str	r3, [r7, #20]
+ 105 0070 0FE0     		b	.L4
+ 106              	.L5:
+  62:../src/drv_ms5611.c ****         ms5611_c[i] = ms5611_prom(i);
+ 107              		.loc 1 62 0 discriminator 2
+ 108 0072 7B69     		ldr	r3, [r7, #20]
+ 109 0074 DBB2     		uxtb	r3, r3
+ 110 0076 5BB2     		sxtb	r3, r3
+ 111 0078 1846     		mov	r0, r3
+ 112 007a 00F053F8 		bl	ms5611_prom
+ 113 007e 0346     		mov	r3, r0
+ 114 0080 1946     		mov	r1, r3
+ 115 0082 1A4B     		ldr	r3, .L8+4
+ 116 0084 7A69     		ldr	r2, [r7, #20]
+ 117 0086 23F81210 		strh	r1, [r3, r2, lsl #1]	@ movhi
+  61:../src/drv_ms5611.c ****     for (i = 0; i < PROM_NB; i++)
+ 118              		.loc 1 61 0 discriminator 2
+ 119 008a 7B69     		ldr	r3, [r7, #20]
+ 120 008c 03F10103 		add	r3, r3, #1
+ 121 0090 7B61     		str	r3, [r7, #20]
+ 122              	.L4:
+  61:../src/drv_ms5611.c ****     for (i = 0; i < PROM_NB; i++)
+ 123              		.loc 1 61 0 is_stmt 0 discriminator 1
+ 124 0092 7B69     		ldr	r3, [r7, #20]
+ 125 0094 072B     		cmp	r3, #7
+ 126 0096 ECDD     		ble	.L5
+  63:../src/drv_ms5611.c ****     // check crc, bail out if wrong - we are probably talking to BMP085 w/o XCLR line!
+  64:../src/drv_ms5611.c ****     if (ms5611_crc(ms5611_c) != 0)
+ 127              		.loc 1 64 0 is_stmt 1
+ 128 0098 1448     		ldr	r0, .L8+4
+ 129 009a 00F06DF8 		bl	ms5611_crc
+ 130 009e 0346     		mov	r3, r0
+ 131 00a0 002B     		cmp	r3, #0
+ 132 00a2 02D0     		beq	.L6
+  65:../src/drv_ms5611.c ****         return false;
+ 133              		.loc 1 65 0
+ 134 00a4 4FF00003 		mov	r3, #0
+ 135 00a8 18E0     		b	.L7
+ 136              	.L6:
+  66:../src/drv_ms5611.c **** 
+  67:../src/drv_ms5611.c ****     // TODO prom + CRC
+  68:../src/drv_ms5611.c ****     baro->ut_delay = 10000;
+ 137              		.loc 1 68 0
+ 138 00aa 7B68     		ldr	r3, [r7, #4]
+ 139 00ac 42F21072 		movw	r2, #10000
+ 140 00b0 1A80     		strh	r2, [r3, #0]	@ movhi
+  69:../src/drv_ms5611.c ****     baro->up_delay = 10000;
+ 141              		.loc 1 69 0
+ 142 00b2 7B68     		ldr	r3, [r7, #4]
+ 143 00b4 42F21072 		movw	r2, #10000
+ 144 00b8 5A80     		strh	r2, [r3, #2]	@ movhi
+  70:../src/drv_ms5611.c ****     baro->start_ut = ms5611_start_ut;
+ 145              		.loc 1 70 0
+ 146 00ba 7B68     		ldr	r3, [r7, #4]
+ 147 00bc 0C4A     		ldr	r2, .L8+8
+ 148 00be 5A60     		str	r2, [r3, #4]
+  71:../src/drv_ms5611.c ****     baro->get_ut = ms5611_get_ut;
+ 149              		.loc 1 71 0
+ 150 00c0 7B68     		ldr	r3, [r7, #4]
+ 151 00c2 0C4A     		ldr	r2, .L8+12
+ 152 00c4 9A60     		str	r2, [r3, #8]
+  72:../src/drv_ms5611.c ****     baro->start_up = ms5611_start_up;
+ 153              		.loc 1 72 0
+ 154 00c6 7B68     		ldr	r3, [r7, #4]
+ 155 00c8 0B4A     		ldr	r2, .L8+16
+ 156 00ca DA60     		str	r2, [r3, #12]
+  73:../src/drv_ms5611.c ****     baro->get_up = ms5611_get_up;
+ 157              		.loc 1 73 0
+ 158 00cc 7B68     		ldr	r3, [r7, #4]
+ 159 00ce 0B4A     		ldr	r2, .L8+20
+ 160 00d0 1A61     		str	r2, [r3, #16]
+  74:../src/drv_ms5611.c ****     baro->calculate = ms5611_calculate;
+ 161              		.loc 1 74 0
+ 162 00d2 7B68     		ldr	r3, [r7, #4]
+ 163 00d4 0A4A     		ldr	r2, .L8+24
+ 164 00d6 5A61     		str	r2, [r3, #20]
+  75:../src/drv_ms5611.c **** 
+  76:../src/drv_ms5611.c ****     return true;
+ 165              		.loc 1 76 0
+ 166 00d8 4FF00103 		mov	r3, #1
+ 167              	.L7:
+  77:../src/drv_ms5611.c **** }
+ 168              		.loc 1 77 0
+ 169 00dc 1846     		mov	r0, r3
+ 170 00de 07F11807 		add	r7, r7, #24
+ 171 00e2 BD46     		mov	sp, r7
+ 172 00e4 80BD     		pop	{r7, pc}
+ 173              	.L9:
+ 174 00e6 00BF     		.align	2
+ 175              	.L8:
+ 176 00e8 00100140 		.word	1073811456
+ 177 00ec 08000000 		.word	ms5611_c
+ 178 00f0 00000000 		.word	ms5611_start_ut
+ 179 00f4 00000000 		.word	ms5611_get_ut
+ 180 00f8 00000000 		.word	ms5611_start_up
+ 181 00fc 00000000 		.word	ms5611_get_up
+ 182 0100 00000000 		.word	ms5611_calculate
+ 183              		.cfi_endproc
+ 184              	.LFE29:
+ 186              		.align	2
+ 187              		.thumb
+ 188              		.thumb_func
+ 190              	ms5611_reset:
+ 191              	.LFB30:
+  78:../src/drv_ms5611.c **** 
+  79:../src/drv_ms5611.c **** static void ms5611_reset(void)
+  80:../src/drv_ms5611.c **** {
+ 192              		.loc 1 80 0
+ 193              		.cfi_startproc
+ 194              		@ args = 0, pretend = 0, frame = 0
+ 195              		@ frame_needed = 1, uses_anonymous_args = 0
+ 196 0104 80B5     		push	{r7, lr}
+ 197              	.LCFI3:
+ 198              		.cfi_def_cfa_offset 8
+ 199              		.cfi_offset 7, -8
+ 200              		.cfi_offset 14, -4
+ 201 0106 00AF     		add	r7, sp, #0
+ 202              	.LCFI4:
+ 203              		.cfi_def_cfa_register 7
+  81:../src/drv_ms5611.c ****     i2cWrite(MS5611_ADDR, CMD_RESET, 1);
+ 204              		.loc 1 81 0
+ 205 0108 4FF07700 		mov	r0, #119
+ 206 010c 4FF01E01 		mov	r1, #30
+ 207 0110 4FF00102 		mov	r2, #1
+ 208 0114 FFF7FEFF 		bl	i2cWrite
+  82:../src/drv_ms5611.c ****     delayMicroseconds(2800);
+ 209              		.loc 1 82 0
+ 210 0118 4FF42F60 		mov	r0, #2800
+ 211 011c FFF7FEFF 		bl	delayMicroseconds
+  83:../src/drv_ms5611.c **** }
+ 212              		.loc 1 83 0
+ 213 0120 80BD     		pop	{r7, pc}
+ 214              		.cfi_endproc
+ 215              	.LFE30:
+ 217 0122 00BF     		.align	2
+ 218              		.thumb
+ 219              		.thumb_func
+ 221              	ms5611_prom:
+ 222              	.LFB31:
+  84:../src/drv_ms5611.c **** 
+  85:../src/drv_ms5611.c **** static uint16_t ms5611_prom(int8_t coef_num)
+  86:../src/drv_ms5611.c **** {
+ 223              		.loc 1 86 0
+ 224              		.cfi_startproc
+ 225              		@ args = 0, pretend = 0, frame = 16
+ 226              		@ frame_needed = 1, uses_anonymous_args = 0
+ 227 0124 80B5     		push	{r7, lr}
+ 228              	.LCFI5:
+ 229              		.cfi_def_cfa_offset 8
+ 230              		.cfi_offset 7, -8
+ 231              		.cfi_offset 14, -4
+ 232 0126 84B0     		sub	sp, sp, #16
+ 233              	.LCFI6:
+ 234              		.cfi_def_cfa_offset 24
+ 235 0128 00AF     		add	r7, sp, #0
+ 236              	.LCFI7:
+ 237              		.cfi_def_cfa_register 7
+ 238 012a 0346     		mov	r3, r0
+ 239 012c FB71     		strb	r3, [r7, #7]
+  87:../src/drv_ms5611.c ****     uint8_t rxbuf[2] = { 0, 0 };
+ 240              		.loc 1 87 0
+ 241 012e 4FF00003 		mov	r3, #0
+ 242 0132 3B73     		strb	r3, [r7, #12]
+ 243 0134 4FF00003 		mov	r3, #0
+ 244 0138 7B73     		strb	r3, [r7, #13]
+  88:../src/drv_ms5611.c ****     i2cRead(MS5611_ADDR, CMD_PROM_RD + coef_num * 2, 2, rxbuf); // send PROM READ command
+ 245              		.loc 1 88 0
+ 246 013a 97F90730 		ldrsb	r3, [r7, #7]
+ 247 013e 03F15003 		add	r3, r3, #80
+ 248 0142 DBB2     		uxtb	r3, r3
+ 249 0144 4FEA4303 		lsl	r3, r3, #1
+ 250 0148 DAB2     		uxtb	r2, r3
+ 251 014a 07F10C03 		add	r3, r7, #12
+ 252 014e 4FF07700 		mov	r0, #119
+ 253 0152 1146     		mov	r1, r2
+ 254 0154 4FF00202 		mov	r2, #2
+ 255 0158 FFF7FEFF 		bl	i2cRead
+  89:../src/drv_ms5611.c ****     return rxbuf[0] << 8 | rxbuf[1];
+ 256              		.loc 1 89 0
+ 257 015c 3B7B     		ldrb	r3, [r7, #12]	@ zero_extendqisi2
+ 258 015e 4FEA0323 		lsl	r3, r3, #8
+ 259 0162 9AB2     		uxth	r2, r3
+ 260 0164 7B7B     		ldrb	r3, [r7, #13]	@ zero_extendqisi2
+ 261 0166 1343     		orrs	r3, r3, r2
+ 262 0168 9BB2     		uxth	r3, r3
+ 263 016a 9BB2     		uxth	r3, r3
+  90:../src/drv_ms5611.c **** }
+ 264              		.loc 1 90 0
+ 265 016c 1846     		mov	r0, r3
+ 266 016e 07F11007 		add	r7, r7, #16
+ 267 0172 BD46     		mov	sp, r7
+ 268 0174 80BD     		pop	{r7, pc}
+ 269              		.cfi_endproc
+ 270              	.LFE31:
+ 272 0176 00BF     		.align	2
+ 273              		.thumb
+ 274              		.thumb_func
+ 276              	ms5611_crc:
+ 277              	.LFB32:
+  91:../src/drv_ms5611.c **** 
+  92:../src/drv_ms5611.c **** static int8_t ms5611_crc(uint16_t *prom)
+  93:../src/drv_ms5611.c **** {
+ 278              		.loc 1 93 0
+ 279              		.cfi_startproc
+ 280              		@ args = 0, pretend = 0, frame = 24
+ 281              		@ frame_needed = 1, uses_anonymous_args = 0
+ 282              		@ link register save eliminated.
+ 283 0178 80B4     		push	{r7}
+ 284              	.LCFI8:
+ 285              		.cfi_def_cfa_offset 4
+ 286              		.cfi_offset 7, -4
+ 287 017a 87B0     		sub	sp, sp, #28
+ 288              	.LCFI9:
+ 289              		.cfi_def_cfa_offset 32
+ 290 017c 00AF     		add	r7, sp, #0
+ 291              	.LCFI10:
+ 292              		.cfi_def_cfa_register 7
+ 293 017e 7860     		str	r0, [r7, #4]
+  94:../src/drv_ms5611.c ****     int32_t i, j;
+  95:../src/drv_ms5611.c ****     uint32_t res = 0;
+ 294              		.loc 1 95 0
+ 295 0180 4FF00003 		mov	r3, #0
+ 296 0184 FB60     		str	r3, [r7, #12]
+  96:../src/drv_ms5611.c ****     uint8_t zero = 1;
+ 297              		.loc 1 96 0
+ 298 0186 4FF00103 		mov	r3, #1
+ 299 018a FB72     		strb	r3, [r7, #11]
+  97:../src/drv_ms5611.c ****     uint8_t crc = prom[7] & 0xF;
+ 300              		.loc 1 97 0
+ 301 018c 7B68     		ldr	r3, [r7, #4]
+ 302 018e 03F10E03 		add	r3, r3, #14
+ 303 0192 1B88     		ldrh	r3, [r3, #0]
+ 304 0194 DBB2     		uxtb	r3, r3
+ 305 0196 03F00F03 		and	r3, r3, #15
+ 306 019a BB72     		strb	r3, [r7, #10]
+  98:../src/drv_ms5611.c ****     prom[7] &= 0xFF00;
+ 307              		.loc 1 98 0
+ 308 019c 7B68     		ldr	r3, [r7, #4]
+ 309 019e 03F10E03 		add	r3, r3, #14
+ 310 01a2 7A68     		ldr	r2, [r7, #4]
+ 311 01a4 02F10E02 		add	r2, r2, #14
+ 312 01a8 1288     		ldrh	r2, [r2, #0]
+ 313 01aa 22F0FF02 		bic	r2, r2, #255
+ 314 01ae 92B2     		uxth	r2, r2
+ 315 01b0 1A80     		strh	r2, [r3, #0]	@ movhi
+  99:../src/drv_ms5611.c **** 
+ 100:../src/drv_ms5611.c ****     // if eeprom is all zeros, we're probably fucked - BUT this will return valid CRC lol
+ 101:../src/drv_ms5611.c ****     for (i = 0; i < 8; i++) {
+ 316              		.loc 1 101 0
+ 317 01b2 4FF00003 		mov	r3, #0
+ 318 01b6 7B61     		str	r3, [r7, #20]
+ 319 01b8 0EE0     		b	.L14
+ 320              	.L16:
+ 102:../src/drv_ms5611.c ****         if (prom[i] != 0)
+ 321              		.loc 1 102 0
+ 322 01ba 7B69     		ldr	r3, [r7, #20]
+ 323 01bc 4FEA4303 		lsl	r3, r3, #1
+ 324 01c0 7A68     		ldr	r2, [r7, #4]
+ 325 01c2 D318     		adds	r3, r2, r3
+ 326 01c4 1B88     		ldrh	r3, [r3, #0]
+ 327 01c6 002B     		cmp	r3, #0
+ 328 01c8 02D0     		beq	.L15
+ 103:../src/drv_ms5611.c ****             zero = 0;
+ 329              		.loc 1 103 0
+ 330 01ca 4FF00003 		mov	r3, #0
+ 331 01ce FB72     		strb	r3, [r7, #11]
+ 332              	.L15:
+ 101:../src/drv_ms5611.c ****     for (i = 0; i < 8; i++) {
+ 333              		.loc 1 101 0
+ 334 01d0 7B69     		ldr	r3, [r7, #20]
+ 335 01d2 03F10103 		add	r3, r3, #1
+ 336 01d6 7B61     		str	r3, [r7, #20]
+ 337              	.L14:
+ 101:../src/drv_ms5611.c ****     for (i = 0; i < 8; i++) {
+ 338              		.loc 1 101 0 is_stmt 0 discriminator 1
+ 339 01d8 7B69     		ldr	r3, [r7, #20]
+ 340 01da 072B     		cmp	r3, #7
+ 341 01dc EDDD     		ble	.L16
+ 104:../src/drv_ms5611.c ****     }
+ 105:../src/drv_ms5611.c ****     if (zero)
+ 342              		.loc 1 105 0 is_stmt 1
+ 343 01de FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 344 01e0 002B     		cmp	r3, #0
+ 345 01e2 02D0     		beq	.L17
+ 106:../src/drv_ms5611.c ****         return -1;
+ 346              		.loc 1 106 0
+ 347 01e4 4FF0FF03 		mov	r3, #255
+ 348 01e8 5BE0     		b	.L18
+ 349              	.L17:
+ 107:../src/drv_ms5611.c **** 
+ 108:../src/drv_ms5611.c ****     for (i = 0; i < 16; i++) {
+ 350              		.loc 1 108 0
+ 351 01ea 4FF00003 		mov	r3, #0
+ 352 01ee 7B61     		str	r3, [r7, #20]
+ 353 01f0 3BE0     		b	.L19
+ 354              	.L25:
+ 109:../src/drv_ms5611.c ****         if (i & 1) 
+ 355              		.loc 1 109 0
+ 356 01f2 7B69     		ldr	r3, [r7, #20]
+ 357 01f4 03F00103 		and	r3, r3, #1
+ 358 01f8 002B     		cmp	r3, #0
+ 359 01fa 0CD0     		beq	.L20
+ 110:../src/drv_ms5611.c ****             res ^= ((prom[i >> 1]) & 0x00FF);
+ 360              		.loc 1 110 0
+ 361 01fc 7B69     		ldr	r3, [r7, #20]
+ 362 01fe 4FEA6303 		asr	r3, r3, #1
+ 363 0202 4FEA4303 		lsl	r3, r3, #1
+ 364 0206 7A68     		ldr	r2, [r7, #4]
+ 365 0208 D318     		adds	r3, r2, r3
+ 366 020a 1B88     		ldrh	r3, [r3, #0]
+ 367 020c DBB2     		uxtb	r3, r3
+ 368 020e FA68     		ldr	r2, [r7, #12]
+ 369 0210 5340     		eors	r3, r3, r2
+ 370 0212 FB60     		str	r3, [r7, #12]
+ 371 0214 0DE0     		b	.L21
+ 372              	.L20:
+ 111:../src/drv_ms5611.c ****         else 
+ 112:../src/drv_ms5611.c ****             res ^= (prom[i >> 1] >> 8);
+ 373              		.loc 1 112 0
+ 374 0216 7B69     		ldr	r3, [r7, #20]
+ 375 0218 4FEA6303 		asr	r3, r3, #1
+ 376 021c 4FEA4303 		lsl	r3, r3, #1
+ 377 0220 7A68     		ldr	r2, [r7, #4]
+ 378 0222 D318     		adds	r3, r2, r3
+ 379 0224 1B88     		ldrh	r3, [r3, #0]
+ 380 0226 4FEA1323 		lsr	r3, r3, #8
+ 381 022a 9BB2     		uxth	r3, r3
+ 382 022c FA68     		ldr	r2, [r7, #12]
+ 383 022e 5340     		eors	r3, r3, r2
+ 384 0230 FB60     		str	r3, [r7, #12]
+ 385              	.L21:
+ 113:../src/drv_ms5611.c ****         for (j = 8; j > 0; j--) {
+ 386              		.loc 1 113 0
+ 387 0232 4FF00803 		mov	r3, #8
+ 388 0236 3B61     		str	r3, [r7, #16]
+ 389 0238 10E0     		b	.L22
+ 390              	.L24:
+ 114:../src/drv_ms5611.c ****             if (res & 0x8000) 
+ 391              		.loc 1 114 0
+ 392 023a FB68     		ldr	r3, [r7, #12]
+ 393 023c 03F40043 		and	r3, r3, #32768
+ 394 0240 002B     		cmp	r3, #0
+ 395 0242 03D0     		beq	.L23
+ 115:../src/drv_ms5611.c ****                 res ^= 0x1800;
+ 396              		.loc 1 115 0
+ 397 0244 FB68     		ldr	r3, [r7, #12]
+ 398 0246 83F4C053 		eor	r3, r3, #6144
+ 399 024a FB60     		str	r3, [r7, #12]
+ 400              	.L23:
+ 116:../src/drv_ms5611.c ****             res <<= 1;
+ 401              		.loc 1 116 0
+ 402 024c FB68     		ldr	r3, [r7, #12]
+ 403 024e 4FEA4303 		lsl	r3, r3, #1
+ 404 0252 FB60     		str	r3, [r7, #12]
+ 113:../src/drv_ms5611.c ****         for (j = 8; j > 0; j--) {
+ 405              		.loc 1 113 0
+ 406 0254 3B69     		ldr	r3, [r7, #16]
+ 407 0256 03F1FF33 		add	r3, r3, #-1
+ 408 025a 3B61     		str	r3, [r7, #16]
+ 409              	.L22:
+ 113:../src/drv_ms5611.c ****         for (j = 8; j > 0; j--) {
+ 410              		.loc 1 113 0 is_stmt 0 discriminator 1
+ 411 025c 3B69     		ldr	r3, [r7, #16]
+ 412 025e 002B     		cmp	r3, #0
+ 413 0260 EBDC     		bgt	.L24
+ 108:../src/drv_ms5611.c ****     for (i = 0; i < 16; i++) {
+ 414              		.loc 1 108 0 is_stmt 1
+ 415 0262 7B69     		ldr	r3, [r7, #20]
+ 416 0264 03F10103 		add	r3, r3, #1
+ 417 0268 7B61     		str	r3, [r7, #20]
+ 418              	.L19:
+ 108:../src/drv_ms5611.c ****     for (i = 0; i < 16; i++) {
+ 419              		.loc 1 108 0 is_stmt 0 discriminator 1
+ 420 026a 7B69     		ldr	r3, [r7, #20]
+ 421 026c 0F2B     		cmp	r3, #15
+ 422 026e C0DD     		ble	.L25
+ 117:../src/drv_ms5611.c ****         }
+ 118:../src/drv_ms5611.c ****     }
+ 119:../src/drv_ms5611.c ****     prom[7] |= crc;
+ 423              		.loc 1 119 0 is_stmt 1
+ 424 0270 7B68     		ldr	r3, [r7, #4]
+ 425 0272 03F10E03 		add	r3, r3, #14
+ 426 0276 7A68     		ldr	r2, [r7, #4]
+ 427 0278 02F10E02 		add	r2, r2, #14
+ 428 027c 1188     		ldrh	r1, [r2, #0]
+ 429 027e BA7A     		ldrb	r2, [r7, #10]	@ zero_extendqisi2
+ 430 0280 92B2     		uxth	r2, r2
+ 431 0282 0A43     		orrs	r2, r2, r1
+ 432 0284 92B2     		uxth	r2, r2
+ 433 0286 1A80     		strh	r2, [r3, #0]	@ movhi
+ 120:../src/drv_ms5611.c ****     if (crc == ((res >> 12) & 0xF)) 
+ 434              		.loc 1 120 0
+ 435 0288 BA7A     		ldrb	r2, [r7, #10]	@ zero_extendqisi2
+ 436 028a FB68     		ldr	r3, [r7, #12]
+ 437 028c 4FEA1333 		lsr	r3, r3, #12
+ 438 0290 03F00F03 		and	r3, r3, #15
+ 439 0294 9A42     		cmp	r2, r3
+ 440 0296 02D1     		bne	.L26
+ 121:../src/drv_ms5611.c ****         return 0;
+ 441              		.loc 1 121 0
+ 442 0298 4FF00003 		mov	r3, #0
+ 443 029c 01E0     		b	.L18
+ 444              	.L26:
+ 122:../src/drv_ms5611.c **** 
+ 123:../src/drv_ms5611.c ****     return -1;
+ 445              		.loc 1 123 0
+ 446 029e 4FF0FF03 		mov	r3, #255
+ 447              	.L18:
+ 448 02a2 5BB2     		sxtb	r3, r3
+ 124:../src/drv_ms5611.c **** }
+ 449              		.loc 1 124 0
+ 450 02a4 1846     		mov	r0, r3
+ 451 02a6 07F11C07 		add	r7, r7, #28
+ 452 02aa BD46     		mov	sp, r7
+ 453 02ac 80BC     		pop	{r7}
+ 454 02ae 7047     		bx	lr
+ 455              		.cfi_endproc
+ 456              	.LFE32:
+ 458              		.align	2
+ 459              		.thumb
+ 460              		.thumb_func
+ 462              	ms5611_read_adc:
+ 463              	.LFB33:
+ 125:../src/drv_ms5611.c **** 
+ 126:../src/drv_ms5611.c **** static uint32_t ms5611_read_adc(void)
+ 127:../src/drv_ms5611.c **** {
+ 464              		.loc 1 127 0
+ 465              		.cfi_startproc
+ 466              		@ args = 0, pretend = 0, frame = 8
+ 467              		@ frame_needed = 1, uses_anonymous_args = 0
+ 468 02b0 80B5     		push	{r7, lr}
+ 469              	.LCFI11:
+ 470              		.cfi_def_cfa_offset 8
+ 471              		.cfi_offset 7, -8
+ 472              		.cfi_offset 14, -4
+ 473 02b2 82B0     		sub	sp, sp, #8
+ 474              	.LCFI12:
+ 475              		.cfi_def_cfa_offset 16
+ 476 02b4 00AF     		add	r7, sp, #0
+ 477              	.LCFI13:
+ 478              		.cfi_def_cfa_register 7
+ 128:../src/drv_ms5611.c ****     uint8_t rxbuf[3];
+ 129:../src/drv_ms5611.c ****     i2cRead(MS5611_ADDR, CMD_ADC_READ, 3, rxbuf); // read ADC
+ 479              		.loc 1 129 0
+ 480 02b6 07F10403 		add	r3, r7, #4
+ 481 02ba 4FF07700 		mov	r0, #119
+ 482 02be 4FF00001 		mov	r1, #0
+ 483 02c2 4FF00302 		mov	r2, #3
+ 484 02c6 FFF7FEFF 		bl	i2cRead
+ 130:../src/drv_ms5611.c ****     return (rxbuf[0] << 16) | (rxbuf[1] << 8) | rxbuf[2];
+ 485              		.loc 1 130 0
+ 486 02ca 3B79     		ldrb	r3, [r7, #4]	@ zero_extendqisi2
+ 487 02cc 4FEA0342 		lsl	r2, r3, #16
+ 488 02d0 7B79     		ldrb	r3, [r7, #5]	@ zero_extendqisi2
+ 489 02d2 4FEA0323 		lsl	r3, r3, #8
+ 490 02d6 1A43     		orrs	r2, r2, r3
+ 491 02d8 BB79     		ldrb	r3, [r7, #6]	@ zero_extendqisi2
+ 492 02da 1343     		orrs	r3, r3, r2
+ 131:../src/drv_ms5611.c **** }
+ 493              		.loc 1 131 0
+ 494 02dc 1846     		mov	r0, r3
+ 495 02de 07F10807 		add	r7, r7, #8
+ 496 02e2 BD46     		mov	sp, r7
+ 497 02e4 80BD     		pop	{r7, pc}
+ 498              		.cfi_endproc
+ 499              	.LFE33:
+ 501 02e6 00BF     		.align	2
+ 502              		.thumb
+ 503              		.thumb_func
+ 505              	ms5611_start_ut:
+ 506              	.LFB34:
+ 132:../src/drv_ms5611.c **** 
+ 133:../src/drv_ms5611.c **** static void ms5611_start_ut(void)
+ 134:../src/drv_ms5611.c **** {
+ 507              		.loc 1 134 0
+ 508              		.cfi_startproc
+ 509              		@ args = 0, pretend = 0, frame = 0
+ 510              		@ frame_needed = 1, uses_anonymous_args = 0
+ 511 02e8 80B5     		push	{r7, lr}
+ 512              	.LCFI14:
+ 513              		.cfi_def_cfa_offset 8
+ 514              		.cfi_offset 7, -8
+ 515              		.cfi_offset 14, -4
+ 516 02ea 00AF     		add	r7, sp, #0
+ 517              	.LCFI15:
+ 518              		.cfi_def_cfa_register 7
+ 135:../src/drv_ms5611.c ****     i2cWrite(MS5611_ADDR, CMD_ADC_CONV + CMD_ADC_D2 + ms5611_osr, 1); // D2 (temperature) conversio
+ 519              		.loc 1 135 0
+ 520 02ec 064B     		ldr	r3, .L30
+ 521 02ee 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 522 02f0 03F15003 		add	r3, r3, #80
+ 523 02f4 DBB2     		uxtb	r3, r3
+ 524 02f6 4FF07700 		mov	r0, #119
+ 525 02fa 1946     		mov	r1, r3
+ 526 02fc 4FF00102 		mov	r2, #1
+ 527 0300 FFF7FEFF 		bl	i2cWrite
+ 136:../src/drv_ms5611.c **** }
+ 528              		.loc 1 136 0
+ 529 0304 80BD     		pop	{r7, pc}
+ 530              	.L31:
+ 531 0306 00BF     		.align	2
+ 532              	.L30:
+ 533 0308 00000000 		.word	ms5611_osr
+ 534              		.cfi_endproc
+ 535              	.LFE34:
+ 537              		.align	2
+ 538              		.thumb
+ 539              		.thumb_func
+ 541              	ms5611_get_ut:
+ 542              	.LFB35:
+ 137:../src/drv_ms5611.c **** 
+ 138:../src/drv_ms5611.c **** static void ms5611_get_ut(void)
+ 139:../src/drv_ms5611.c **** {
+ 543              		.loc 1 139 0
+ 544              		.cfi_startproc
+ 545              		@ args = 0, pretend = 0, frame = 0
+ 546              		@ frame_needed = 1, uses_anonymous_args = 0
+ 547 030c 80B5     		push	{r7, lr}
+ 548              	.LCFI16:
+ 549              		.cfi_def_cfa_offset 8
+ 550              		.cfi_offset 7, -8
+ 551              		.cfi_offset 14, -4
+ 552 030e 00AF     		add	r7, sp, #0
+ 553              	.LCFI17:
+ 554              		.cfi_def_cfa_register 7
+ 140:../src/drv_ms5611.c ****     ms5611_ut = ms5611_read_adc();
+ 555              		.loc 1 140 0
+ 556 0310 FFF7CEFF 		bl	ms5611_read_adc
+ 557 0314 0246     		mov	r2, r0
+ 558 0316 014B     		ldr	r3, .L33
+ 559 0318 1A60     		str	r2, [r3, #0]
+ 141:../src/drv_ms5611.c **** }
+ 560              		.loc 1 141 0
+ 561 031a 80BD     		pop	{r7, pc}
+ 562              	.L34:
+ 563              		.align	2
+ 564              	.L33:
+ 565 031c 00000000 		.word	ms5611_ut
+ 566              		.cfi_endproc
+ 567              	.LFE35:
+ 569              		.align	2
+ 570              		.thumb
+ 571              		.thumb_func
+ 573              	ms5611_start_up:
+ 574              	.LFB36:
+ 142:../src/drv_ms5611.c **** 
+ 143:../src/drv_ms5611.c **** static void ms5611_start_up(void)
+ 144:../src/drv_ms5611.c **** {
+ 575              		.loc 1 144 0
+ 576              		.cfi_startproc
+ 577              		@ args = 0, pretend = 0, frame = 0
+ 578              		@ frame_needed = 1, uses_anonymous_args = 0
+ 579 0320 80B5     		push	{r7, lr}
+ 580              	.LCFI18:
+ 581              		.cfi_def_cfa_offset 8
+ 582              		.cfi_offset 7, -8
+ 583              		.cfi_offset 14, -4
+ 584 0322 00AF     		add	r7, sp, #0
+ 585              	.LCFI19:
+ 586              		.cfi_def_cfa_register 7
+ 145:../src/drv_ms5611.c ****     i2cWrite(MS5611_ADDR, CMD_ADC_CONV + CMD_ADC_D1 + ms5611_osr, 1); // D1 (pressure) conversion s
+ 587              		.loc 1 145 0
+ 588 0324 064B     		ldr	r3, .L36
+ 589 0326 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 590 0328 03F14003 		add	r3, r3, #64
+ 591 032c DBB2     		uxtb	r3, r3
+ 592 032e 4FF07700 		mov	r0, #119
+ 593 0332 1946     		mov	r1, r3
+ 594 0334 4FF00102 		mov	r2, #1
+ 595 0338 FFF7FEFF 		bl	i2cWrite
+ 146:../src/drv_ms5611.c **** }
+ 596              		.loc 1 146 0
+ 597 033c 80BD     		pop	{r7, pc}
+ 598              	.L37:
+ 599 033e 00BF     		.align	2
+ 600              	.L36:
+ 601 0340 00000000 		.word	ms5611_osr
+ 602              		.cfi_endproc
+ 603              	.LFE36:
+ 605              		.align	2
+ 606              		.thumb
+ 607              		.thumb_func
+ 609              	ms5611_get_up:
+ 610              	.LFB37:
+ 147:../src/drv_ms5611.c **** 
+ 148:../src/drv_ms5611.c **** static void ms5611_get_up(void)
+ 149:../src/drv_ms5611.c **** {
+ 611              		.loc 1 149 0
+ 612              		.cfi_startproc
+ 613              		@ args = 0, pretend = 0, frame = 0
+ 614              		@ frame_needed = 1, uses_anonymous_args = 0
+ 615 0344 80B5     		push	{r7, lr}
+ 616              	.LCFI20:
+ 617              		.cfi_def_cfa_offset 8
+ 618              		.cfi_offset 7, -8
+ 619              		.cfi_offset 14, -4
+ 620 0346 00AF     		add	r7, sp, #0
+ 621              	.LCFI21:
+ 622              		.cfi_def_cfa_register 7
+ 150:../src/drv_ms5611.c ****     ms5611_up = ms5611_read_adc();
+ 623              		.loc 1 150 0
+ 624 0348 FFF7B2FF 		bl	ms5611_read_adc
+ 625 034c 0246     		mov	r2, r0
+ 626 034e 014B     		ldr	r3, .L39
+ 627 0350 1A60     		str	r2, [r3, #0]
+ 151:../src/drv_ms5611.c **** }
+ 628              		.loc 1 151 0
+ 629 0352 80BD     		pop	{r7, pc}
+ 630              	.L40:
+ 631              		.align	2
+ 632              	.L39:
+ 633 0354 04000000 		.word	ms5611_up
+ 634              		.cfi_endproc
+ 635              	.LFE37:
+ 637              		.align	2
+ 638              		.thumb
+ 639              		.thumb_func
+ 641              	ms5611_calculate:
+ 642              	.LFB38:
+ 152:../src/drv_ms5611.c **** 
+ 153:../src/drv_ms5611.c **** static void ms5611_calculate(int32_t *pressure, int32_t *temperature)
+ 154:../src/drv_ms5611.c **** {
+ 643              		.loc 1 154 0
+ 644              		.cfi_startproc
+ 645              		@ args = 0, pretend = 0, frame = 80
+ 646              		@ frame_needed = 1, uses_anonymous_args = 0
+ 647              		@ link register save eliminated.
+ 648 0358 2DE9F00F 		push	{r4, r5, r6, r7, r8, r9, sl, fp}
+ 649              	.LCFI22:
+ 650              		.cfi_def_cfa_offset 32
+ 651              		.cfi_offset 4, -32
+ 652              		.cfi_offset 5, -28
+ 653              		.cfi_offset 6, -24
+ 654              		.cfi_offset 7, -20
+ 655              		.cfi_offset 8, -16
+ 656              		.cfi_offset 9, -12
+ 657              		.cfi_offset 10, -8
+ 658              		.cfi_offset 11, -4
+ 659 035c 94B0     		sub	sp, sp, #80
+ 660              	.LCFI23:
+ 661              		.cfi_def_cfa_offset 112
+ 662 035e 00AF     		add	r7, sp, #0
+ 663              	.LCFI24:
+ 664              		.cfi_def_cfa_register 7
+ 665 0360 F861     		str	r0, [r7, #28]
+ 666 0362 B961     		str	r1, [r7, #24]
+ 155:../src/drv_ms5611.c ****     int32_t temp, off2 = 0, sens2 = 0, delt;
+ 667              		.loc 1 155 0
+ 668 0364 4FF00003 		mov	r3, #0
+ 669 0368 FB64     		str	r3, [r7, #76]
+ 670 036a 4FF00003 		mov	r3, #0
+ 671 036e BB64     		str	r3, [r7, #72]
+ 156:../src/drv_ms5611.c ****     int32_t press;
+ 157:../src/drv_ms5611.c **** 
+ 158:../src/drv_ms5611.c ****     int64_t dT = ms5611_ut - ((int32_t)ms5611_c[5] << 8);
+ 672              		.loc 1 158 0
+ 673 0370 844B     		ldr	r3, .L45
+ 674 0372 1A68     		ldr	r2, [r3, #0]
+ 675 0374 844B     		ldr	r3, .L45+4
+ 676 0376 5B89     		ldrh	r3, [r3, #10]
+ 677 0378 4FEA0323 		lsl	r3, r3, #8
+ 678 037c D11A     		subs	r1, r2, r3
+ 679 037e 0A46     		mov	r2, r1
+ 680 0380 4FF00003 		mov	r3, #0
+ 681 0384 C7E91023 		strd	r2, [r7, #64]
+ 159:../src/drv_ms5611.c ****     int64_t off = ((uint32_t)ms5611_c[2] << 16) + ((dT * ms5611_c[4]) >> 7);
+ 682              		.loc 1 159 0
+ 683 0388 7F4B     		ldr	r3, .L45+4
+ 684 038a 9B88     		ldrh	r3, [r3, #4]
+ 685 038c 4FEA0343 		lsl	r3, r3, #16
+ 686 0390 3B61     		str	r3, [r7, #16]
+ 687 0392 4FF00000 		mov	r0, #0
+ 688 0396 7861     		str	r0, [r7, #20]
+ 689 0398 7B4B     		ldr	r3, .L45+4
+ 690 039a 1B89     		ldrh	r3, [r3, #8]
+ 691 039c 98B2     		uxth	r0, r3
+ 692 039e 4FF00001 		mov	r1, #0
+ 693 03a2 3B6C     		ldr	r3, [r7, #64]
+ 694 03a4 01FB03F2 		mul	r2, r1, r3
+ 695 03a8 7B6C     		ldr	r3, [r7, #68]
+ 696 03aa 00FB03F3 		mul	r3, r0, r3
+ 697 03ae D618     		adds	r6, r2, r3
+ 698 03b0 3B6C     		ldr	r3, [r7, #64]
+ 699 03b2 A3FB0023 		umull	r2, r3, r3, r0
+ 700 03b6 F118     		adds	r1, r6, r3
+ 701 03b8 0B46     		mov	r3, r1
+ 702 03ba 4FEA4361 		lsl	r1, r3, #25
+ 703 03be 4FEAD214 		lsr	r4, r2, #7
+ 704 03c2 0C43     		orrs	r4, r4, r1
+ 705 03c4 4FEAE315 		asr	r5, r3, #7
+ 706 03c8 D7E90423 		ldrd	r2, [r7, #16]
+ 707 03cc 1219     		adds	r2, r2, r4
+ 708 03ce 43EB0503 		adc	r3, r3, r5
+ 709 03d2 C7E90E23 		strd	r2, [r7, #56]
+ 160:../src/drv_ms5611.c ****     int64_t sens = ((uint32_t)ms5611_c[1] << 15) + ((dT * ms5611_c[3]) >> 8);
+ 710              		.loc 1 160 0
+ 711 03d6 6C4B     		ldr	r3, .L45+4
+ 712 03d8 5B88     		ldrh	r3, [r3, #2]
+ 713 03da 4FEAC333 		lsl	r3, r3, #15
+ 714 03de 1C46     		mov	r4, r3
+ 715 03e0 4FF00005 		mov	r5, #0
+ 716 03e4 684B     		ldr	r3, .L45+4
+ 717 03e6 D988     		ldrh	r1, [r3, #6]
+ 718 03e8 8AB2     		uxth	r2, r1
+ 719 03ea 4FF00003 		mov	r3, #0
+ 720 03ee 396C     		ldr	r1, [r7, #64]
+ 721 03f0 03FB01F0 		mul	r0, r3, r1
+ 722 03f4 796C     		ldr	r1, [r7, #68]
+ 723 03f6 02FB01F1 		mul	r1, r2, r1
+ 724 03fa 4018     		adds	r0, r0, r1
+ 725 03fc 396C     		ldr	r1, [r7, #64]
+ 726 03fe A1FB0223 		umull	r2, r3, r1, r2
+ 727 0402 C118     		adds	r1, r0, r3
+ 728 0404 0B46     		mov	r3, r1
+ 729 0406 4FEA0361 		lsl	r1, r3, #24
+ 730 040a 4FEA1220 		lsr	r0, r2, #8
+ 731 040e B860     		str	r0, [r7, #8]
+ 732 0410 B868     		ldr	r0, [r7, #8]
+ 733 0412 0843     		orrs	r0, r0, r1
+ 734 0414 B860     		str	r0, [r7, #8]
+ 735 0416 4FEA2321 		asr	r1, r3, #8
+ 736 041a F960     		str	r1, [r7, #12]
+ 737 041c D7E90223 		ldrd	r2, [r7, #8]
+ 738 0420 1219     		adds	r2, r2, r4
+ 739 0422 43EB0503 		adc	r3, r3, r5
+ 740 0426 C7E90C23 		strd	r2, [r7, #48]
+ 161:../src/drv_ms5611.c ****     temp = 2000 + ((dT * ms5611_c[6]) >> 23);
+ 741              		.loc 1 161 0
+ 742 042a 574B     		ldr	r3, .L45+4
+ 743 042c 9989     		ldrh	r1, [r3, #12]
+ 744 042e 8AB2     		uxth	r2, r1
+ 745 0430 4FF00003 		mov	r3, #0
+ 746 0434 396C     		ldr	r1, [r7, #64]
+ 747 0436 03FB01F0 		mul	r0, r3, r1
+ 748 043a 796C     		ldr	r1, [r7, #68]
+ 749 043c 02FB01F1 		mul	r1, r2, r1
+ 750 0440 4118     		adds	r1, r0, r1
+ 751 0442 386C     		ldr	r0, [r7, #64]
+ 752 0444 A0FB0223 		umull	r2, r3, r0, r2
+ 753 0448 C918     		adds	r1, r1, r3
+ 754 044a 0B46     		mov	r3, r1
+ 755 044c 4FEA4321 		lsl	r1, r3, #9
+ 756 0450 4FEAD250 		lsr	r0, r2, #23
+ 757 0454 3860     		str	r0, [r7, #0]
+ 758 0456 3868     		ldr	r0, [r7, #0]
+ 759 0458 0843     		orrs	r0, r0, r1
+ 760 045a 3860     		str	r0, [r7, #0]
+ 761 045c 4FEAE351 		asr	r1, r3, #23
+ 762 0460 7960     		str	r1, [r7, #4]
+ 763 0462 3B68     		ldr	r3, [r7, #0]
+ 764 0464 03F5FA63 		add	r3, r3, #2000
+ 765 0468 FB62     		str	r3, [r7, #44]
+ 162:../src/drv_ms5611.c **** 
+ 163:../src/drv_ms5611.c ****     if (temp < 2000) { // temperature lower than 20degC 
+ 766              		.loc 1 163 0
+ 767 046a FA6A     		ldr	r2, [r7, #44]
+ 768 046c 40F2CF73 		movw	r3, #1999
+ 769 0470 9A42     		cmp	r2, r3
+ 770 0472 36DC     		bgt	.L42
+ 164:../src/drv_ms5611.c ****         delt = temp - 2000;
+ 771              		.loc 1 164 0
+ 772 0474 FB6A     		ldr	r3, [r7, #44]
+ 773 0476 A3F5FA63 		sub	r3, r3, #2000
+ 774 047a BB62     		str	r3, [r7, #40]
+ 165:../src/drv_ms5611.c ****         delt = 5 * delt * delt;
+ 775              		.loc 1 165 0
+ 776 047c BB6A     		ldr	r3, [r7, #40]
+ 777 047e BA6A     		ldr	r2, [r7, #40]
+ 778 0480 02FB03F2 		mul	r2, r2, r3
+ 779 0484 1346     		mov	r3, r2
+ 780 0486 4FEA8303 		lsl	r3, r3, #2
+ 781 048a 9B18     		adds	r3, r3, r2
+ 782 048c BB62     		str	r3, [r7, #40]
+ 166:../src/drv_ms5611.c ****         off2 = delt >> 1;
+ 783              		.loc 1 166 0
+ 784 048e BB6A     		ldr	r3, [r7, #40]
+ 785 0490 4FEA6303 		asr	r3, r3, #1
+ 786 0494 FB64     		str	r3, [r7, #76]
+ 167:../src/drv_ms5611.c ****         sens2 = delt >> 2;
+ 787              		.loc 1 167 0
+ 788 0496 BB6A     		ldr	r3, [r7, #40]
+ 789 0498 4FEAA303 		asr	r3, r3, #2
+ 790 049c BB64     		str	r3, [r7, #72]
+ 168:../src/drv_ms5611.c ****         if (temp < -1500) { // temperature lower than -15degC
+ 791              		.loc 1 168 0
+ 792 049e FA6A     		ldr	r2, [r7, #44]
+ 793 04a0 3A4B     		ldr	r3, .L45+8
+ 794 04a2 9A42     		cmp	r2, r3
+ 795 04a4 1DDA     		bge	.L42
+ 169:../src/drv_ms5611.c ****             delt = temp + 1500;
+ 796              		.loc 1 169 0
+ 797 04a6 FB6A     		ldr	r3, [r7, #44]
+ 798 04a8 03F2DC53 		addw	r3, r3, #1500
+ 799 04ac BB62     		str	r3, [r7, #40]
+ 170:../src/drv_ms5611.c ****             delt = delt * delt;
+ 800              		.loc 1 170 0
+ 801 04ae BB6A     		ldr	r3, [r7, #40]
+ 802 04b0 BA6A     		ldr	r2, [r7, #40]
+ 803 04b2 02FB03F3 		mul	r3, r2, r3
+ 804 04b6 BB62     		str	r3, [r7, #40]
+ 171:../src/drv_ms5611.c ****             off2  += 7 * delt;
+ 805              		.loc 1 171 0
+ 806 04b8 BA6A     		ldr	r2, [r7, #40]
+ 807 04ba 1346     		mov	r3, r2
+ 808 04bc 4FEAC303 		lsl	r3, r3, #3
+ 809 04c0 9B1A     		subs	r3, r3, r2
+ 810 04c2 FA6C     		ldr	r2, [r7, #76]
+ 811 04c4 D318     		adds	r3, r2, r3
+ 812 04c6 FB64     		str	r3, [r7, #76]
+ 172:../src/drv_ms5611.c ****             sens2 += (11 * delt) >> 1;
+ 813              		.loc 1 172 0
+ 814 04c8 BA6A     		ldr	r2, [r7, #40]
+ 815 04ca 1346     		mov	r3, r2
+ 816 04cc 4FEA8303 		lsl	r3, r3, #2
+ 817 04d0 9B18     		adds	r3, r3, r2
+ 818 04d2 4FEA4303 		lsl	r3, r3, #1
+ 819 04d6 9B18     		adds	r3, r3, r2
+ 820 04d8 4FEA6303 		asr	r3, r3, #1
+ 821 04dc BA6C     		ldr	r2, [r7, #72]
+ 822 04de D318     		adds	r3, r2, r3
+ 823 04e0 BB64     		str	r3, [r7, #72]
+ 824              	.L42:
+ 173:../src/drv_ms5611.c ****         }
+ 174:../src/drv_ms5611.c ****     }
+ 175:../src/drv_ms5611.c ****     off  -= off2;
+ 825              		.loc 1 175 0
+ 826 04e2 F96C     		ldr	r1, [r7, #76]
+ 827 04e4 0A46     		mov	r2, r1
+ 828 04e6 4FEAE273 		asr	r3, r2, #31
+ 829 04ea D7E90E01 		ldrd	r0, [r7, #56]
+ 830 04ee 821A     		subs	r2, r0, r2
+ 831 04f0 61EB0303 		sbc	r3, r1, r3
+ 832 04f4 C7E90E23 		strd	r2, [r7, #56]
+ 176:../src/drv_ms5611.c ****     sens -= sens2;
+ 833              		.loc 1 176 0
+ 834 04f8 B96C     		ldr	r1, [r7, #72]
+ 835 04fa 0A46     		mov	r2, r1
+ 836 04fc 4FEAE273 		asr	r3, r2, #31
+ 837 0500 D7E90C01 		ldrd	r0, [r7, #48]
+ 838 0504 821A     		subs	r2, r0, r2
+ 839 0506 61EB0303 		sbc	r3, r1, r3
+ 840 050a C7E90C23 		strd	r2, [r7, #48]
+ 177:../src/drv_ms5611.c ****     press = (((ms5611_up * sens ) >> 21) - off) >> 15;
+ 841              		.loc 1 177 0
+ 842 050e 204B     		ldr	r3, .L45+12
+ 843 0510 1968     		ldr	r1, [r3, #0]
+ 844 0512 0A46     		mov	r2, r1
+ 845 0514 4FF00003 		mov	r3, #0
+ 846 0518 396B     		ldr	r1, [r7, #48]
+ 847 051a 03FB01F0 		mul	r0, r3, r1
+ 848 051e 796B     		ldr	r1, [r7, #52]
+ 849 0520 02FB01F1 		mul	r1, r2, r1
+ 850 0524 4118     		adds	r1, r0, r1
+ 851 0526 386B     		ldr	r0, [r7, #48]
+ 852 0528 A0FB0223 		umull	r2, r3, r0, r2
+ 853 052c C918     		adds	r1, r1, r3
+ 854 052e 0B46     		mov	r3, r1
+ 855 0530 4FEAC321 		lsl	r1, r3, #11
+ 856 0534 4FEA525A 		lsr	sl, r2, #21
+ 857 0538 41EA0A0A 		orr	sl, r1, sl
+ 858 053c 4FEA635B 		asr	fp, r3, #21
+ 859 0540 D7E90E23 		ldrd	r2, [r7, #56]
+ 860 0544 BAEB0202 		subs	r2, sl, r2
+ 861 0548 6BEB0303 		sbc	r3, fp, r3
+ 862 054c 4FEA4341 		lsl	r1, r3, #17
+ 863 0550 4FEAD238 		lsr	r8, r2, #15
+ 864 0554 41EA0808 		orr	r8, r1, r8
+ 865 0558 4FEAE339 		asr	r9, r3, #15
+ 866 055c 4346     		mov	r3, r8
+ 867 055e 7B62     		str	r3, [r7, #36]
+ 178:../src/drv_ms5611.c ****     
+ 179:../src/drv_ms5611.c ****     if (pressure)
+ 868              		.loc 1 179 0
+ 869 0560 FB69     		ldr	r3, [r7, #28]
+ 870 0562 002B     		cmp	r3, #0
+ 871 0564 02D0     		beq	.L43
+ 180:../src/drv_ms5611.c ****         *pressure = press;
+ 872              		.loc 1 180 0
+ 873 0566 FB69     		ldr	r3, [r7, #28]
+ 874 0568 7A6A     		ldr	r2, [r7, #36]
+ 875 056a 1A60     		str	r2, [r3, #0]
+ 876              	.L43:
+ 181:../src/drv_ms5611.c ****     if (temperature)
+ 877              		.loc 1 181 0
+ 878 056c BB69     		ldr	r3, [r7, #24]
+ 879 056e 002B     		cmp	r3, #0
+ 880 0570 02D0     		beq	.L41
+ 182:../src/drv_ms5611.c ****         *temperature = temp;
+ 881              		.loc 1 182 0
+ 882 0572 BB69     		ldr	r3, [r7, #24]
+ 883 0574 FA6A     		ldr	r2, [r7, #44]
+ 884 0576 1A60     		str	r2, [r3, #0]
+ 885              	.L41:
+ 183:../src/drv_ms5611.c **** }
+ 886              		.loc 1 183 0
+ 887 0578 07F15007 		add	r7, r7, #80
+ 888 057c BD46     		mov	sp, r7
+ 889 057e BDE8F00F 		pop	{r4, r5, r6, r7, r8, r9, sl, fp}
+ 890 0582 7047     		bx	lr
+ 891              	.L46:
+ 892              		.align	2
+ 893              	.L45:
+ 894 0584 00000000 		.word	ms5611_ut
+ 895 0588 08000000 		.word	ms5611_c
+ 896 058c 24FAFFFF 		.word	-1500
+ 897 0590 04000000 		.word	ms5611_up
+ 898              		.cfi_endproc
+ 899              	.LFE38:
+ 901              	.Letext0:
+ 902              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 903              		.file 3 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/stm32f10x.h"
+ 904              		.file 4 "/home/oni/workspace/Naze32/lib/STM32F10x_StdPeriph_Driver/inc/stm32f10x_gpio.h"
+ 905              		.file 5 "../src/board.h"
+ 906              		.file 6 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 drv_ms5611.c
+     /tmp/ccCvhlE1.s:19     .bss:00000000 $d
+     /tmp/ccCvhlE1.s:20     .bss:00000000 ms5611_ut
+     /tmp/ccCvhlE1.s:23     .bss:00000004 ms5611_up
+     /tmp/ccCvhlE1.s:26     .bss:00000008 ms5611_c
+     /tmp/ccCvhlE1.s:31     .data:00000000 ms5611_osr
+     /tmp/ccCvhlE1.s:34     .text:00000000 $t
+     /tmp/ccCvhlE1.s:39     .text:00000000 ms5611Detect
+     /tmp/ccCvhlE1.s:190    .text:00000104 ms5611_reset
+     /tmp/ccCvhlE1.s:221    .text:00000124 ms5611_prom
+     /tmp/ccCvhlE1.s:276    .text:00000178 ms5611_crc
+     /tmp/ccCvhlE1.s:176    .text:000000e8 $d
+     /tmp/ccCvhlE1.s:505    .text:000002e8 ms5611_start_ut
+     /tmp/ccCvhlE1.s:541    .text:0000030c ms5611_get_ut
+     /tmp/ccCvhlE1.s:573    .text:00000320 ms5611_start_up
+     /tmp/ccCvhlE1.s:609    .text:00000344 ms5611_get_up
+     /tmp/ccCvhlE1.s:641    .text:00000358 ms5611_calculate
+     /tmp/ccCvhlE1.s:186    .text:00000104 $t
+     /tmp/ccCvhlE1.s:462    .text:000002b0 ms5611_read_adc
+     /tmp/ccCvhlE1.s:533    .text:00000308 $d
+     /tmp/ccCvhlE1.s:537    .text:0000030c $t
+     /tmp/ccCvhlE1.s:565    .text:0000031c $d
+     /tmp/ccCvhlE1.s:569    .text:00000320 $t
+     /tmp/ccCvhlE1.s:601    .text:00000340 $d
+     /tmp/ccCvhlE1.s:605    .text:00000344 $t
+     /tmp/ccCvhlE1.s:633    .text:00000354 $d
+     /tmp/ccCvhlE1.s:637    .text:00000358 $t
+     /tmp/ccCvhlE1.s:894    .text:00000584 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
+                           .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
+                           .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a
+                           .group:00000000 wm4.config.h.148.52fe83653334d06815a0c57b59a3e584
+                           .group:00000000 wm4._ansi.h.23.95dee4059009fe3ab635a191bb73dc66
+                           .group:00000000 wm4.stdlib.h.18.6f6153fd5cb89acd58c0f0ab1f77e147
+                           .group:00000000 wm4.stddef.h.187.40b3a084f9bc2c020a9e00b9eabe9c14
+                           .group:00000000 wm4._default_types.h.6.1dbd2e581fd590860c7c17f21d147e91
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.58b23a9f0faf0e7f2dfe7e2d33154afd
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.55.22eafe60f8565d898cbb44515781114b
+                           .group:00000000 wm4.stdint.h.10.90b695f550ca6cc3fb08fa83baf01e05
+                           .group:00000000 wm4.math.h.49.5da716593b937b9fb02bef6ed6537c13
+                           .group:00000000 wm4.ctype.h.2.fecd14bb6f4e162ef31748cc97760e21
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.stddef.h.235.d9f4f80b8c4429535175712282cda6a6
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.stddef.h.40.b60a1c1ee3f272eef5327a730cbabca6
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.f2bfdfeee9f340633702c07fad9b5e01
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.1f4bc553faa62c5c69dd9cb47f9f1417
+                           .group:00000000 wm4.stm32f10x.h.51.b859cb68ed44ee02c916b41cb8c68f1c
+                           .group:00000000 wm4.core_cm3.h.25.119fe996be41b62fbd915b59177e39d1
+                           .group:00000000 wm4.stm32f10x.h.522.9a9f642c8c562acb4a63ad5d933b7c01
+                           .group:00000000 wm4.stm32f10x.h.8304.f7d8ad90959e99679b3257267c3aadfe
+                           .group:00000000 wm4.stm32f10x_adc.h.83.4d35a50d598070ecea6f33bcef02c922
+                           .group:00000000 wm4.stm32f10x_bkp.h.25.4622919f1e30efdad5eb44e12edd5513
+                           .group:00000000 wm4.stm32f10x_can.h.25.48aab46fcce6d08400bf960b028e4698
+                           .group:00000000 wm4.stm32f10x_cec.h.25.8f03450e7bbb704d96e7bc73ec0f66a7
+                           .group:00000000 wm4.stm32f10x_dac.h.25.6e7f2924f39c60c10815105b99b8b446
+                           .group:00000000 wm4.stm32f10x_dbgmcu.h.25.d3351200fc7f9c8615d1ae81d40db08a
+                           .group:00000000 wm4.stm32f10x_dma.h.25.94e36204daa98cae5dcc70a10a9694d5
+                           .group:00000000 wm4.stm32f10x_exti.h.25.b9064155c5c006b5154b39788c79001a
+                           .group:00000000 wm4.stm32f10x_flash.h.25.4be61fcb02863962a1e006449d310650
+                           .group:00000000 wm4.stm32f10x_fsmc.h.25.bca154da2699cdb6024c0c6c4fc5aa89
+                           .group:00000000 wm4.stm32f10x_gpio.h.25.80c981af0e637567395034c576cfb3ce
+                           .group:00000000 wm4.stm32f10x_i2c.h.25.7b6cbaea24c6f25f538f8516d1814cb2
+                           .group:00000000 wm4.stm32f10x_iwdg.h.25.da9374ab9856795610487f312ccf3122
+                           .group:00000000 wm4.stm32f10x_pwr.h.25.37ef75009f751ef5fe27910e0bf00a62
+                           .group:00000000 wm4.stm32f10x_rcc.h.25.968bcf08d813e68e57c280a4da69fa5a
+                           .group:00000000 wm4.stm32f10x_rtc.h.25.361142606ba98ddcd10369f321f6e636
+                           .group:00000000 wm4.stm32f10x_sdio.h.25.1fb5280a7690ef99070096bf8c866b3a
+                           .group:00000000 wm4.stm32f10x_spi.h.25.68b3d5ccfcf895f9fe505ce20c0c300f
+                           .group:00000000 wm4.stm32f10x_tim.h.25.21c6ec062f1e74898cb96a57da276fec
+                           .group:00000000 wm4.stm32f10x_usart.h.25.29629c699b65db3f3efd3561f66b0bf6
+                           .group:00000000 wm4.stm32f10x_wwdg.h.25.dde12201d86b5aa9ecaafb5eccdc6549
+                           .group:00000000 wm4.misc.h.25.068e106f368fa5369a681ef57c106f4b
+                           .group:00000000 wm4.stdarg.h.31.fa591a4b1df9e413e9f5b8097f9ae89d
+                           .group:00000000 wm4.printf.h.118.ab3672ee221610a07496c11f46394049
+                           .group:00000000 wm4.board.h.22.3e17243136ce51e89ad1cec38a12dc6f
+                           .group:00000000 wm4.drv_adc.h.3.0c1a2a90f0739aca31cc38e66ffab3f5
+                           .group:00000000 wm4.drv_pwm.h.3.1f878ba1925c00079825df97e09db15d
+
+UNDEFINED SYMBOLS
+GPIO_Init
+delay
+i2cRead
+i2cWrite
+delayMicroseconds
