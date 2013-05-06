@@ -3076,73 +3076,73 @@ DEFINED SYMBOLS
                             *COM*:00000006 accSmooth
                             *COM*:00000006 magADC
                             *COM*:0000000c accLPFVel
-     /tmp/cczRYZFI.s:28     .bss:00000000 acc_25deg
-     /tmp/cczRYZFI.s:25     .bss:00000000 $d
-     /tmp/cczRYZFI.s:34     .bss:00000004 baroPressure
-     /tmp/cczRYZFI.s:40     .bss:00000008 baroTemperature
-     /tmp/cczRYZFI.s:46     .bss:0000000c baroPressureSum
-     /tmp/cczRYZFI.s:52     .bss:00000010 BaroAlt
+     /tmp/ccaUbQUY.s:28     .bss:00000000 acc_25deg
+     /tmp/ccaUbQUY.s:25     .bss:00000000 $d
+     /tmp/ccaUbQUY.s:34     .bss:00000004 baroPressure
+     /tmp/ccaUbQUY.s:40     .bss:00000008 baroTemperature
+     /tmp/ccaUbQUY.s:46     .bss:0000000c baroPressureSum
+     /tmp/ccaUbQUY.s:52     .bss:00000010 BaroAlt
                             *COM*:00000002 sonarAlt
                             *COM*:00000004 EstAlt
-     /tmp/cczRYZFI.s:60     .bss:00000014 BaroPID
+     /tmp/ccaUbQUY.s:60     .bss:00000014 BaroPID
                             *COM*:00000004 AltHold
-     /tmp/cczRYZFI.s:67     .bss:00000016 errorAltitudeI
-     /tmp/cczRYZFI.s:73     .bss:00000018 vario
-     /tmp/cczRYZFI.s:79     .bss:0000001c magneticDeclination
+     /tmp/ccaUbQUY.s:67     .bss:00000016 errorAltitudeI
+     /tmp/ccaUbQUY.s:73     .bss:00000018 vario
+     /tmp/ccaUbQUY.s:79     .bss:0000001c magneticDeclination
                             *COM*:00000004 accVelScale
-     /tmp/cczRYZFI.s:86     .bss:00000020 gyroData
-     /tmp/cczRYZFI.s:92     .bss:00000028 gyroZero
-     /tmp/cczRYZFI.s:98     .bss:00000030 angle
-     /tmp/cczRYZFI.s:105    .text:00000000 $t
-     /tmp/cczRYZFI.s:110    .text:00000000 imuInit
-     /tmp/cczRYZFI.s:172    .text:00000064 $d
-     /tmp/cczRYZFI.s:181    .text:0000007c $t
-     /tmp/cczRYZFI.s:186    .text:0000007c computeIMU
-     /tmp/cczRYZFI.s:847    .text:00000578 getEstimatedAttitude
-     /tmp/cczRYZFI.s:492    .text:000002e0 $d
-     /tmp/cczRYZFI.s:2637   .bss:00000064 timeInterleave.9060
-     /tmp/cczRYZFI.s:2640   .bss:00000068 gyroADCprevious.9057
-     /tmp/cczRYZFI.s:2643   .bss:00000070 Smoothing.9071
-     /tmp/cczRYZFI.s:2646   .bss:00000074 gyroSmooth.9072
-     /tmp/cczRYZFI.s:2649   .bss:0000007a gyroYawSmooth.9061
+     /tmp/ccaUbQUY.s:86     .bss:00000020 gyroData
+     /tmp/ccaUbQUY.s:92     .bss:00000028 gyroZero
+     /tmp/ccaUbQUY.s:98     .bss:00000030 angle
+     /tmp/ccaUbQUY.s:105    .text:00000000 $t
+     /tmp/ccaUbQUY.s:110    .text:00000000 imuInit
+     /tmp/ccaUbQUY.s:172    .text:00000064 $d
+     /tmp/ccaUbQUY.s:181    .text:0000007c $t
+     /tmp/ccaUbQUY.s:186    .text:0000007c computeIMU
+     /tmp/ccaUbQUY.s:847    .text:00000578 getEstimatedAttitude
+     /tmp/ccaUbQUY.s:492    .text:000002e0 $d
+     /tmp/ccaUbQUY.s:2637   .bss:00000064 timeInterleave.9060
+     /tmp/ccaUbQUY.s:2640   .bss:00000068 gyroADCprevious.9057
+     /tmp/ccaUbQUY.s:2643   .bss:00000070 Smoothing.9071
+     /tmp/ccaUbQUY.s:2646   .bss:00000074 gyroSmooth.9072
+     /tmp/ccaUbQUY.s:2649   .bss:0000007a gyroYawSmooth.9061
                             *COM*:0000000c EstG
-     /tmp/cczRYZFI.s:509    .text:0000030c $t
-     /tmp/cczRYZFI.s:514    .text:0000030c rotateV
-     /tmp/cczRYZFI.s:785    .text:00000524 _atan2f
-     /tmp/cczRYZFI.s:834    .text:00000570 $d
-     /tmp/cczRYZFI.s:843    .text:00000578 $t
-     /tmp/cczRYZFI.s:1153   .text:000007f8 $d
-     /tmp/cczRYZFI.s:2628   .bss:00000048 previousT.9114
-     /tmp/cczRYZFI.s:2631   .bss:0000004c accLPF.9113
-     /tmp/cczRYZFI.s:2634   .bss:00000058 EstM.9112
-     /tmp/cczRYZFI.s:1169   .text:00000830 $t
-     /tmp/cczRYZFI.s:1238   .text:000008cc $d
-     /tmp/cczRYZFI.s:1244   .text:000008dc $t
-     /tmp/cczRYZFI.s:1513   .text:00000b38 $d
-     /tmp/cczRYZFI.s:1527   .text:00000b6c $t
-     /tmp/cczRYZFI.s:1601   .text:00000c00 $d
-     /tmp/cczRYZFI.s:1606   .text:00000c08 $t
-     /tmp/cczRYZFI.s:1611   .text:00000c08 applyDeadband16
-     /tmp/cczRYZFI.s:1686   .text:00000c68 applyDeadbandFloat
-     /tmp/cczRYZFI.s:1789   .text:00000d08 $d
-     /tmp/cczRYZFI.s:1793   .text:00000d0c $t
-     /tmp/cczRYZFI.s:1798   .text:00000d0c InvSqrt
-     /tmp/cczRYZFI.s:1860   .text:00000d6c $d
-     /tmp/cczRYZFI.s:1866   .text:00000d78 $t
-     /tmp/cczRYZFI.s:1871   .text:00000d78 isq
-     /tmp/cczRYZFI.s:1908   .text:00000d94 getEstimatedAltitude
-     /tmp/cczRYZFI.s:2159   .text:00000f80 $d
-     /tmp/cczRYZFI.s:2613   .bss:00000034 previousT.9161
-     /tmp/cczRYZFI.s:2616   .bss:00000038 baroGroundPressure.9160
-     /tmp/cczRYZFI.s:2175   .text:00000fb8 $t
-     /tmp/cczRYZFI.s:2457   .text:00001210 $d
-     /tmp/cczRYZFI.s:2619   .bss:0000003c accZoffset.9168
-     /tmp/cczRYZFI.s:2622   .bss:00000040 vel.9169
-     /tmp/cczRYZFI.s:2625   .bss:00000044 lastBaroAlt.9170
-     /tmp/cczRYZFI.s:2471   .text:00001240 $t
-     /tmp/cczRYZFI.s:2602   .text:00001344 $d
+     /tmp/ccaUbQUY.s:509    .text:0000030c $t
+     /tmp/ccaUbQUY.s:514    .text:0000030c rotateV
+     /tmp/ccaUbQUY.s:785    .text:00000524 _atan2f
+     /tmp/ccaUbQUY.s:834    .text:00000570 $d
+     /tmp/ccaUbQUY.s:843    .text:00000578 $t
+     /tmp/ccaUbQUY.s:1153   .text:000007f8 $d
+     /tmp/ccaUbQUY.s:2628   .bss:00000048 previousT.9114
+     /tmp/ccaUbQUY.s:2631   .bss:0000004c accLPF.9113
+     /tmp/ccaUbQUY.s:2634   .bss:00000058 EstM.9112
+     /tmp/ccaUbQUY.s:1169   .text:00000830 $t
+     /tmp/ccaUbQUY.s:1238   .text:000008cc $d
+     /tmp/ccaUbQUY.s:1244   .text:000008dc $t
+     /tmp/ccaUbQUY.s:1513   .text:00000b38 $d
+     /tmp/ccaUbQUY.s:1527   .text:00000b6c $t
+     /tmp/ccaUbQUY.s:1601   .text:00000c00 $d
+     /tmp/ccaUbQUY.s:1606   .text:00000c08 $t
+     /tmp/ccaUbQUY.s:1611   .text:00000c08 applyDeadband16
+     /tmp/ccaUbQUY.s:1686   .text:00000c68 applyDeadbandFloat
+     /tmp/ccaUbQUY.s:1789   .text:00000d08 $d
+     /tmp/ccaUbQUY.s:1793   .text:00000d0c $t
+     /tmp/ccaUbQUY.s:1798   .text:00000d0c InvSqrt
+     /tmp/ccaUbQUY.s:1860   .text:00000d6c $d
+     /tmp/ccaUbQUY.s:1866   .text:00000d78 $t
+     /tmp/ccaUbQUY.s:1871   .text:00000d78 isq
+     /tmp/ccaUbQUY.s:1908   .text:00000d94 getEstimatedAltitude
+     /tmp/ccaUbQUY.s:2159   .text:00000f80 $d
+     /tmp/ccaUbQUY.s:2613   .bss:00000034 previousT.9161
+     /tmp/ccaUbQUY.s:2616   .bss:00000038 baroGroundPressure.9160
+     /tmp/ccaUbQUY.s:2175   .text:00000fb8 $t
+     /tmp/ccaUbQUY.s:2457   .text:00001210 $d
+     /tmp/ccaUbQUY.s:2619   .bss:0000003c accZoffset.9168
+     /tmp/ccaUbQUY.s:2622   .bss:00000040 vel.9169
+     /tmp/ccaUbQUY.s:2625   .bss:00000044 lastBaroAlt.9170
+     /tmp/ccaUbQUY.s:2471   .text:00001240 $t
+     /tmp/ccaUbQUY.s:2602   .text:00001344 $d
                      .debug_frame:00000010 $d
-     /tmp/cczRYZFI.s:2657   .text:0000135c $t
+     /tmp/ccaUbQUY.s:2657   .text:0000135c $t
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
                            .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a

@@ -93,11 +93,8 @@ int main(void)
     if (feature(FEATURE_SPEKTRUM)) {
         spektrumInit();
         rcReadRawFunc = spektrumReadRawRC;
-    } else {
-        // spektrum and GPS are mutually exclusive
-        // Optional GPS - available in both PPM and PWM input mode, in PWM input, reduces number of available channels by 2.
-        if (feature(FEATURE_GPS))
-            gpsInit(mcfg.gps_baudrate);
+    if (feature(FEATURE_GPS))
+        gpsInit(mcfg.gps_baudrate);
     }
 #ifdef SONAR
     // sonar stuff only works with PPM

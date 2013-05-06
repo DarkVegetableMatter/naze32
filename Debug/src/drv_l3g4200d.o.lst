@@ -433,17 +433,17 @@
  344              		.file 4 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 drv_l3g4200d.c
-     /tmp/ccrkkZEG.s:19     .bss:00000000 mpuLowPassFilter
-     /tmp/ccrkkZEG.s:20     .bss:00000000 $d
-     /tmp/ccrkkZEG.s:22     .text:00000000 $t
-     /tmp/ccrkkZEG.s:27     .text:00000000 l3g4200dDetect
-     /tmp/ccrkkZEG.s:128    .text:00000090 $d
-     /tmp/ccrkkZEG.s:140    .text:000000a4 l3g4200dInit
-     /tmp/ccrkkZEG.s:260    .text:00000154 l3g4200dRead
-     /tmp/ccrkkZEG.s:204    .text:00000108 l3g4200dAlign
-     /tmp/ccrkkZEG.s:136    .text:000000a4 $t
-     /tmp/ccrkkZEG.s:196    .text:00000104 $d
-     /tmp/ccrkkZEG.s:200    .text:00000108 $t
+     /tmp/cc7AZT7Z.s:19     .bss:00000000 mpuLowPassFilter
+     /tmp/cc7AZT7Z.s:20     .bss:00000000 $d
+     /tmp/cc7AZT7Z.s:22     .text:00000000 $t
+     /tmp/cc7AZT7Z.s:27     .text:00000000 l3g4200dDetect
+     /tmp/cc7AZT7Z.s:128    .text:00000090 $d
+     /tmp/cc7AZT7Z.s:140    .text:000000a4 l3g4200dInit
+     /tmp/cc7AZT7Z.s:260    .text:00000154 l3g4200dRead
+     /tmp/cc7AZT7Z.s:204    .text:00000108 l3g4200dAlign
+     /tmp/cc7AZT7Z.s:136    .text:000000a4 $t
+     /tmp/cc7AZT7Z.s:196    .text:00000104 $d
+     /tmp/cc7AZT7Z.s:200    .text:00000108 $t
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2

@@ -326,14 +326,14 @@
  270              		.file 7 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 drv_adc.c
-     /tmp/ccG0sq8b.s:19     .bss:00000000 $d
-     /tmp/ccG0sq8b.s:20     .bss:00000000 adcValues
-     /tmp/ccG0sq8b.s:23     .text:00000000 $t
-     /tmp/ccG0sq8b.s:28     .text:00000000 adcInit
-     /tmp/ccG0sq8b.s:215    .text:00000150 $d
-     /tmp/ccG0sq8b.s:222    .text:00000160 $t
-     /tmp/ccG0sq8b.s:227    .text:00000160 adcGetChannel
-     /tmp/ccG0sq8b.s:260    .text:00000180 $d
+     /tmp/ccSxfNWv.s:19     .bss:00000000 $d
+     /tmp/ccSxfNWv.s:20     .bss:00000000 adcValues
+     /tmp/ccSxfNWv.s:23     .text:00000000 $t
+     /tmp/ccSxfNWv.s:28     .text:00000000 adcInit
+     /tmp/ccSxfNWv.s:215    .text:00000150 $d
+     /tmp/ccSxfNWv.s:222    .text:00000160 $t
+     /tmp/ccSxfNWv.s:227    .text:00000160 adcGetChannel
+     /tmp/ccSxfNWv.s:260    .text:00000180 $d
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2

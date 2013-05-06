@@ -1556,25 +1556,25 @@
  770              		.file 6 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 drv_mpu6050.c
-     /tmp/cc38UPsr.s:21     .data:00000000 mpuLowPassFilter
-     /tmp/cc38UPsr.s:24     .bss:00000000 mpuAccelHalf
-     /tmp/cc38UPsr.s:25     .bss:00000000 $d
-     /tmp/cc38UPsr.s:27     .text:00000000 $t
-     /tmp/cc38UPsr.s:32     .text:00000000 mpu6050Detect
-     /tmp/cc38UPsr.s:289    .text:000001b4 $d
-     /tmp/cc38UPsr.s:305    .text:000001d8 mpu6050AccInit
-     /tmp/cc38UPsr.s:351    .text:00000204 mpu6050AccRead
-     /tmp/cc38UPsr.s:436    .text:00000298 mpu6050AccAlign
-     /tmp/cc38UPsr.s:493    .text:000002dc mpu6050GyroInit
-     /tmp/cc38UPsr.s:580    .text:0000038c mpu6050GyroRead
-     /tmp/cc38UPsr.s:665    .text:00000420 mpu6050GyroAlign
-     /tmp/cc38UPsr.s:301    .text:000001d8 $t
-     /tmp/cc38UPsr.s:342    .text:000001fc $d
-     /tmp/cc38UPsr.s:347    .text:00000204 $t
-     /tmp/cc38UPsr.s:571    .text:00000384 $d
-     /tmp/cc38UPsr.s:576    .text:0000038c $t
-     /tmp/cc38UPsr.s:718    .text:00000460 mpu6050DmpLoop
-     /tmp/cc38UPsr.s:744    .text:0000046c mpu6050DmpResetFifo
+     /tmp/ccZJVBsL.s:21     .data:00000000 mpuLowPassFilter
+     /tmp/ccZJVBsL.s:24     .bss:00000000 mpuAccelHalf
+     /tmp/ccZJVBsL.s:25     .bss:00000000 $d
+     /tmp/ccZJVBsL.s:27     .text:00000000 $t
+     /tmp/ccZJVBsL.s:32     .text:00000000 mpu6050Detect
+     /tmp/ccZJVBsL.s:289    .text:000001b4 $d
+     /tmp/ccZJVBsL.s:305    .text:000001d8 mpu6050AccInit
+     /tmp/ccZJVBsL.s:351    .text:00000204 mpu6050AccRead
+     /tmp/ccZJVBsL.s:436    .text:00000298 mpu6050AccAlign
+     /tmp/ccZJVBsL.s:493    .text:000002dc mpu6050GyroInit
+     /tmp/ccZJVBsL.s:580    .text:0000038c mpu6050GyroRead
+     /tmp/ccZJVBsL.s:665    .text:00000420 mpu6050GyroAlign
+     /tmp/ccZJVBsL.s:301    .text:000001d8 $t
+     /tmp/ccZJVBsL.s:342    .text:000001fc $d
+     /tmp/ccZJVBsL.s:347    .text:00000204 $t
+     /tmp/ccZJVBsL.s:571    .text:00000384 $d
+     /tmp/ccZJVBsL.s:576    .text:0000038c $t
+     /tmp/ccZJVBsL.s:718    .text:00000460 mpu6050DmpLoop
+     /tmp/ccZJVBsL.s:744    .text:0000046c mpu6050DmpResetFifo
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2

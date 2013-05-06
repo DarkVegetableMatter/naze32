@@ -4999,24 +4999,24 @@ DEFINED SYMBOLS
                             *ABS*:00000000 mw.c
                             *COM*:00000010 f
                             *COM*:00000008 debug
-     /tmp/ccYnGPwe.s:24     .bss:00000000 toggleBeep
-     /tmp/ccYnGPwe.s:25     .bss:00000000 $d
-     /tmp/ccYnGPwe.s:30     .bss:00000004 currentTime
-     /tmp/ccYnGPwe.s:36     .bss:00000008 previousTime
-     /tmp/ccYnGPwe.s:42     .bss:0000000c cycleTime
+     /tmp/cc9gZA3M.s:24     .bss:00000000 toggleBeep
+     /tmp/cc9gZA3M.s:25     .bss:00000000 $d
+     /tmp/cc9gZA3M.s:30     .bss:00000004 currentTime
+     /tmp/cc9gZA3M.s:36     .bss:00000008 previousTime
+     /tmp/cc9gZA3M.s:42     .bss:0000000c cycleTime
                             *COM*:00000002 headFreeModeHold
-     /tmp/ccYnGPwe.s:49     .bss:0000000e annex650_overrun_count
+     /tmp/cc9gZA3M.s:49     .bss:0000000e annex650_overrun_count
                             *COM*:00000001 vbat
                             *COM*:00000002 telemTemperature1
-     /tmp/ccYnGPwe.s:57     .bss:00000010 failsafeCnt
-     /tmp/ccYnGPwe.s:63     .bss:00000012 failsafeEvents
-     /tmp/ccYnGPwe.s:70     .data:00000000 rcData
-     /tmp/ccYnGPwe.s:67     .data:00000000 $d
+     /tmp/cc9gZA3M.s:57     .bss:00000010 failsafeCnt
+     /tmp/cc9gZA3M.s:63     .bss:00000012 failsafeEvents
+     /tmp/cc9gZA3M.s:70     .data:00000000 rcData
+     /tmp/cc9gZA3M.s:67     .data:00000000 $d
                             *COM*:00000008 rcCommand
                             *COM*:0000000c lookupPitchRollRC
                             *COM*:00000016 lookupThrottleRC
                             *COM*:00000002 rssi
-     /tmp/ccYnGPwe.s:88     .bss:00000014 rcReadRawFunc
+     /tmp/cc9gZA3M.s:88     .bss:00000014 rcReadRawFunc
                             *COM*:00000003 dynP8
                             *COM*:00000003 dynI8
                             *COM*:00000003 dynD8
@@ -5030,91 +5030,91 @@ DEFINED SYMBOLS
                             *COM*:00000002 GPS_directionToHome
                             *COM*:00000002 GPS_altitude
                             *COM*:00000002 GPS_speed
-     /tmp/ccYnGPwe.s:106    .bss:00000018 GPS_update
-     /tmp/ccYnGPwe.s:112    .bss:0000001c GPS_angle
-     /tmp/ccYnGPwe.s:118    .bss:00000020 GPS_ground_course
-     /tmp/ccYnGPwe.s:123    .bss:00000022 GPS_Present
-     /tmp/ccYnGPwe.s:128    .bss:00000023 GPS_Enable
+     /tmp/cc9gZA3M.s:106    .bss:00000018 GPS_update
+     /tmp/cc9gZA3M.s:112    .bss:0000001c GPS_angle
+     /tmp/cc9gZA3M.s:118    .bss:00000020 GPS_ground_course
+     /tmp/cc9gZA3M.s:123    .bss:00000022 GPS_Present
+     /tmp/cc9gZA3M.s:128    .bss:00000023 GPS_Enable
                             *COM*:00000004 nav
                             *COM*:00000004 nav_rated
-     /tmp/ccYnGPwe.s:135    .bss:00000024 nav_mode
-     /tmp/ccYnGPwe.s:141    .bss:00000026 InflightcalibratingA
+     /tmp/cc9gZA3M.s:135    .bss:00000024 nav_mode
+     /tmp/cc9gZA3M.s:141    .bss:00000026 InflightcalibratingA
                             *COM*:00000002 AccInflightCalibrationArmed
-     /tmp/ccYnGPwe.s:148    .bss:00000028 AccInflightCalibrationMeasurementDone
-     /tmp/ccYnGPwe.s:154    .bss:0000002a AccInflightCalibrationSavetoEEProm
-     /tmp/ccYnGPwe.s:160    .bss:0000002c AccInflightCalibrationActive
-     /tmp/ccYnGPwe.s:166    .data:00000010 batteryCellCount
+     /tmp/cc9gZA3M.s:148    .bss:00000028 AccInflightCalibrationMeasurementDone
+     /tmp/cc9gZA3M.s:154    .bss:0000002a AccInflightCalibrationSavetoEEProm
+     /tmp/cc9gZA3M.s:160    .bss:0000002c AccInflightCalibrationActive
+     /tmp/cc9gZA3M.s:166    .data:00000010 batteryCellCount
                             *COM*:00000002 batteryWarningVoltage
-     /tmp/ccYnGPwe.s:170    .text:00000000 $t
-     /tmp/ccYnGPwe.s:175    .text:00000000 blinkLED
-     /tmp/ccYnGPwe.s:257    .text:00000078 $d
-     /tmp/ccYnGPwe.s:271    .text:00000080 $t
-     /tmp/ccYnGPwe.s:276    .text:00000080 annexCode
-     /tmp/ccYnGPwe.s:595    .text:00000314 $d
-     /tmp/ccYnGPwe.s:606    .text:00000338 $t
-     /tmp/ccYnGPwe.s:878    .text:00000598 $d
-     /tmp/ccYnGPwe.s:4229   .bss:000000bc vbatTimer.9095
-     /tmp/ccYnGPwe.s:4231   .bss:000000bd ind.9099
-     /tmp/ccYnGPwe.s:4234   .bss:000000c0 vbatRawArray.9101
-     /tmp/ccYnGPwe.s:4236   .bss:000000d0 buzzerFreq.9094
-     /tmp/ccYnGPwe.s:897    .text:000005dc $t
-     /tmp/ccYnGPwe.s:1087   .text:0000072c $d
-     /tmp/ccYnGPwe.s:4239   .bss:000000d4 LEDTime.9113
-     /tmp/ccYnGPwe.s:4242   .bss:000000d8 calibratedAccTime.9091
-     /tmp/ccYnGPwe.s:4245   .bss:000000dc GPSLEDTime.9114
-     /tmp/ccYnGPwe.s:1102   .text:0000075c $t
-     /tmp/ccYnGPwe.s:1107   .text:0000075c pwmReadRawRC
-     /tmp/ccYnGPwe.s:1161   .text:000007a4 $d
-     /tmp/ccYnGPwe.s:1165   .text:000007a8 $t
-     /tmp/ccYnGPwe.s:1170   .text:000007a8 computeRC
-     /tmp/ccYnGPwe.s:1333   .text:000008dc $d
-     /tmp/ccYnGPwe.s:4221   .bss:0000006a rc4ValuesIndex.9124
-     /tmp/ccYnGPwe.s:4224   .bss:0000006c rcData4Values.9122
-     /tmp/ccYnGPwe.s:4227   .bss:000000ac rcDataMean.9123
-     /tmp/ccYnGPwe.s:1341   .text:000008f0 $t
-     /tmp/ccYnGPwe.s:1345   .text:000008f0 mwArm
-     /tmp/ccYnGPwe.s:1402   .text:00000938 $d
-     /tmp/ccYnGPwe.s:1409   .text:00000948 $t
-     /tmp/ccYnGPwe.s:1413   .text:00000948 mwDisarm
-     /tmp/ccYnGPwe.s:1444   .text:00000964 $d
-     /tmp/ccYnGPwe.s:1448   .text:00000968 $t
-     /tmp/ccYnGPwe.s:1452   .text:00000968 mwVario
-     /tmp/ccYnGPwe.s:1479   .text:00000974 loop
-     /tmp/ccYnGPwe.s:1844   .text:00000c34 $d
-     /tmp/ccYnGPwe.s:4180   .bss:00000030 rcTime.9166
-     /tmp/ccYnGPwe.s:4182   .bss:00000034 rcSticks.9146
-     /tmp/ccYnGPwe.s:4184   .bss:00000035 rcDelayCommand.9145
-     /tmp/ccYnGPwe.s:4187   .bss:00000038 errorGyroI.9159
-     /tmp/ccYnGPwe.s:4190   .bss:00000040 errorAngleI.9160
-     /tmp/ccYnGPwe.s:1859   .text:00000c68 $t
-     /tmp/ccYnGPwe.s:2110   .text:00000e40 $d
-     /tmp/ccYnGPwe.s:2123   .text:00000e6c $t
-     /tmp/ccYnGPwe.s:2400   .text:000010b4 $d
-     /tmp/ccYnGPwe.s:2416   .text:000010ec $t
-     /tmp/ccYnGPwe.s:2752   .text:00001344 $d
-     /tmp/ccYnGPwe.s:4193   .bss:00000044 initialThrottleHold.9167
-     /tmp/ccYnGPwe.s:4198   .data:00000011 GPSNavReset.9171
-     /tmp/ccYnGPwe.s:2775   .text:0000139c $t
-     /tmp/ccYnGPwe.s:2849   .text:00001410 $d
-     /tmp/ccYnGPwe.s:2855   .text:00001420 $t
-     /tmp/ccYnGPwe.s:3102   .text:000015e0 $d
-     /tmp/ccYnGPwe.s:4202   .bss:00000048 taskOrder.9184
-     /tmp/ccYnGPwe.s:4205   .bss:0000004c loopTime.9168
-     /tmp/ccYnGPwe.s:3120   .text:00001620 $t
-     /tmp/ccYnGPwe.s:3436   .text:00001890 $d
-     /tmp/ccYnGPwe.s:4207   .bss:00000050 isAltHoldChanged.9191
-     /tmp/ccYnGPwe.s:4210   .bss:00000052 AltHoldCorr.9192
-     /tmp/ccYnGPwe.s:3453   .text:000018cc $t
-     /tmp/ccYnGPwe.s:3709   .text:00001af0 $d
-     /tmp/ccYnGPwe.s:3717   .text:00001b08 $t
-     /tmp/ccYnGPwe.s:4022   .text:00001de0 $d
-     /tmp/ccYnGPwe.s:4035   .text:00001e0c $t
-     /tmp/ccYnGPwe.s:4166   .text:00001f30 $d
-     /tmp/ccYnGPwe.s:4213   .bss:00000054 lastGyro.9162
-     /tmp/ccYnGPwe.s:4216   .bss:0000005c delta1.9163
-     /tmp/ccYnGPwe.s:4219   .bss:00000064 delta2.9164
+     /tmp/cc9gZA3M.s:170    .text:00000000 $t
+     /tmp/cc9gZA3M.s:175    .text:00000000 blinkLED
+     /tmp/cc9gZA3M.s:257    .text:00000078 $d
+     /tmp/cc9gZA3M.s:271    .text:00000080 $t
+     /tmp/cc9gZA3M.s:276    .text:00000080 annexCode
+     /tmp/cc9gZA3M.s:595    .text:00000314 $d
+     /tmp/cc9gZA3M.s:606    .text:00000338 $t
+     /tmp/cc9gZA3M.s:878    .text:00000598 $d
+     /tmp/cc9gZA3M.s:4229   .bss:000000bc vbatTimer.9095
+     /tmp/cc9gZA3M.s:4231   .bss:000000bd ind.9099
+     /tmp/cc9gZA3M.s:4234   .bss:000000c0 vbatRawArray.9101
+     /tmp/cc9gZA3M.s:4236   .bss:000000d0 buzzerFreq.9094
+     /tmp/cc9gZA3M.s:897    .text:000005dc $t
+     /tmp/cc9gZA3M.s:1087   .text:0000072c $d
+     /tmp/cc9gZA3M.s:4239   .bss:000000d4 LEDTime.9113
+     /tmp/cc9gZA3M.s:4242   .bss:000000d8 calibratedAccTime.9091
+     /tmp/cc9gZA3M.s:4245   .bss:000000dc GPSLEDTime.9114
+     /tmp/cc9gZA3M.s:1102   .text:0000075c $t
+     /tmp/cc9gZA3M.s:1107   .text:0000075c pwmReadRawRC
+     /tmp/cc9gZA3M.s:1161   .text:000007a4 $d
+     /tmp/cc9gZA3M.s:1165   .text:000007a8 $t
+     /tmp/cc9gZA3M.s:1170   .text:000007a8 computeRC
+     /tmp/cc9gZA3M.s:1333   .text:000008dc $d
+     /tmp/cc9gZA3M.s:4221   .bss:0000006a rc4ValuesIndex.9124
+     /tmp/cc9gZA3M.s:4224   .bss:0000006c rcData4Values.9122
+     /tmp/cc9gZA3M.s:4227   .bss:000000ac rcDataMean.9123
+     /tmp/cc9gZA3M.s:1341   .text:000008f0 $t
+     /tmp/cc9gZA3M.s:1345   .text:000008f0 mwArm
+     /tmp/cc9gZA3M.s:1402   .text:00000938 $d
+     /tmp/cc9gZA3M.s:1409   .text:00000948 $t
+     /tmp/cc9gZA3M.s:1413   .text:00000948 mwDisarm
+     /tmp/cc9gZA3M.s:1444   .text:00000964 $d
+     /tmp/cc9gZA3M.s:1448   .text:00000968 $t
+     /tmp/cc9gZA3M.s:1452   .text:00000968 mwVario
+     /tmp/cc9gZA3M.s:1479   .text:00000974 loop
+     /tmp/cc9gZA3M.s:1844   .text:00000c34 $d
+     /tmp/cc9gZA3M.s:4180   .bss:00000030 rcTime.9166
+     /tmp/cc9gZA3M.s:4182   .bss:00000034 rcSticks.9146
+     /tmp/cc9gZA3M.s:4184   .bss:00000035 rcDelayCommand.9145
+     /tmp/cc9gZA3M.s:4187   .bss:00000038 errorGyroI.9159
+     /tmp/cc9gZA3M.s:4190   .bss:00000040 errorAngleI.9160
+     /tmp/cc9gZA3M.s:1859   .text:00000c68 $t
+     /tmp/cc9gZA3M.s:2110   .text:00000e40 $d
+     /tmp/cc9gZA3M.s:2123   .text:00000e6c $t
+     /tmp/cc9gZA3M.s:2400   .text:000010b4 $d
+     /tmp/cc9gZA3M.s:2416   .text:000010ec $t
+     /tmp/cc9gZA3M.s:2752   .text:00001344 $d
+     /tmp/cc9gZA3M.s:4193   .bss:00000044 initialThrottleHold.9167
+     /tmp/cc9gZA3M.s:4198   .data:00000011 GPSNavReset.9171
+     /tmp/cc9gZA3M.s:2775   .text:0000139c $t
+     /tmp/cc9gZA3M.s:2849   .text:00001410 $d
+     /tmp/cc9gZA3M.s:2855   .text:00001420 $t
+     /tmp/cc9gZA3M.s:3102   .text:000015e0 $d
+     /tmp/cc9gZA3M.s:4202   .bss:00000048 taskOrder.9184
+     /tmp/cc9gZA3M.s:4205   .bss:0000004c loopTime.9168
+     /tmp/cc9gZA3M.s:3120   .text:00001620 $t
+     /tmp/cc9gZA3M.s:3436   .text:00001890 $d
+     /tmp/cc9gZA3M.s:4207   .bss:00000050 isAltHoldChanged.9191
+     /tmp/cc9gZA3M.s:4210   .bss:00000052 AltHoldCorr.9192
+     /tmp/cc9gZA3M.s:3453   .text:000018cc $t
+     /tmp/cc9gZA3M.s:3709   .text:00001af0 $d
+     /tmp/cc9gZA3M.s:3717   .text:00001b08 $t
+     /tmp/cc9gZA3M.s:4022   .text:00001de0 $d
+     /tmp/cc9gZA3M.s:4035   .text:00001e0c $t
+     /tmp/cc9gZA3M.s:4166   .text:00001f30 $d
+     /tmp/cc9gZA3M.s:4213   .bss:00000054 lastGyro.9162
+     /tmp/cc9gZA3M.s:4216   .bss:0000005c delta1.9163
+     /tmp/cc9gZA3M.s:4219   .bss:00000064 delta2.9164
                      .debug_frame:00000010 $d
-     /tmp/ccYnGPwe.s:4254   .text:00001f54 $t
+     /tmp/cc9gZA3M.s:4254   .text:00001f54 $t
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
                            .group:00000000 wm4.newlib.h.8.e1d498e57c12962fc6d7be5061a6981a

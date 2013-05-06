@@ -548,18 +548,18 @@
  443              		.file 4 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 drv_mpu3050.c
-     /tmp/ccPthpN4.s:21     .data:00000000 mpuLowPassFilter
-     /tmp/ccPthpN4.s:24     .text:00000000 $t
-     /tmp/ccPthpN4.s:29     .text:00000000 mpu3050Detect
-     /tmp/ccPthpN4.s:160    .text:000000c0 $d
-     /tmp/ccPthpN4.s:173    .text:000000d8 mpu3050Init
-     /tmp/ccPthpN4.s:301    .text:000001a4 mpu3050Read
-     /tmp/ccPthpN4.s:249    .text:00000164 mpu3050Align
-     /tmp/ccPthpN4.s:386    .text:00000238 mpu3050ReadTemp
-     /tmp/ccPthpN4.s:169    .text:000000d8 $t
-     /tmp/ccPthpN4.s:241    .text:00000160 $d
-     /tmp/ccPthpN4.s:245    .text:00000164 $t
-     /tmp/ccPthpN4.s:436    .text:00000290 $d
+     /tmp/cc8hlE0c.s:21     .data:00000000 mpuLowPassFilter
+     /tmp/cc8hlE0c.s:24     .text:00000000 $t
+     /tmp/cc8hlE0c.s:29     .text:00000000 mpu3050Detect
+     /tmp/cc8hlE0c.s:160    .text:000000c0 $d
+     /tmp/cc8hlE0c.s:173    .text:000000d8 mpu3050Init
+     /tmp/cc8hlE0c.s:301    .text:000001a4 mpu3050Read
+     /tmp/cc8hlE0c.s:249    .text:00000164 mpu3050Align
+     /tmp/cc8hlE0c.s:386    .text:00000238 mpu3050ReadTemp
+     /tmp/cc8hlE0c.s:169    .text:000000d8 $t
+     /tmp/cc8hlE0c.s:241    .text:00000160 $d
+     /tmp/cc8hlE0c.s:245    .text:00000164 $t
+     /tmp/cc8hlE0c.s:436    .text:00000290 $d
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2

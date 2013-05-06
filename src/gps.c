@@ -145,8 +145,9 @@ void navigatron2Init()
 	//Todo Init Navigatron here!
 	//If init successfull set GPS to present!
 	uint8_t ver=0xFF;
+	delay(3000);
 	i2cRead(NAVIGATRON_I2C_ADDR, I2C_GPS_REG_VERSION, 1, (uint8_t*)&ver);
-	if (ver==0x15)
+	if (ver==0x42)
 		GPS_Present = 1;
 }
 

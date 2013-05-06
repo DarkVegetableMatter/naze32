@@ -481,28 +481,28 @@
  396              		.file 4 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 spektrum.c
-     /tmp/ccOPMhoE.s:19     .bss:00000000 spek_chan_shift
-     /tmp/ccOPMhoE.s:20     .bss:00000000 $d
-     /tmp/ccOPMhoE.s:21     .bss:00000001 spek_chan_mask
-     /tmp/ccOPMhoE.s:23     .bss:00000002 rcFrameComplete
-     /tmp/ccOPMhoE.s:25     .bss:00000003 spekDataIncoming
+     /tmp/cc6tKpFb.s:19     .bss:00000000 spek_chan_shift
+     /tmp/cc6tKpFb.s:20     .bss:00000000 $d
+     /tmp/cc6tKpFb.s:21     .bss:00000001 spek_chan_mask
+     /tmp/cc6tKpFb.s:23     .bss:00000002 rcFrameComplete
+     /tmp/cc6tKpFb.s:25     .bss:00000003 spekDataIncoming
                             *COM*:00000010 spekFrame
-     /tmp/ccOPMhoE.s:29     .text:00000000 $t
-     /tmp/ccOPMhoE.s:34     .text:00000000 spektrumInit
-     /tmp/ccOPMhoE.s:83     .text:00000040 $d
-     /tmp/ccOPMhoE.s:94     .text:00000050 spektrumDataReceive
-     /tmp/ccOPMhoE.s:90     .text:00000050 $t
-     /tmp/ccOPMhoE.s:179    .text:000000cc $d
-     /tmp/ccOPMhoE.s:385    .bss:00000020 spekTimeLast.9042
-     /tmp/ccOPMhoE.s:388    .bss:00000024 spekTimeInterval.9043
-     /tmp/ccOPMhoE.s:390    .bss:00000028 spekFramePosition.9044
-     /tmp/ccOPMhoE.s:189    .text:000000e8 $t
-     /tmp/ccOPMhoE.s:194    .text:000000e8 spektrumFrameComplete
-     /tmp/ccOPMhoE.s:219    .text:000000f8 $d
-     /tmp/ccOPMhoE.s:223    .text:000000fc $t
-     /tmp/ccOPMhoE.s:228    .text:000000fc spektrumReadRawRC
-     /tmp/ccOPMhoE.s:370    .text:000001ec $d
-     /tmp/ccOPMhoE.s:382    .bss:00000004 spekChannelData.9052
+     /tmp/cc6tKpFb.s:29     .text:00000000 $t
+     /tmp/cc6tKpFb.s:34     .text:00000000 spektrumInit
+     /tmp/cc6tKpFb.s:83     .text:00000040 $d
+     /tmp/cc6tKpFb.s:94     .text:00000050 spektrumDataReceive
+     /tmp/cc6tKpFb.s:90     .text:00000050 $t
+     /tmp/cc6tKpFb.s:179    .text:000000cc $d
+     /tmp/cc6tKpFb.s:385    .bss:00000020 spekTimeLast.9042
+     /tmp/cc6tKpFb.s:388    .bss:00000024 spekTimeInterval.9043
+     /tmp/cc6tKpFb.s:390    .bss:00000028 spekFramePosition.9044
+     /tmp/cc6tKpFb.s:189    .text:000000e8 $t
+     /tmp/cc6tKpFb.s:194    .text:000000e8 spektrumFrameComplete
+     /tmp/cc6tKpFb.s:219    .text:000000f8 $d
+     /tmp/cc6tKpFb.s:223    .text:000000fc $t
+     /tmp/cc6tKpFb.s:228    .text:000000fc spektrumReadRawRC
+     /tmp/cc6tKpFb.s:370    .text:000001ec $d
+     /tmp/cc6tKpFb.s:382    .bss:00000004 spekChannelData.9052
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2

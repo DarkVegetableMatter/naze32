@@ -625,12 +625,12 @@
  500              		.file 5 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 drv_hmc5883l.c
-     /tmp/ccTtRgEb.s:18     .text:00000000 $t
-     /tmp/ccTtRgEb.s:23     .text:00000000 hmc5883lDetect
-     /tmp/ccTtRgEb.s:89     .text:00000050 hmc5883lInit
-     /tmp/ccTtRgEb.s:436    .text:0000031c hmc5883lRead
-     /tmp/ccTtRgEb.s:421    .text:00000300 $d
-     /tmp/ccTtRgEb.s:431    .text:0000031c $t
+     /tmp/ccDGCLAy.s:18     .text:00000000 $t
+     /tmp/ccDGCLAy.s:23     .text:00000000 hmc5883lDetect
+     /tmp/ccDGCLAy.s:89     .text:00000050 hmc5883lInit
+     /tmp/ccDGCLAy.s:436    .text:0000031c hmc5883lRead
+     /tmp/ccDGCLAy.s:421    .text:00000300 $d
+     /tmp/ccDGCLAy.s:431    .text:0000031c $t
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2

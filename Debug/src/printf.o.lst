@@ -1451,27 +1451,27 @@
  1215              		.file 4 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 printf.c
-     /tmp/ccbauNq1.s:19     .bss:00000000 $d
-     /tmp/ccbauNq1.s:20     .bss:00000000 stdout_putf
-     /tmp/ccbauNq1.s:23     .bss:00000004 stdout_putp
-     /tmp/ccbauNq1.s:26     .text:00000000 $t
-     /tmp/ccbauNq1.s:30     .text:00000000 uli2a
-     /tmp/ccbauNq1.s:164    .text:000000c0 li2a
-     /tmp/ccbauNq1.s:217    .text:00000104 ui2a
-     /tmp/ccbauNq1.s:350    .text:000001c4 i2a
-     /tmp/ccbauNq1.s:403    .text:00000208 a2d
-     /tmp/ccbauNq1.s:477    .text:00000260 a2i
-     /tmp/ccbauNq1.s:565    .text:000002d0 putchw
-     /tmp/ccbauNq1.s:690    .text:00000378 tfp_format
-     /tmp/ccbauNq1.s:1009   .text:000005e8 init_printf
-     /tmp/ccbauNq1.s:1044   .text:00000608 $d
-     /tmp/ccbauNq1.s:1049   .text:00000610 $t
-     /tmp/ccbauNq1.s:1054   .text:00000610 tfp_printf
-     /tmp/ccbauNq1.s:1110   .text:00000654 $d
-     /tmp/ccbauNq1.s:1115   .text:0000065c $t
-     /tmp/ccbauNq1.s:1119   .text:0000065c putcp
-     /tmp/ccbauNq1.s:1160   .text:00000684 tfp_sprintf
-     /tmp/ccbauNq1.s:1208   .text:000006c0 $d
+     /tmp/ccxdyQhy.s:19     .bss:00000000 $d
+     /tmp/ccxdyQhy.s:20     .bss:00000000 stdout_putf
+     /tmp/ccxdyQhy.s:23     .bss:00000004 stdout_putp
+     /tmp/ccxdyQhy.s:26     .text:00000000 $t
+     /tmp/ccxdyQhy.s:30     .text:00000000 uli2a
+     /tmp/ccxdyQhy.s:164    .text:000000c0 li2a
+     /tmp/ccxdyQhy.s:217    .text:00000104 ui2a
+     /tmp/ccxdyQhy.s:350    .text:000001c4 i2a
+     /tmp/ccxdyQhy.s:403    .text:00000208 a2d
+     /tmp/ccxdyQhy.s:477    .text:00000260 a2i
+     /tmp/ccxdyQhy.s:565    .text:000002d0 putchw
+     /tmp/ccxdyQhy.s:690    .text:00000378 tfp_format
+     /tmp/ccxdyQhy.s:1009   .text:000005e8 init_printf
+     /tmp/ccxdyQhy.s:1044   .text:00000608 $d
+     /tmp/ccxdyQhy.s:1049   .text:00000610 $t
+     /tmp/ccxdyQhy.s:1054   .text:00000610 tfp_printf
+     /tmp/ccxdyQhy.s:1110   .text:00000654 $d
+     /tmp/ccxdyQhy.s:1115   .text:0000065c $t
+     /tmp/ccxdyQhy.s:1119   .text:0000065c putcp
+     /tmp/ccxdyQhy.s:1160   .text:00000684 tfp_sprintf
+     /tmp/ccxdyQhy.s:1208   .text:000006c0 $d
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2

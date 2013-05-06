@@ -529,20 +529,20 @@
  429              		.file 5 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 drv_adxl345.c
-     /tmp/ccavRY4L.s:19     .bss:00000000 useFifo
-     /tmp/ccavRY4L.s:20     .bss:00000000 $d
-     /tmp/ccavRY4L.s:22     .text:00000000 $t
-     /tmp/ccavRY4L.s:27     .text:00000000 adxl345Detect
-     /tmp/ccavRY4L.s:104    .text:00000070 $d
-     /tmp/ccavRY4L.s:115    .text:00000080 adxl345Init
-     /tmp/ccavRY4L.s:213    .text:0000012c adxl345Read
-     /tmp/ccavRY4L.s:399    .text:0000027c adxl345Align
-     /tmp/ccavRY4L.s:111    .text:00000080 $t
-     /tmp/ccavRY4L.s:197    .text:00000124 $d
-     /tmp/ccavRY4L.s:206    .bss:00000001 acc_samples
-     /tmp/ccavRY4L.s:209    .text:0000012c $t
-     /tmp/ccavRY4L.s:390    .text:00000274 $d
-     /tmp/ccavRY4L.s:395    .text:0000027c $t
+     /tmp/cc9R1vU2.s:19     .bss:00000000 useFifo
+     /tmp/cc9R1vU2.s:20     .bss:00000000 $d
+     /tmp/cc9R1vU2.s:22     .text:00000000 $t
+     /tmp/cc9R1vU2.s:27     .text:00000000 adxl345Detect
+     /tmp/cc9R1vU2.s:104    .text:00000070 $d
+     /tmp/cc9R1vU2.s:115    .text:00000080 adxl345Init
+     /tmp/cc9R1vU2.s:213    .text:0000012c adxl345Read
+     /tmp/cc9R1vU2.s:399    .text:0000027c adxl345Align
+     /tmp/cc9R1vU2.s:111    .text:00000080 $t
+     /tmp/cc9R1vU2.s:197    .text:00000124 $d
+     /tmp/cc9R1vU2.s:206    .bss:00000001 acc_samples
+     /tmp/cc9R1vU2.s:209    .text:0000012c $t
+     /tmp/cc9R1vU2.s:390    .text:00000274 $d
+     /tmp/cc9R1vU2.s:395    .text:0000027c $t
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2

@@ -371,14 +371,14 @@
  324              		.file 4 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 drv_ledring.c
-     /tmp/ccgHMDvd.s:18     .text:00000000 $t
-     /tmp/ccgHMDvd.s:23     .text:00000000 ledringDetect
-     /tmp/ccgHMDvd.s:81     .text:00000048 ledringState
-     /tmp/ccgHMDvd.s:265    .text:000001ac $d
-     /tmp/ccgHMDvd.s:318    .bss:00000000 state.9036
-     /tmp/ccgHMDvd.s:273    .text:000001c0 $t
-     /tmp/ccgHMDvd.s:278    .text:000001c0 ledringBlink
-     /tmp/ccgHMDvd.s:319    .bss:00000000 $d
+     /tmp/cc1v2mkk.s:18     .text:00000000 $t
+     /tmp/cc1v2mkk.s:23     .text:00000000 ledringDetect
+     /tmp/cc1v2mkk.s:81     .text:00000048 ledringState
+     /tmp/cc1v2mkk.s:265    .text:000001ac $d
+     /tmp/cc1v2mkk.s:318    .bss:00000000 state.9036
+     /tmp/cc1v2mkk.s:273    .text:000001c0 $t
+     /tmp/cc1v2mkk.s:278    .text:000001c0 ledringBlink
+     /tmp/cc1v2mkk.s:319    .bss:00000000 $d
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2

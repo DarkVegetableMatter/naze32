@@ -461,17 +461,17 @@
  358              		.file 6 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 drv_mma845x.c
-     /tmp/ccMwRz8A.s:19     .bss:00000000 device_id
-     /tmp/ccMwRz8A.s:20     .bss:00000000 $d
-     /tmp/ccMwRz8A.s:22     .text:00000000 $t
-     /tmp/ccMwRz8A.s:27     .text:00000000 mma8452Detect
-     /tmp/ccMwRz8A.s:105    .text:00000070 $d
-     /tmp/ccMwRz8A.s:116    .text:00000080 mma8452Init
-     /tmp/ccMwRz8A.s:207    .text:0000013c mma8452Read
-     /tmp/ccMwRz8A.s:301    .text:000001e8 mma8452Align
-     /tmp/ccMwRz8A.s:112    .text:00000080 $t
-     /tmp/ccMwRz8A.s:198    .text:00000134 $d
-     /tmp/ccMwRz8A.s:203    .text:0000013c $t
+     /tmp/ccgDYO9Q.s:19     .bss:00000000 device_id
+     /tmp/ccgDYO9Q.s:20     .bss:00000000 $d
+     /tmp/ccgDYO9Q.s:22     .text:00000000 $t
+     /tmp/ccgDYO9Q.s:27     .text:00000000 mma8452Detect
+     /tmp/ccgDYO9Q.s:105    .text:00000070 $d
+     /tmp/ccgDYO9Q.s:116    .text:00000080 mma8452Init
+     /tmp/ccgDYO9Q.s:207    .text:0000013c mma8452Read
+     /tmp/ccgDYO9Q.s:301    .text:000001e8 mma8452Align
+     /tmp/ccgDYO9Q.s:112    .text:00000080 $t
+     /tmp/ccgDYO9Q.s:198    .text:00000134 $d
+     /tmp/ccgDYO9Q.s:203    .text:0000013c $t
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2

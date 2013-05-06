@@ -5487,38 +5487,37 @@ LOAD /home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/thumb2/crtn.o
                 0x08006e6c                uart2TransmitEmpty
                 0x08006e94                USART2_IRQHandler
  *fill*         0x08006f24        0x4 
- .text          0x08006f28     0x1fd8 ./src/gps.o
+ .text          0x08006f28     0x1fe0 ./src/gps.o
                 0x08006f28                navigatron2Init
-                0x08006f64                gpsInit
-                0x08007160                leadFilter_clear
-                0x0800717c                leadFilter_getPosition
-                0x08007448                GPS_NewData
-                0x0800784c                GPS_reset_home_position
-                0x080078a4                GPS_reset_nav
-                0x08007ae8                GPS_set_next_wp
-                0x08008370                wrap_18000
-                0x080083f4                GPS_coord_to_degrees
-                0x08008a8c                _update_checksum
- .text          0x08008f00     0x1360 ./src/imu.o
-                0x08008f00                imuInit
-                0x08008f7c                computeIMU
-                0x0800920c                rotateV
-                0x08009b08                applyDeadband16
-                0x08009b68                applyDeadbandFloat
-                0x08009c0c                InvSqrt
-                0x08009c78                isq
-                0x08009c94                getEstimatedAltitude
- .text          0x0800a260      0x2e8 ./src/main.o
-                0x0800a27c                main
-                0x0800a52c                HardFault_Handler
- .text          0x0800a548      0xd04 ./src/mixer.o
-                0x0800a548                mixerInit
-                0x0800a66c                mixerLoadMix
-                0x0800a714                writeServos
-                0x0800a80c                writeMotors
-                0x0800a850                writeAllMotors
-                0x0800a8a0                mixTable
- *fill*         0x0800b24c        0x4 
+                0x08006f6c                gpsInit
+                0x08007168                leadFilter_clear
+                0x08007184                leadFilter_getPosition
+                0x08007450                GPS_NewData
+                0x08007854                GPS_reset_home_position
+                0x080078ac                GPS_reset_nav
+                0x08007af0                GPS_set_next_wp
+                0x08008378                wrap_18000
+                0x080083fc                GPS_coord_to_degrees
+                0x08008a94                _update_checksum
+ .text          0x08008f08     0x1360 ./src/imu.o
+                0x08008f08                imuInit
+                0x08008f84                computeIMU
+                0x08009214                rotateV
+                0x08009b10                applyDeadband16
+                0x08009b70                applyDeadbandFloat
+                0x08009c14                InvSqrt
+                0x08009c80                isq
+                0x08009c9c                getEstimatedAltitude
+ .text          0x0800a268      0x2e4 ./src/main.o
+                0x0800a284                main
+                0x0800a530                HardFault_Handler
+ .text          0x0800a54c      0xd04 ./src/mixer.o
+                0x0800a54c                mixerInit
+                0x0800a670                mixerLoadMix
+                0x0800a718                writeServos
+                0x0800a810                writeMotors
+                0x0800a854                writeAllMotors
+                0x0800a8a4                mixTable
  .text          0x0800b250     0x1f58 ./src/mw.o
                 0x0800b250                blinkLED
                 0x0800b2d0                annexCode
@@ -6888,7 +6887,7 @@ OUTPUT(Naze32.elf elf32-littlearm)
  .debug_macro   0x00015a79      0x21a ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_usart.o
  .debug_macro   0x00015c93      0x148 ./lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/system_stm32f10x.o
 
-.debug_line     0x00000000    0x11a31
+.debug_line     0x00000000    0x11a32
  .debug_line    0x00000000      0x767 ./src/buzzer.o
  .debug_line    0x00000767      0xb41 ./src/cli.o
  .debug_line    0x000012a8      0x852 ./src/config.o
@@ -6907,28 +6906,28 @@ OUTPUT(Naze32.elf elf32-littlearm)
  .debug_line    0x00007241      0x7f2 ./src/drv_pwm.o
  .debug_line    0x00007a33      0x77e ./src/drv_system.o
  .debug_line    0x000081b1      0x78e ./src/drv_uart.o
- .debug_line    0x0000893f      0xb5a ./src/gps.o
- .debug_line    0x00009499      0x934 ./src/imu.o
- .debug_line    0x00009dcd      0x78c ./src/main.o
- .debug_line    0x0000a559      0x8df ./src/mixer.o
- .debug_line    0x0000ae38      0xb65 ./src/mw.o
- .debug_line    0x0000b99d      0x826 ./src/printf.o
- .debug_line    0x0000c1c3      0x89c ./src/sensors.o
- .debug_line    0x0000ca5f      0xa0c ./src/serial.o
- .debug_line    0x0000d46b      0x709 ./src/spektrum.o
- .debug_line    0x0000db74      0x7a4 ./src/telemetry.o
- .debug_line    0x0000e318       0xbd ./src/baseflight_startups/startup_stm32f10x_md_gcc.o
- .debug_line    0x0000e3d5      0x3ea ./lib/STM32F10x_StdPeriph_Driver/src/misc.o
- .debug_line    0x0000e7bf      0x51b ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_adc.o
- .debug_line    0x0000ecda      0x454 ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_dma.o
- .debug_line    0x0000f12e      0x419 ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_exti.o
- .debug_line    0x0000f547      0x54a ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_flash.o
- .debug_line    0x0000fa91      0x49e ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_gpio.o
- .debug_line    0x0000ff2f      0x4f0 ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_i2c.o
- .debug_line    0x0001041f      0x4fb ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rcc.o
- .debug_line    0x0001091a      0x7c4 ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_tim.o
- .debug_line    0x000110de      0x4e9 ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_usart.o
- .debug_line    0x000115c7      0x46a ./lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/system_stm32f10x.o
+ .debug_line    0x0000893f      0xb5b ./src/gps.o
+ .debug_line    0x0000949a      0x934 ./src/imu.o
+ .debug_line    0x00009dce      0x78c ./src/main.o
+ .debug_line    0x0000a55a      0x8df ./src/mixer.o
+ .debug_line    0x0000ae39      0xb65 ./src/mw.o
+ .debug_line    0x0000b99e      0x826 ./src/printf.o
+ .debug_line    0x0000c1c4      0x89c ./src/sensors.o
+ .debug_line    0x0000ca60      0xa0c ./src/serial.o
+ .debug_line    0x0000d46c      0x709 ./src/spektrum.o
+ .debug_line    0x0000db75      0x7a4 ./src/telemetry.o
+ .debug_line    0x0000e319       0xbd ./src/baseflight_startups/startup_stm32f10x_md_gcc.o
+ .debug_line    0x0000e3d6      0x3ea ./lib/STM32F10x_StdPeriph_Driver/src/misc.o
+ .debug_line    0x0000e7c0      0x51b ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_adc.o
+ .debug_line    0x0000ecdb      0x454 ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_dma.o
+ .debug_line    0x0000f12f      0x419 ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_exti.o
+ .debug_line    0x0000f548      0x54a ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_flash.o
+ .debug_line    0x0000fa92      0x49e ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_gpio.o
+ .debug_line    0x0000ff30      0x4f0 ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_i2c.o
+ .debug_line    0x00010420      0x4fb ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_rcc.o
+ .debug_line    0x0001091b      0x7c4 ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_tim.o
+ .debug_line    0x000110df      0x4e9 ./lib/STM32F10x_StdPeriph_Driver/src/stm32f10x_usart.o
+ .debug_line    0x000115c8      0x46a ./lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/system_stm32f10x.o
 
 .debug_str      0x00000000    0x5ad91
  .debug_str     0x00000000    0x504b7 ./src/buzzer.o

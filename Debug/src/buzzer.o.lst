@@ -757,26 +757,26 @@
  635              		.file 6 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 buzzer.c
-     /tmp/ccWafhrx.s:19     .bss:00000000 buzzerIsOn
-     /tmp/ccWafhrx.s:20     .bss:00000000 $d
-     /tmp/ccWafhrx.s:21     .bss:00000001 beepDone
-     /tmp/ccWafhrx.s:24     .bss:00000004 buzzerLastToggleTime
-     /tmp/ccWafhrx.s:27     .text:00000000 $t
-     /tmp/ccWafhrx.s:32     .text:00000000 buzzer
-     /tmp/ccWafhrx.s:330    .text:00000240 beep_code
-     /tmp/ccWafhrx.s:511    .text:0000036c beep
-     /tmp/ccWafhrx.s:312    .text:00000214 $d
-     /tmp/ccWafhrx.s:621    .bss:00000009 beeperOnBox.9040
-     /tmp/ccWafhrx.s:623    .bss:0000000a warn_failsafe.9042
-     /tmp/ccWafhrx.s:625    .bss:0000000b warn_noGPSfix.9041
-     /tmp/ccWafhrx.s:627    .bss:0000000c warn_runtime.9043
-     /tmp/ccWafhrx.s:326    .text:00000240 $t
-     /tmp/ccWafhrx.s:376    .text:0000027c $d
-     /tmp/ccWafhrx.s:389    .text:000002a8 $t
-     /tmp/ccWafhrx.s:498    .text:00000354 $d
-     /tmp/ccWafhrx.s:619    .bss:00000008 icnt.9052
-     /tmp/ccWafhrx.s:507    .text:0000036c $t
-     /tmp/ccWafhrx.s:610    .text:00000408 $d
+     /tmp/cc5cebvH.s:19     .bss:00000000 buzzerIsOn
+     /tmp/cc5cebvH.s:20     .bss:00000000 $d
+     /tmp/cc5cebvH.s:21     .bss:00000001 beepDone
+     /tmp/cc5cebvH.s:24     .bss:00000004 buzzerLastToggleTime
+     /tmp/cc5cebvH.s:27     .text:00000000 $t
+     /tmp/cc5cebvH.s:32     .text:00000000 buzzer
+     /tmp/cc5cebvH.s:330    .text:00000240 beep_code
+     /tmp/cc5cebvH.s:511    .text:0000036c beep
+     /tmp/cc5cebvH.s:312    .text:00000214 $d
+     /tmp/cc5cebvH.s:621    .bss:00000009 beeperOnBox.9040
+     /tmp/cc5cebvH.s:623    .bss:0000000a warn_failsafe.9042
+     /tmp/cc5cebvH.s:625    .bss:0000000b warn_noGPSfix.9041
+     /tmp/cc5cebvH.s:627    .bss:0000000c warn_runtime.9043
+     /tmp/cc5cebvH.s:326    .text:00000240 $t
+     /tmp/cc5cebvH.s:376    .text:0000027c $d
+     /tmp/cc5cebvH.s:389    .text:000002a8 $t
+     /tmp/cc5cebvH.s:498    .text:00000354 $d
+     /tmp/cc5cebvH.s:619    .bss:00000008 icnt.9052
+     /tmp/cc5cebvH.s:507    .text:0000036c $t
+     /tmp/cc5cebvH.s:610    .text:00000408 $d
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2

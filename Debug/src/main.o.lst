@@ -119,7 +119,7 @@
   45:../src/main.c ****     init_printf(NULL, _putc);
   78              		.loc 1 45 0
   79 0026 4FF00000 		mov	r0, #0
-  80 002a 9A49     		ldr	r1, .L25
+  80 002a 9949     		ldr	r1, .L24
   81 002c FFF7FEFF 		bl	init_printf
   46:../src/main.c **** 
   47:../src/main.c ****     checkFirstTime(false);
@@ -133,23 +133,23 @@
   50:../src/main.c ****     // configure power ADC
   51:../src/main.c ****     if (mcfg.power_adc_channel > 0 && (mcfg.power_adc_channel == 1 || mcfg.power_adc_channel == 9))
   87              		.loc 1 51 0
-  88 003c 964B     		ldr	r3, .L25+4
+  88 003c 954B     		ldr	r3, .L24+4
   89 003e 93F8FD30 		ldrb	r3, [r3, #253]	@ zero_extendqisi2
   90 0042 002B     		cmp	r3, #0
   91 0044 0ED0     		beq	.L3
   92              		.loc 1 51 0 is_stmt 0 discriminator 1
-  93 0046 944B     		ldr	r3, .L25+4
+  93 0046 934B     		ldr	r3, .L24+4
   94 0048 93F8FD30 		ldrb	r3, [r3, #253]	@ zero_extendqisi2
   95 004c 012B     		cmp	r3, #1
   96 004e 04D0     		beq	.L4
-  97 0050 914B     		ldr	r3, .L25+4
+  97 0050 904B     		ldr	r3, .L24+4
   98 0052 93F8FD30 		ldrb	r3, [r3, #253]	@ zero_extendqisi2
   99 0056 092B     		cmp	r3, #9
  100 0058 04D1     		bne	.L3
  101              	.L4:
   52:../src/main.c ****         adc_params.powerAdcChannel = mcfg.power_adc_channel;
  102              		.loc 1 52 0 is_stmt 1
- 103 005a 8F4B     		ldr	r3, .L25+4
+ 103 005a 8E4B     		ldr	r3, .L24+4
  104 005c 93F8FD30 		ldrb	r3, [r3, #253]	@ zero_extendqisi2
  105 0060 3B71     		strb	r3, [r7, #4]
  106 0062 07E0     		b	.L5
@@ -161,7 +161,7 @@
  110 0068 3B71     		strb	r3, [r7, #4]
   55:../src/main.c ****         mcfg.power_adc_channel = 0;
  111              		.loc 1 55 0
- 112 006a 8B4B     		ldr	r3, .L25+4
+ 112 006a 8A4B     		ldr	r3, .L24+4
  113 006c 4FF00002 		mov	r2, #0
  114 0070 83F8FD20 		strb	r2, [r3, #253]
  115              	.L5:
@@ -185,12 +185,12 @@
   64:../src/main.c ****     // when using airplane/wing mixer, servo/motor outputs are remapped
   65:../src/main.c ****     if (mcfg.mixerConfiguration == MULTITYPE_AIRPLANE || mcfg.mixerConfiguration == MULTITYPE_FLYIN
  125              		.loc 1 65 0
- 126 008a 834B     		ldr	r3, .L25+4
+ 126 008a 824B     		ldr	r3, .L24+4
  127 008c 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
  128 008e 0E2B     		cmp	r3, #14
  129 0090 03D0     		beq	.L6
  130              		.loc 1 65 0 is_stmt 0 discriminator 1
- 131 0092 814B     		ldr	r3, .L25+4
+ 131 0092 804B     		ldr	r3, .L24+4
  132 0094 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
  133 0096 082B     		cmp	r3, #8
  134 0098 03D1     		bne	.L7
@@ -255,7 +255,7 @@
  187 0102 3B72     		strb	r3, [r7, #8]
   72:../src/main.c ****     pwm_params.useServos = useServo;
  188              		.loc 1 72 0 discriminator 4
- 189 0104 654B     		ldr	r3, .L25+8
+ 189 0104 644B     		ldr	r3, .L24+8
  190 0106 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
  191 0108 002B     		cmp	r3, #0
  192 010a 0CBF     		ite	eq
@@ -265,7 +265,7 @@
  196 0112 FB72     		strb	r3, [r7, #11]
   73:../src/main.c ****     pwm_params.extraServos = cfg.gimbal_flags & GIMBAL_FORWARDAUX;
  197              		.loc 1 73 0 discriminator 4
- 198 0114 624B     		ldr	r3, .L25+12
+ 198 0114 614B     		ldr	r3, .L24+12
  199 0116 93F88230 		ldrb	r3, [r3, #130]	@ zero_extendqisi2
  200 011a 03F00803 		and	r3, r3, #8
  201 011e 002B     		cmp	r3, #0
@@ -276,24 +276,24 @@
  206 0128 3B73     		strb	r3, [r7, #12]
   74:../src/main.c ****     pwm_params.motorPwmRate = mcfg.motor_pwm_rate;
  207              		.loc 1 74 0 discriminator 4
- 208 012a 5B4B     		ldr	r3, .L25+4
+ 208 012a 5A4B     		ldr	r3, .L24+4
  209 012c B3F8D630 		ldrh	r3, [r3, #214]
  210 0130 3B82     		strh	r3, [r7, #16]	@ movhi
   75:../src/main.c ****     pwm_params.servoPwmRate = mcfg.servo_pwm_rate;
  211              		.loc 1 75 0 discriminator 4
- 212 0132 594B     		ldr	r3, .L25+4
+ 212 0132 584B     		ldr	r3, .L24+4
  213 0134 B3F8D830 		ldrh	r3, [r3, #216]
  214 0138 7B82     		strh	r3, [r7, #18]	@ movhi
   76:../src/main.c ****     switch (mcfg.power_adc_channel) {
  215              		.loc 1 76 0 discriminator 4
- 216 013a 574B     		ldr	r3, .L25+4
+ 216 013a 564B     		ldr	r3, .L24+4
  217 013c 93F8FD30 		ldrb	r3, [r3, #253]	@ zero_extendqisi2
  218 0140 012B     		cmp	r3, #1
  219 0142 02D0     		beq	.L13
  220 0144 092B     		cmp	r3, #9
  221 0146 04D0     		beq	.L14
  222              		.loc 1 76 0 is_stmt 0
- 223 0148 07E0     		b	.L24
+ 223 0148 07E0     		b	.L23
  224              	.L13:
   77:../src/main.c ****         case 1:
   78:../src/main.c ****             pwm_params.adcChannel = PWM2;
@@ -312,7 +312,7 @@
   82:../src/main.c ****             break;
  234              		.loc 1 82 0
  235 0158 03E0     		b	.L15
- 236              	.L24:
+ 236              	.L23:
   83:../src/main.c ****         default:
   84:../src/main.c ****             pwm_params.adcChannel = 0;
  237              		.loc 1 84 0
@@ -333,8 +333,8 @@
   90:../src/main.c ****     // configure PWM/CPPM read function. spektrum below will override that
   91:../src/main.c ****     rcReadRawFunc = pwmReadRawRC;
  247              		.loc 1 91 0
- 248 016c 4D4B     		ldr	r3, .L25+16
- 249 016e 4E4A     		ldr	r2, .L25+20
+ 248 016c 4C4B     		ldr	r3, .L24+16
+ 249 016e 4D4A     		ldr	r2, .L24+20
  250 0170 1A60     		str	r2, [r3, #0]
   92:../src/main.c **** 
   93:../src/main.c ****     if (feature(FEATURE_SPEKTRUM)) {
@@ -343,277 +343,272 @@
  253 0176 FFF7FEFF 		bl	feature
  254 017a 0346     		mov	r3, r0
  255 017c 002B     		cmp	r3, #0
- 256 017e 05D0     		beq	.L16
+ 256 017e 11D0     		beq	.L16
   94:../src/main.c ****         spektrumInit();
  257              		.loc 1 94 0
  258 0180 FFF7FEFF 		bl	spektrumInit
   95:../src/main.c ****         rcReadRawFunc = spektrumReadRawRC;
  259              		.loc 1 95 0
- 260 0184 474B     		ldr	r3, .L25+16
- 261 0186 494A     		ldr	r2, .L25+24
+ 260 0184 464B     		ldr	r3, .L24+16
+ 261 0186 484A     		ldr	r2, .L24+24
  262 0188 1A60     		str	r2, [r3, #0]
- 263 018a 0CE0     		b	.L17
- 264              	.L16:
-  96:../src/main.c ****     } else {
-  97:../src/main.c ****         // spektrum and GPS are mutually exclusive
-  98:../src/main.c ****         // Optional GPS - available in both PPM and PWM input mode, in PWM input, reduces number of
-  99:../src/main.c ****         if (feature(FEATURE_GPS))
- 265              		.loc 1 99 0
- 266 018c 4FF48070 		mov	r0, #256
- 267 0190 FFF7FEFF 		bl	feature
- 268 0194 0346     		mov	r3, r0
- 269 0196 002B     		cmp	r3, #0
- 270 0198 05D0     		beq	.L17
- 100:../src/main.c ****             gpsInit(mcfg.gps_baudrate);
- 271              		.loc 1 100 0
- 272 019a 3F4B     		ldr	r3, .L25+4
- 273 019c D3F81031 		ldr	r3, [r3, #272]
- 274 01a0 1846     		mov	r0, r3
- 275 01a2 FFF7FEFF 		bl	gpsInit
- 276              	.L17:
- 101:../src/main.c ****     }
- 102:../src/main.c **** #ifdef SONAR
- 103:../src/main.c ****     // sonar stuff only works with PPM
- 104:../src/main.c ****     if (feature(FEATURE_PPM)) {
- 277              		.loc 1 104 0
- 278 01a6 4FF00100 		mov	r0, #1
- 279 01aa FFF7FEFF 		bl	feature
- 280 01ae 0346     		mov	r3, r0
- 281 01b0 002B     		cmp	r3, #0
- 282 01b2 08D0     		beq	.L18
- 105:../src/main.c ****         if (feature(FEATURE_SONAR))
- 283              		.loc 1 105 0
- 284 01b4 4FF48060 		mov	r0, #1024
- 285 01b8 FFF7FEFF 		bl	feature
- 286 01bc 0346     		mov	r3, r0
- 287 01be 002B     		cmp	r3, #0
- 288 01c0 01D0     		beq	.L18
- 106:../src/main.c ****             Sonar_init();
- 289              		.loc 1 106 0
- 290 01c2 FFF7FEFF 		bl	Sonar_init
- 291              	.L18:
- 107:../src/main.c ****     }
- 108:../src/main.c **** #endif
- 109:../src/main.c **** 
- 110:../src/main.c ****     LED1_ON;
- 292              		.loc 1 110 0
- 293 01c6 3A4B     		ldr	r3, .L25+28
- 294 01c8 4FF01002 		mov	r2, #16
- 295 01cc 5A61     		str	r2, [r3, #20]
- 111:../src/main.c ****     LED0_OFF;
- 296              		.loc 1 111 0
- 297 01ce 384B     		ldr	r3, .L25+28
- 298 01d0 4FF00802 		mov	r2, #8
- 299 01d4 1A61     		str	r2, [r3, #16]
- 112:../src/main.c ****     for (i = 0; i < 10; i++) {
- 300              		.loc 1 112 0
- 301 01d6 4FF00003 		mov	r3, #0
- 302 01da FB75     		strb	r3, [r7, #23]
- 303 01dc 1FE0     		b	.L19
- 304              	.L20:
- 113:../src/main.c ****         LED1_TOGGLE;
- 305              		.loc 1 113 0 discriminator 2
- 306 01de 344B     		ldr	r3, .L25+28
- 307 01e0 334A     		ldr	r2, .L25+28
- 308 01e2 D268     		ldr	r2, [r2, #12]
- 309 01e4 82F01002 		eor	r2, r2, #16
- 310 01e8 DA60     		str	r2, [r3, #12]
- 114:../src/main.c ****         LED0_TOGGLE;
- 311              		.loc 1 114 0 discriminator 2
- 312 01ea 314B     		ldr	r3, .L25+28
- 313 01ec 304A     		ldr	r2, .L25+28
- 314 01ee D268     		ldr	r2, [r2, #12]
- 315 01f0 82F00802 		eor	r2, r2, #8
- 316 01f4 DA60     		str	r2, [r3, #12]
- 115:../src/main.c ****         delay(25);
- 317              		.loc 1 115 0 discriminator 2
- 318 01f6 4FF01900 		mov	r0, #25
- 319 01fa FFF7FEFF 		bl	delay
- 116:../src/main.c ****         BEEP_ON;
- 320              		.loc 1 116 0 discriminator 2
- 321 01fe 2D4B     		ldr	r3, .L25+32
- 322 0200 4FF48052 		mov	r2, #4096
- 323 0204 5A61     		str	r2, [r3, #20]
- 117:../src/main.c ****         delay(25);
- 324              		.loc 1 117 0 discriminator 2
- 325 0206 4FF01900 		mov	r0, #25
- 326 020a FFF7FEFF 		bl	delay
- 118:../src/main.c ****         BEEP_OFF;
- 327              		.loc 1 118 0 discriminator 2
- 328 020e 294B     		ldr	r3, .L25+32
- 329 0210 4FF48052 		mov	r2, #4096
- 330 0214 1A61     		str	r2, [r3, #16]
- 112:../src/main.c ****     for (i = 0; i < 10; i++) {
- 331              		.loc 1 112 0 discriminator 2
- 332 0216 FB7D     		ldrb	r3, [r7, #23]
- 333 0218 03F10103 		add	r3, r3, #1
- 334 021c FB75     		strb	r3, [r7, #23]
- 335              	.L19:
- 112:../src/main.c ****     for (i = 0; i < 10; i++) {
- 336              		.loc 1 112 0 is_stmt 0 discriminator 1
- 337 021e FB7D     		ldrb	r3, [r7, #23]	@ zero_extendqisi2
- 338 0220 092B     		cmp	r3, #9
- 339 0222 DCD9     		bls	.L20
- 119:../src/main.c ****     }
- 120:../src/main.c ****     LED0_OFF;
- 340              		.loc 1 120 0 is_stmt 1
- 341 0224 224B     		ldr	r3, .L25+28
- 342 0226 4FF00802 		mov	r2, #8
- 343 022a 1A61     		str	r2, [r3, #16]
- 121:../src/main.c ****     LED1_OFF;
- 344              		.loc 1 121 0
- 345 022c 204B     		ldr	r3, .L25+28
- 346 022e 4FF01002 		mov	r2, #16
- 347 0232 1A61     		str	r2, [r3, #16]
- 122:../src/main.c **** 
- 123:../src/main.c ****     // drop out any sensors that don't seem to work, init all the others. halt if gyro is dead.
- 124:../src/main.c ****     sensorsAutodetect();
- 348              		.loc 1 124 0
- 349 0234 FFF7FEFF 		bl	sensorsAutodetect
- 125:../src/main.c ****     imuInit(); // Mag is initialized inside imuInit
+  96:../src/main.c ****     if (feature(FEATURE_GPS))
+ 263              		.loc 1 96 0
+ 264 018a 4FF48070 		mov	r0, #256
+ 265 018e FFF7FEFF 		bl	feature
+ 266 0192 0346     		mov	r3, r0
+ 267 0194 002B     		cmp	r3, #0
+ 268 0196 05D0     		beq	.L16
+  97:../src/main.c ****         gpsInit(mcfg.gps_baudrate);
+ 269              		.loc 1 97 0
+ 270 0198 3E4B     		ldr	r3, .L24+4
+ 271 019a D3F81031 		ldr	r3, [r3, #272]
+ 272 019e 1846     		mov	r0, r3
+ 273 01a0 FFF7FEFF 		bl	gpsInit
+ 274              	.L16:
+  98:../src/main.c ****     }
+  99:../src/main.c **** #ifdef SONAR
+ 100:../src/main.c ****     // sonar stuff only works with PPM
+ 101:../src/main.c ****     if (feature(FEATURE_PPM)) {
+ 275              		.loc 1 101 0
+ 276 01a4 4FF00100 		mov	r0, #1
+ 277 01a8 FFF7FEFF 		bl	feature
+ 278 01ac 0346     		mov	r3, r0
+ 279 01ae 002B     		cmp	r3, #0
+ 280 01b0 08D0     		beq	.L17
+ 102:../src/main.c ****         if (feature(FEATURE_SONAR))
+ 281              		.loc 1 102 0
+ 282 01b2 4FF48060 		mov	r0, #1024
+ 283 01b6 FFF7FEFF 		bl	feature
+ 284 01ba 0346     		mov	r3, r0
+ 285 01bc 002B     		cmp	r3, #0
+ 286 01be 01D0     		beq	.L17
+ 103:../src/main.c ****             Sonar_init();
+ 287              		.loc 1 103 0
+ 288 01c0 FFF7FEFF 		bl	Sonar_init
+ 289              	.L17:
+ 104:../src/main.c ****     }
+ 105:../src/main.c **** #endif
+ 106:../src/main.c **** 
+ 107:../src/main.c ****     LED1_ON;
+ 290              		.loc 1 107 0
+ 291 01c4 394B     		ldr	r3, .L24+28
+ 292 01c6 4FF01002 		mov	r2, #16
+ 293 01ca 5A61     		str	r2, [r3, #20]
+ 108:../src/main.c ****     LED0_OFF;
+ 294              		.loc 1 108 0
+ 295 01cc 374B     		ldr	r3, .L24+28
+ 296 01ce 4FF00802 		mov	r2, #8
+ 297 01d2 1A61     		str	r2, [r3, #16]
+ 109:../src/main.c ****     for (i = 0; i < 10; i++) {
+ 298              		.loc 1 109 0
+ 299 01d4 4FF00003 		mov	r3, #0
+ 300 01d8 FB75     		strb	r3, [r7, #23]
+ 301 01da 1FE0     		b	.L18
+ 302              	.L19:
+ 110:../src/main.c ****         LED1_TOGGLE;
+ 303              		.loc 1 110 0 discriminator 2
+ 304 01dc 334B     		ldr	r3, .L24+28
+ 305 01de 334A     		ldr	r2, .L24+28
+ 306 01e0 D268     		ldr	r2, [r2, #12]
+ 307 01e2 82F01002 		eor	r2, r2, #16
+ 308 01e6 DA60     		str	r2, [r3, #12]
+ 111:../src/main.c ****         LED0_TOGGLE;
+ 309              		.loc 1 111 0 discriminator 2
+ 310 01e8 304B     		ldr	r3, .L24+28
+ 311 01ea 304A     		ldr	r2, .L24+28
+ 312 01ec D268     		ldr	r2, [r2, #12]
+ 313 01ee 82F00802 		eor	r2, r2, #8
+ 314 01f2 DA60     		str	r2, [r3, #12]
+ 112:../src/main.c ****         delay(25);
+ 315              		.loc 1 112 0 discriminator 2
+ 316 01f4 4FF01900 		mov	r0, #25
+ 317 01f8 FFF7FEFF 		bl	delay
+ 113:../src/main.c ****         BEEP_ON;
+ 318              		.loc 1 113 0 discriminator 2
+ 319 01fc 2C4B     		ldr	r3, .L24+32
+ 320 01fe 4FF48052 		mov	r2, #4096
+ 321 0202 5A61     		str	r2, [r3, #20]
+ 114:../src/main.c ****         delay(25);
+ 322              		.loc 1 114 0 discriminator 2
+ 323 0204 4FF01900 		mov	r0, #25
+ 324 0208 FFF7FEFF 		bl	delay
+ 115:../src/main.c ****         BEEP_OFF;
+ 325              		.loc 1 115 0 discriminator 2
+ 326 020c 284B     		ldr	r3, .L24+32
+ 327 020e 4FF48052 		mov	r2, #4096
+ 328 0212 1A61     		str	r2, [r3, #16]
+ 109:../src/main.c ****     for (i = 0; i < 10; i++) {
+ 329              		.loc 1 109 0 discriminator 2
+ 330 0214 FB7D     		ldrb	r3, [r7, #23]
+ 331 0216 03F10103 		add	r3, r3, #1
+ 332 021a FB75     		strb	r3, [r7, #23]
+ 333              	.L18:
+ 109:../src/main.c ****     for (i = 0; i < 10; i++) {
+ 334              		.loc 1 109 0 is_stmt 0 discriminator 1
+ 335 021c FB7D     		ldrb	r3, [r7, #23]	@ zero_extendqisi2
+ 336 021e 092B     		cmp	r3, #9
+ 337 0220 DCD9     		bls	.L19
+ 116:../src/main.c ****     }
+ 117:../src/main.c ****     LED0_OFF;
+ 338              		.loc 1 117 0 is_stmt 1
+ 339 0222 224B     		ldr	r3, .L24+28
+ 340 0224 4FF00802 		mov	r2, #8
+ 341 0228 1A61     		str	r2, [r3, #16]
+ 118:../src/main.c ****     LED1_OFF;
+ 342              		.loc 1 118 0
+ 343 022a 204B     		ldr	r3, .L24+28
+ 344 022c 4FF01002 		mov	r2, #16
+ 345 0230 1A61     		str	r2, [r3, #16]
+ 119:../src/main.c **** 
+ 120:../src/main.c ****     // drop out any sensors that don't seem to work, init all the others. halt if gyro is dead.
+ 121:../src/main.c ****     sensorsAutodetect();
+ 346              		.loc 1 121 0
+ 347 0232 FFF7FEFF 		bl	sensorsAutodetect
+ 122:../src/main.c ****     imuInit(); // Mag is initialized inside imuInit
+ 348              		.loc 1 122 0
+ 349 0236 FFF7FEFF 		bl	imuInit
+ 123:../src/main.c **** 
+ 124:../src/main.c ****     // Check battery type/voltage
+ 125:../src/main.c ****     if (feature(FEATURE_VBAT))
  350              		.loc 1 125 0
- 351 0238 FFF7FEFF 		bl	imuInit
- 126:../src/main.c **** 
- 127:../src/main.c ****     // Check battery type/voltage
- 128:../src/main.c ****     if (feature(FEATURE_VBAT))
- 352              		.loc 1 128 0
- 353 023c 4FF00200 		mov	r0, #2
- 354 0240 FFF7FEFF 		bl	feature
- 355 0244 0346     		mov	r3, r0
- 356 0246 002B     		cmp	r3, #0
- 357 0248 01D0     		beq	.L21
- 129:../src/main.c ****         batteryInit();
- 358              		.loc 1 129 0
- 359 024a FFF7FEFF 		bl	batteryInit
- 360              	.L21:
- 130:../src/main.c **** 
- 131:../src/main.c ****     serialInit(mcfg.serial_baudrate);
- 361              		.loc 1 131 0
- 362 024e 124B     		ldr	r3, .L25+4
- 363 0250 D3F81431 		ldr	r3, [r3, #276]
- 364 0254 1846     		mov	r0, r3
- 365 0256 FFF7FEFF 		bl	serialInit
- 132:../src/main.c **** 
- 133:../src/main.c ****     previousTime = micros();
- 366              		.loc 1 133 0
- 367 025a FFF7FEFF 		bl	micros
- 368 025e 0246     		mov	r2, r0
- 369 0260 154B     		ldr	r3, .L25+36
- 370 0262 1A60     		str	r2, [r3, #0]
- 134:../src/main.c ****     if (mcfg.mixerConfiguration == MULTITYPE_GIMBAL)
- 371              		.loc 1 134 0
- 372 0264 0C4B     		ldr	r3, .L25+4
- 373 0266 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
- 374 0268 052B     		cmp	r3, #5
- 375 026a 03D1     		bne	.L22
- 135:../src/main.c ****         calibratingA = 400;
- 376              		.loc 1 135 0
- 377 026c 134B     		ldr	r3, .L25+40
- 378 026e 4FF4C872 		mov	r2, #400
- 379 0272 1A80     		strh	r2, [r3, #0]	@ movhi
- 380              	.L22:
- 136:../src/main.c ****     calibratingG = 1000;
- 381              		.loc 1 136 0
- 382 0274 124B     		ldr	r3, .L25+44
- 383 0276 4FF47A72 		mov	r2, #1000
- 384 027a 1A80     		strh	r2, [r3, #0]	@ movhi
- 137:../src/main.c ****     calibratingB = 200;             // 10 seconds init_delay + 200 * 25 ms = 15 seconds before grou
- 385              		.loc 1 137 0
- 386 027c 114B     		ldr	r3, .L25+48
- 387 027e 4FF0C802 		mov	r2, #200
- 388 0282 1A80     		strh	r2, [r3, #0]	@ movhi
- 138:../src/main.c ****     f.SMALL_ANGLES_25 = 1;
- 389              		.loc 1 138 0
- 390 0284 104B     		ldr	r3, .L25+52
- 391 0286 4FF00102 		mov	r2, #1
- 392 028a 5A73     		strb	r2, [r3, #13]
- 393              	.L23:
- 139:../src/main.c **** 
- 140:../src/main.c ****     // loopy
- 141:../src/main.c ****     while (1) {
- 142:../src/main.c ****         loop();
- 394              		.loc 1 142 0 discriminator 1
- 395 028c FFF7FEFF 		bl	loop
- 143:../src/main.c ****     }
- 396              		.loc 1 143 0 discriminator 1
- 397 0290 FCE7     		b	.L23
- 398              	.L26:
- 399 0292 00BF     		.align	2
- 400              	.L25:
- 401 0294 00000000 		.word	_putc
- 402 0298 00000000 		.word	mcfg
- 403 029c 00000000 		.word	useServo
- 404 02a0 00000000 		.word	cfg
- 405 02a4 00000000 		.word	rcReadRawFunc
- 406 02a8 00000000 		.word	pwmReadRawRC
- 407 02ac 00000000 		.word	spektrumReadRawRC
- 408 02b0 000C0140 		.word	1073810432
- 409 02b4 00080140 		.word	1073809408
- 410 02b8 00000000 		.word	previousTime
- 411 02bc 00000000 		.word	calibratingA
- 412 02c0 00000000 		.word	calibratingG
- 413 02c4 00000000 		.word	calibratingB
- 414 02c8 00000000 		.word	f
- 415              		.cfi_endproc
- 416              	.LFE30:
- 418              		.align	2
- 419              		.global	HardFault_Handler
- 420              		.thumb
- 421              		.thumb_func
- 423              	HardFault_Handler:
- 424              	.LFB31:
- 144:../src/main.c **** }
- 145:../src/main.c **** 
- 146:../src/main.c **** void HardFault_Handler(void)
- 147:../src/main.c **** {
- 425              		.loc 1 147 0
- 426              		.cfi_startproc
- 427              		@ args = 0, pretend = 0, frame = 0
- 428              		@ frame_needed = 1, uses_anonymous_args = 0
- 429 02cc 80B5     		push	{r7, lr}
- 430              	.LCFI6:
- 431              		.cfi_def_cfa_offset 8
- 432              		.cfi_offset 7, -8
- 433              		.cfi_offset 14, -4
- 434 02ce 00AF     		add	r7, sp, #0
- 435              	.LCFI7:
- 436              		.cfi_def_cfa_register 7
- 148:../src/main.c ****     // fall out of the sky
- 149:../src/main.c ****     writeAllMotors(mcfg.mincommand);
- 437              		.loc 1 149 0
- 438 02d0 044B     		ldr	r3, .L29
- 439 02d2 B3F8D430 		ldrh	r3, [r3, #212]
- 440 02d6 9BB2     		uxth	r3, r3
- 441 02d8 1BB2     		sxth	r3, r3
- 442 02da 1846     		mov	r0, r3
- 443 02dc FFF7FEFF 		bl	writeAllMotors
- 444              	.L28:
- 150:../src/main.c ****     while (1);
- 445              		.loc 1 150 0 discriminator 1
- 446 02e0 FEE7     		b	.L28
- 447              	.L30:
- 448 02e2 00BF     		.align	2
- 449              	.L29:
- 450 02e4 00000000 		.word	mcfg
- 451              		.cfi_endproc
- 452              	.LFE31:
- 454              	.Letext0:
- 455              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
- 456              		.file 3 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/stm32f10x.h"
- 457              		.file 4 "../src/board.h"
- 458              		.file 5 "../src/drv_adc.h"
- 459              		.file 6 "../src/drv_pwm.h"
- 460              		.file 7 "../src/mw.h"
- 461              		.file 8 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
+ 351 023a 4FF00200 		mov	r0, #2
+ 352 023e FFF7FEFF 		bl	feature
+ 353 0242 0346     		mov	r3, r0
+ 354 0244 002B     		cmp	r3, #0
+ 355 0246 01D0     		beq	.L20
+ 126:../src/main.c ****         batteryInit();
+ 356              		.loc 1 126 0
+ 357 0248 FFF7FEFF 		bl	batteryInit
+ 358              	.L20:
+ 127:../src/main.c **** 
+ 128:../src/main.c ****     serialInit(mcfg.serial_baudrate);
+ 359              		.loc 1 128 0
+ 360 024c 114B     		ldr	r3, .L24+4
+ 361 024e D3F81431 		ldr	r3, [r3, #276]
+ 362 0252 1846     		mov	r0, r3
+ 363 0254 FFF7FEFF 		bl	serialInit
+ 129:../src/main.c **** 
+ 130:../src/main.c ****     previousTime = micros();
+ 364              		.loc 1 130 0
+ 365 0258 FFF7FEFF 		bl	micros
+ 366 025c 0246     		mov	r2, r0
+ 367 025e 154B     		ldr	r3, .L24+36
+ 368 0260 1A60     		str	r2, [r3, #0]
+ 131:../src/main.c ****     if (mcfg.mixerConfiguration == MULTITYPE_GIMBAL)
+ 369              		.loc 1 131 0
+ 370 0262 0C4B     		ldr	r3, .L24+4
+ 371 0264 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 372 0266 052B     		cmp	r3, #5
+ 373 0268 03D1     		bne	.L21
+ 132:../src/main.c ****         calibratingA = 400;
+ 374              		.loc 1 132 0
+ 375 026a 134B     		ldr	r3, .L24+40
+ 376 026c 4FF4C872 		mov	r2, #400
+ 377 0270 1A80     		strh	r2, [r3, #0]	@ movhi
+ 378              	.L21:
+ 133:../src/main.c ****     calibratingG = 1000;
+ 379              		.loc 1 133 0
+ 380 0272 124B     		ldr	r3, .L24+44
+ 381 0274 4FF47A72 		mov	r2, #1000
+ 382 0278 1A80     		strh	r2, [r3, #0]	@ movhi
+ 134:../src/main.c ****     calibratingB = 200;             // 10 seconds init_delay + 200 * 25 ms = 15 seconds before grou
+ 383              		.loc 1 134 0
+ 384 027a 114B     		ldr	r3, .L24+48
+ 385 027c 4FF0C802 		mov	r2, #200
+ 386 0280 1A80     		strh	r2, [r3, #0]	@ movhi
+ 135:../src/main.c ****     f.SMALL_ANGLES_25 = 1;
+ 387              		.loc 1 135 0
+ 388 0282 104B     		ldr	r3, .L24+52
+ 389 0284 4FF00102 		mov	r2, #1
+ 390 0288 5A73     		strb	r2, [r3, #13]
+ 391              	.L22:
+ 136:../src/main.c **** 
+ 137:../src/main.c ****     // loopy
+ 138:../src/main.c ****     while (1) {
+ 139:../src/main.c ****         loop();
+ 392              		.loc 1 139 0 discriminator 1
+ 393 028a FFF7FEFF 		bl	loop
+ 140:../src/main.c ****     }
+ 394              		.loc 1 140 0 discriminator 1
+ 395 028e FCE7     		b	.L22
+ 396              	.L25:
+ 397              		.align	2
+ 398              	.L24:
+ 399 0290 00000000 		.word	_putc
+ 400 0294 00000000 		.word	mcfg
+ 401 0298 00000000 		.word	useServo
+ 402 029c 00000000 		.word	cfg
+ 403 02a0 00000000 		.word	rcReadRawFunc
+ 404 02a4 00000000 		.word	pwmReadRawRC
+ 405 02a8 00000000 		.word	spektrumReadRawRC
+ 406 02ac 000C0140 		.word	1073810432
+ 407 02b0 00080140 		.word	1073809408
+ 408 02b4 00000000 		.word	previousTime
+ 409 02b8 00000000 		.word	calibratingA
+ 410 02bc 00000000 		.word	calibratingG
+ 411 02c0 00000000 		.word	calibratingB
+ 412 02c4 00000000 		.word	f
+ 413              		.cfi_endproc
+ 414              	.LFE30:
+ 416              		.align	2
+ 417              		.global	HardFault_Handler
+ 418              		.thumb
+ 419              		.thumb_func
+ 421              	HardFault_Handler:
+ 422              	.LFB31:
+ 141:../src/main.c **** }
+ 142:../src/main.c **** 
+ 143:../src/main.c **** void HardFault_Handler(void)
+ 144:../src/main.c **** {
+ 423              		.loc 1 144 0
+ 424              		.cfi_startproc
+ 425              		@ args = 0, pretend = 0, frame = 0
+ 426              		@ frame_needed = 1, uses_anonymous_args = 0
+ 427 02c8 80B5     		push	{r7, lr}
+ 428              	.LCFI6:
+ 429              		.cfi_def_cfa_offset 8
+ 430              		.cfi_offset 7, -8
+ 431              		.cfi_offset 14, -4
+ 432 02ca 00AF     		add	r7, sp, #0
+ 433              	.LCFI7:
+ 434              		.cfi_def_cfa_register 7
+ 145:../src/main.c ****     // fall out of the sky
+ 146:../src/main.c ****     writeAllMotors(mcfg.mincommand);
+ 435              		.loc 1 146 0
+ 436 02cc 044B     		ldr	r3, .L28
+ 437 02ce B3F8D430 		ldrh	r3, [r3, #212]
+ 438 02d2 9BB2     		uxth	r3, r3
+ 439 02d4 1BB2     		sxth	r3, r3
+ 440 02d6 1846     		mov	r0, r3
+ 441 02d8 FFF7FEFF 		bl	writeAllMotors
+ 442              	.L27:
+ 147:../src/main.c ****     while (1);
+ 443              		.loc 1 147 0 discriminator 1
+ 444 02dc FEE7     		b	.L27
+ 445              	.L29:
+ 446 02de 00BF     		.align	2
+ 447              	.L28:
+ 448 02e0 00000000 		.word	mcfg
+ 449              		.cfi_endproc
+ 450              	.LFE31:
+ 452              	.Letext0:
+ 453              		.file 2 "/home/oni/ARM_EABI/bin/../lib/gcc/arm-none-eabi/4.7.2/../../../../arm-none-eabi/include/s
+ 454              		.file 3 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/DeviceSupport/ST/STM32F10x/stm32f10x.h"
+ 455              		.file 4 "../src/board.h"
+ 456              		.file 5 "../src/drv_adc.h"
+ 457              		.file 6 "../src/drv_pwm.h"
+ 458              		.file 7 "../src/mw.h"
+ 459              		.file 8 "/home/oni/workspace/Naze32/lib/CMSIS/CM3/CoreSupport/core_cm3.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 main.c
-     /tmp/ccLF5fie.s:18     .text:00000000 $t
-     /tmp/ccLF5fie.s:22     .text:00000000 _putc
-     /tmp/ccLF5fie.s:59     .text:0000001c main
-     /tmp/ccLF5fie.s:401    .text:00000294 $d
-     /tmp/ccLF5fie.s:418    .text:000002cc $t
-     /tmp/ccLF5fie.s:423    .text:000002cc HardFault_Handler
-     /tmp/ccLF5fie.s:450    .text:000002e4 $d
+     /tmp/ccAuJybt.s:18     .text:00000000 $t
+     /tmp/ccAuJybt.s:22     .text:00000000 _putc
+     /tmp/ccAuJybt.s:59     .text:0000001c main
+     /tmp/ccAuJybt.s:399    .text:00000290 $d
+     /tmp/ccAuJybt.s:416    .text:000002c8 $t
+     /tmp/ccAuJybt.s:421    .text:000002c8 HardFault_Handler
+     /tmp/ccAuJybt.s:448    .text:000002e0 $d
                      .debug_frame:00000010 $d
                            .group:00000000 wm4.1.809c0ff785d6d6219236c5d51f444c16
                            .group:00000000 wm4.stdbool.h.29.1c9ee6859ce8145f7838a4f2549ccec2
